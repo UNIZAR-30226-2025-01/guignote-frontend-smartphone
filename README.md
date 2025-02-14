@@ -36,7 +36,7 @@ git clone https://github.com/UNIZAR-30226-2025-01/guignote-frontend-smartphone
 cd guignote-frontend-smartphone
 ```
 
-## instalación de Dependencias
+## Instalación de Dependencias
 
 1. Asegúrate de tener instalado Flutter. Si no lo tienes, puedes instalarlo siguiendo las instrucciones de la [documentación oficial de Flutter](https://docs.flutter.dev/get-started/install?_gl=1*qgu9hf*_ga*MTEzNTAzMjY5My4xNzM5MDA5ODkz*_ga_04YGWK0175*MTczOTAwOTg5NC4xLjAuMTczOTAwOTg5NC4wLjAuMA..).
 
