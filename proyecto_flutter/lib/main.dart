@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/login_screen.dart';
@@ -13,9 +14,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Guiñote App',
+      debugShowCheckedModeBanner: !kReleaseMode,
+      title: 'Sota, Caballo Y Rey',
       theme: ThemeData(
-        primarySwatch: Colors.green, // Puedes cambiarlo luego
+        colorScheme: ColorScheme.dark(), 
       ),
       initialRoute: '/',
       routes: {

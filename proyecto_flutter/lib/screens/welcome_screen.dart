@@ -13,71 +13,98 @@ class WelcomeScreen extends StatelessWidget
     return Scaffold
     (
       backgroundColor: Colors.transparent,
-      body:SafeArea
+      body:Stack
       (
-        child:Container
-        (
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration
+        children:
+        [
+          // Fondo principal:
+          Container
           (
-            gradient: RadialGradient
-            (
-              colors: [Color(0XAA1F5A1F),Color(0XAA0A2A08)],
-              center: Alignment.center,
-              radius: 1.8,
-              stops: [0.5, 1.0],
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 30), // Espaciado general
-          
-          child: Container
-          (
-            height: 30,
+            width: double.infinity,
+            height: double.infinity,
             decoration: BoxDecoration
             (
-              color: Color(0XFF171718),
-            ),
-            child: Column
-            ( 
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children:
-              [
-                // Título APP
-                Text
-                (
-                  'Sota, Caballo y Rey',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins
-                  (
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                // Logo centrado con espacio superior.
-                Image.asset
-                (
-                  'assets/app_logo_white.png', // Logo APP.
-                  height: 100,
-                  cacheWidth: 500,
-                  
-                ),
-                const SizedBox(height: 30),
-                // Botón para iniciar sesión.
-                _buildButton(context, 'Iniciar Sesión', '/login'),
-                const SizedBox(height: 20),
-
-                // Botón para registrarse.
-                _buildButton(context, 'Registrarse', '/register'),
-              ],
+              gradient: RadialGradient
+              (
+                colors: [Color(0XAA1F5A1F),Color(0XAA0A2A08)],
+                center: Alignment.center,
+                radius: 1.8,
+                stops: [0.5, 1.0],
+              ),
             ),
           ),
-        ),
+          
+          Center
+          (
+            child: Container
+            (
+              padding: const EdgeInsets.all(20), // Espaciado interno
+              decoration: BoxDecoration
+              (
+                color: Color(0XFF171718),
+                borderRadius:  BorderRadius.circular(15),
+              ),
+              child: Column
+              ( 
+                mainAxisSize: MainAxisSize.min, // Para que ocupe solo lo necesario
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children:
+                [
+                  // Título APP
+                  Text
+                  (
+                    'SOTA, CABALLO Y REY',
+                    textAlign: TextAlign.center,
+                    style: TextStyle
+                    (
+                      fontFamily: 'tituloApp',
+                      fontSize: 32,
+                      color: Colors.white,
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // Logo centrado con espacio superior.
+                  Image.asset
+                  (
+                    'assets/app_logo_white.png', // Logo APP.
+                    height: 100,
+                    cacheWidth: 500,
+                    
+                  ),
+                  const SizedBox(height: 30),
+                  // Botón para iniciar sesión.
+                  _buildButton(context, 'Iniciar Sesión', '/login'),
+                  const SizedBox(height: 20),
+
+                  // Botón para registrarse.
+                  _buildButton(context, 'Registrarse', '/register'),
+                ],
+              ),
+            ),
+          ),
+
+          // Por último añadimos las decoraciones de las esquinas
+          Positioned(top:0, left:0, child: Image.asset('assets/gold_ornaments.png', width: 100)),
+          Positioned(top:0, right: 0, child: Transform.flip
+          (
+            flipX: true,
+            child: Image.asset('assets/gold_ornaments.png', width: 100),
+          )),
+          Positioned(bottom:0, left: 0, child: Transform.flip
+          (
+            flipY: true,
+            child: Image.asset('assets/gold_ornaments.png', width: 100),
+          )),
+          Positioned(bottom:0, right: 0, child: Transform.flip
+          (
+            flipY: true,
+            flipX: true,
+            child: Image.asset('assets/gold_ornaments.png', width: 100),
+          )),          
+        ],
       ),
     );
   }
@@ -95,7 +122,7 @@ class WelcomeScreen extends StatelessWidget
         (
           foregroundColor:  Colors.black,
           padding: const EdgeInsets.symmetric(vertical: 14),
-          backgroundColor: Colors.grey,
+          backgroundColor: Colors.grey.shade400,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
 
           textStyle: GoogleFonts.poppins
