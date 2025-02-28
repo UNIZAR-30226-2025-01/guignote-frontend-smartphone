@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Guiñote App',
       theme: ThemeData(
-        primarySwatch: Colors.blue, // Puedes cambiarlo luego
+        primarySwatch: Colors.green, // Puedes cambiarlo luego
       ),
       initialRoute: '/',
       routes: {

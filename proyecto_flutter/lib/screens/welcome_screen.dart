@@ -6,7 +6,7 @@ class WelcomeScreen extends StatelessWidget
 {
   const WelcomeScreen({super.key});
 
-  @override
+  
  @override
   Widget build(BuildContext context) 
   {
@@ -21,63 +21,61 @@ class WelcomeScreen extends StatelessWidget
           height: double.infinity,
           decoration: BoxDecoration
           (
-            gradient: LinearGradient
+            gradient: RadialGradient
             (
-              colors: [Colors.blue.shade200, Colors.blueAccent],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              colors: [Color(0XAA1F5A1F),Color(0XAA0A2A08)],
+              center: Alignment.center,
+              radius: 1.8,
+              stops: [0.5, 1.0],
             ),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 30), // Espaciado general
-          child: Column
+          
+          child: Container
           (
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children:
-            [
-              // Logo centrado con espacio superior.
-              Image.asset
-              (
-                'assets/logo2.png', // Logo APP.
-                height: 120,
-                cacheWidth: 500,
-              ),
-              const SizedBox(height: 40), // Espacio entre logo y título.
-
-              // Título APP
-              Text
-              (
-                'Sota, Caballo y Rey',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins
+            height: 30,
+            decoration: BoxDecoration
+            (
+              color: Color(0XFF171718),
+            ),
+            child: Column
+            ( 
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children:
+              [
+                // Título APP
+                Text
                 (
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  'Sota, Caballo y Rey',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins
+                  (
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
 
-              // Subtítulo 
-              Text
-              (
-                'El Guiñote de siempre, pero mejor que nunca.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins
+                const SizedBox(height: 30),
+
+                // Logo centrado con espacio superior.
+                Image.asset
                 (
-                  fontSize: 16,
-                  color: Colors.white70,
+                  'assets/app_logo_white.png', // Logo APP.
+                  height: 100,
+                  cacheWidth: 500,
+                  
                 ),
-              ),
-              const SizedBox(height: 50), // Espacio antes de los botones.
+                const SizedBox(height: 30),
+                // Botón para iniciar sesión.
+                _buildButton(context, 'Iniciar Sesión', '/login'),
+                const SizedBox(height: 20),
 
-              // Botón para iniciar sesión.
-              _buildButton(context, 'Iniciar Sesión', '/login'),
-              const SizedBox(height: 20),
-
-              // Botón para registrarse.
-              _buildButton(context, 'Registrarse', '/register'),
-            ],
+                // Botón para registrarse.
+                _buildButton(context, 'Registrarse', '/register'),
+              ],
+            ),
           ),
         ),
       ),
@@ -90,15 +88,16 @@ class WelcomeScreen extends StatelessWidget
   {
     return SizedBox
     (
-      width: double.infinity, // Que ocupe todo el ancho disponible.
+      width: 250, // Que ocupe todo el ancho disponible.
       child: ElevatedButton
       (
         style: ElevatedButton.styleFrom
         (
-          foregroundColor:  Colors.blueAccent,
+          foregroundColor:  Colors.black,
           padding: const EdgeInsets.symmetric(vertical: 14),
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          backgroundColor: Colors.grey,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+
           textStyle: GoogleFonts.poppins
           (
             fontSize: 18,

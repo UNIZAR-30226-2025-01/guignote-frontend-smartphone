@@ -14,13 +14,13 @@ class RegisterScreen extends StatefulWidget
 
 class RegisterScreenState extends State<RegisterScreen>
 {
-  bool _ocultarpasswd = true; // La opción típica de ocultar contraseña ******.
-  bool _ocultarconfirmPasswd = true; // Lo mismo para la confirmación.
+//  bool _ocultarpasswd = true; // La opción típica de ocultar contraseña ******.
+  //bool _ocultarconfirmPasswd = true; // Lo mismo para la confirmación.
 
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwdController = TextEditingController();
-  final TextEditingController _confirmPasswdController = TextEditingController();
+  // final TextEditingController _passwdController = TextEditingController();
+  //final TextEditingController _confirmPasswdController = TextEditingController();
 
 
   @override
@@ -127,7 +127,7 @@ class RegisterScreenState extends State<RegisterScreen>
   }
 
   // Wigdet reutilizable para contraseñas.
-  Widget _buildPasswordField(TextEditingController controller, bool ocultarTexto, VoidCallback cambiarVisibilidad)
+  /*Widget _buildPasswordField(TextEditingController controller, bool ocultarTexto, VoidCallback cambiarVisibilidad)
   {
     return TextField
     (
@@ -148,5 +148,5 @@ class RegisterScreenState extends State<RegisterScreen>
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12),),
       ),
     );
-  }
+  }*/
 }
