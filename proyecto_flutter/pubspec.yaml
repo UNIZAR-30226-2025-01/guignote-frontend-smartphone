@@ -68,7 +68,7 @@ flutter:
   fonts:
     - family: tituloApp
       fonts:
-        - asset: fonts/GlossypersonaluseRegular-eZL93.otf
+        - asset: assets/fonts/GlossypersonaluseRegular-eZL93.otf
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
