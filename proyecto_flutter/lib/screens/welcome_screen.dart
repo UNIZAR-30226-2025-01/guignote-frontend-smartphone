@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-// ignore: depend_on_referenced_packages
-import 'package:google_fonts/google_fonts.dart';
+import 'package:sota_caballo_rey/widgets/corner_decoration.dart';
+import 'package:sota_caballo_rey/widgets/custom_button.dart';
 
 class WelcomeScreen extends StatelessWidget 
 {
@@ -77,63 +77,29 @@ class WelcomeScreen extends StatelessWidget
                   ),
                   const SizedBox(height: 30),
                   // Botón para iniciar sesión.
-                  _buildButton(context, 'Iniciar Sesión', '/login'),
+                  CustomButton
+                  (
+                    buttonText: 'Iniciar Sesión',
+                    buttonRoute: '/login',
+                    color: Colors.grey.shade400,
+                  ),
                   const SizedBox(height: 20),
 
                   // Botón para registrarse.
-                  _buildButton(context, 'Registrarse', '/register'),
+                  CustomButton
+                  (
+                    buttonText: 'Crear Cuenta',
+                    buttonRoute: '/register',
+                    color: Colors.grey.shade400,
+                  ),
                 ],
               ),
             ),
           ),
 
           // Por último añadimos las decoraciones de las esquinas
-          Positioned(top:0, left:0, child: Image.asset('assets/images/gold_ornaments.png', width: 100)),
-          Positioned(top:0, right: 0, child: Transform.flip
-          (
-            flipX: true,
-            child: Image.asset('assets/images/gold_ornaments.png', width: 100),
-          )),
-          Positioned(bottom:0, left: 0, child: Transform.flip
-          (
-            flipY: true,
-            child: Image.asset('assets/images/gold_ornaments.png', width: 100),
-          )),
-          Positioned(bottom:0, right: 0, child: Transform.flip
-          (
-            flipY: true,
-            flipX: true,
-            child: Image.asset('assets/images/gold_ornaments.png', width: 100),
-          )),          
+          CornerDecoration(imageAsset: 'assets/images/gold_ornaments.png'),    
         ],
-      ),
-    );
-  }
-
-
-  // Para construir los botones de manera uniforme.
-  Widget _buildButton(BuildContext contexto, String texto, String ruta)
-  {
-    return SizedBox
-    (
-      width: 250, // Que ocupe todo el ancho disponible.
-      child: ElevatedButton
-      (
-        style: ElevatedButton.styleFrom
-        (
-          foregroundColor:  Colors.black,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          backgroundColor: Colors.grey.shade400,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-
-          textStyle: GoogleFonts.poppins
-          (
-            fontSize: 18,
-            fontWeight:  FontWeight.w600,
-          ),
-        ),
-        onPressed: () => Navigator.pushNamed(contexto, ruta),
-        child: Text(texto),
       ),
     );
   }
