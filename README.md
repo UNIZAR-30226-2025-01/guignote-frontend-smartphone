@@ -1,8 +1,8 @@
-# Frontend Móvil - App Guiñote
+# Frontend Móvil - Sota, Caballo y Rey
  
 
 ## Descripción
-Este repositorio continene el código fuente del frontend para la aplicación de móvil del Guiñote.
+Este repositorio continene el código fuente del frontend para la aplicación de móvil Sota, Caballo y Rey.
 
 // TODO COMPLETAR
 
@@ -52,6 +52,45 @@ flutter pub get
 ## Ejecución de la aplicación
 
 // TODO
+
+## Flujo de trabajo con GitFlow
+
+Este proyecto sigue la estrategia de ramas GitFlow para mantener un desarrollo ordenado.
+
+### Ramas principales
+   * `main`: Contiene la versión estable y lista para producción.
+   
+   * `develop`: Rama de desarrollo donde se integran nuevas funcionalidades antes de pasar a main.
+  
+### Ramas auxiliares
+* `feature/nombre-de-la-feature`: Para nuevas funcionalidades.
+  
+* `hotfix/nombre-de-la-hotfix`: Para correcciones urgentes.
+  
+* `release/nombre-de-la-release`: Para preparar nuevas versiones antes de pasarlas a `main`.
+
+
+### Uso de GitFlow
+
+ **1. **Configurar Gitflow****
+```bash
+git flow init 
+```
+
+ **2. **Crear una nueva funcionalidad****
+```bash
+git flow feature start nombre-de-la-funcionalidad
+```
+**3. **Finalizar y fusionar la feature en `develop`****
+```bash
+git flow feature finish nombre-de-la-funcionalidad
+```
+**4. **Subir cambios a Github****
+```bash
+git push origin develop
+```
+
+## Testing
 
 ## Política de Contribución
 
