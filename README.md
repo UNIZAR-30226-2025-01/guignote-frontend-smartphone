@@ -15,7 +15,7 @@ Este repositorio continene el código fuente del frontend para la aplicación de
 
 * Navegación: (?).
 
-* Entorno de simulación: (Android Studio?).
+* Entorno de simulación: Android Studio.
 
 ## Clonación del Repositorio
 
@@ -53,14 +53,14 @@ flutter pub get
 
 // TODO
 
-## Flujo de trabajo con GitFlow
+## Flujo de trabajo
 
-Este proyecto sigue la estrategia de ramas GitFlow para mantener un desarrollo ordenado.
+Este proyecto sigue un flujo de trabajo simplificado basado en la estrategia de ramas GitFlow para mantener un desarrollo ordenado.
 
 ### Ramas principales
-   * `main`: Contiene la versión estable y lista para producción.
+   * `main`: Contiene la versión estable y lista para producción. Solo se actualiza este código cuando está probado y completamente funcional.
    
-   * `develop`: Rama de desarrollo donde se integran nuevas funcionalidades antes de pasar a main.
+   * `develop`: Rama de desarrollo donde se integran nuevas funcionalidades antes de pasar a main. Todas las funcionalidades en desarrollo se deben realizar en ramas separadas que se fusionaran en develop 
   
 ### Ramas auxiliares
 * `feature/nombre-de-la-feature`: Para nuevas funcionalidades.
@@ -70,27 +70,63 @@ Este proyecto sigue la estrategia de ramas GitFlow para mantener un desarrollo o
 * `release/nombre-de-la-release`: Para preparar nuevas versiones antes de pasarlas a `main`.
 
 
-### Uso de GitFlow
+### Uso del flujo propuesto
 
- **1. **Configurar Gitflow****
+Se explica con funcionalidades, pero para bugs o versiones el proceso seria idéntico.
+
+ **1. **Crear una nueva funcionalidad****
+
+ Cada desarrollador crea una rama desde develop para trabajar en nuevas funcionalidades. La convención de nombres es `features/nombre-de-la-funcionalidad`.
 ```bash
-git flow init 
+git checkout develop
+git checkout -b feature/nueva-funcionalidad
 ```
 
- **2. **Crear una nueva funcionalidad****
+ **2. **Desarrollo y pruebas****
+* Una vez que se ha desarrollado la funcionalidad, se deben realizar pruebas locales.
+
+* Los tests se ejecutan con el fin de no romper nada de la rama `develop`.
+
+* Github Actions se encargará de ejecutar los tests automaticamente en cada push a `develop`. Pero aun así se recomienda verificar localmente el funcionamiento antes de hacer push.
+
+**3. **Hacer merge a `develop`****
+
+* Una vez que la funcionalidad esté probada, se hace merge de la funcionalidad a la rama `develop`.
+
+* **Importante**: Antes de fusionar, asegúrate que tu código está limpio y que pasa los tests correctamente.
+
+* **El merge solo se completará después de que se ejecuten correctamente los tests desde Github Actions**
 ```bash
-git flow feature start nombre-de-la-funcionalidad
+git checkout develop
+git merge feature/nueva-funcionalidad develop
 ```
-**3. **Finalizar y fusionar la feature en `develop`****
+**4. **Eliminar ramas de funcionalidad****
+
+Una vez hecho el merge, puedes eliminar la rama de funcionalidad tanto en local como en remoto.
 ```bash
-git flow feature finish nombre-de-la-funcionalidad
-```
-**4. **Subir cambios a Github****
-```bash
-git push origin develop
+git branch -d feature/nueva-funcionalidad
+git push origin --delete feature/nueva-funcionalidad
 ```
 
 ## Testing
+
+### ¿Cuándo se ejecutan los tests?
+**1.** **Antes de fusionar con `develop`**: 
+   
+   * Se ejecutan automáticamente a través de **Github Actions** cada vez que se haga un push a `develop`.
+
+   * **Objetivo:** verificar que las nuevas funcionalidades no rompan el flujo de trabajo ni 
+   el código existente. 
+
+**2.** **Antes de fusionar con `main`**:
+
+   * Se ejecutan automáticamente a través de **Github Actions** cada vez que se haga un merge de `develop` a `main`.
+
+   * **Objetivo:** garantizar que la versión final que se va a liberar sea completamente funcional y sin errores.
+
+### ¿Qué pasa si los tests fallan?
+
+Si los tests de `develop` o `main` fallan, **GitHub Actions** notificará al desarrollador con los errores y el merge no se completará hasta resolverlos.
 
 ## Política de Contribución
 
