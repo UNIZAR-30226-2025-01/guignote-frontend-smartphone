@@ -24,11 +24,11 @@ class CornerDecoration extends StatelessWidget
   const CornerDecoration
   (
     {
-      Key? key,
+      super.key,
       required this.imageAsset,
       this.imageWidth = 100,
     }
-  ) : super(key : key);
+  );
 
   @override
   Widget build(BuildContext context)

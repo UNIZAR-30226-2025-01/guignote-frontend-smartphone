@@ -69,9 +69,10 @@ class WelcomeScreen extends StatelessWidget
                   // Logo centrado con espacio superior.
                   Image.asset
                   (
-                    'assets/app_logo_white.png', // Logo APP.
+                    'assets/images/app_logo_white.png', // Logo APP.
                     height: 100,
                     cacheWidth: 500,
+                    key: Key('logo-image'),
                     
                   ),
                   const SizedBox(height: 30),
@@ -87,22 +88,22 @@ class WelcomeScreen extends StatelessWidget
           ),
 
           // Por último añadimos las decoraciones de las esquinas
-          Positioned(top:0, left:0, child: Image.asset('assets/gold_ornaments.png', width: 100)),
+          Positioned(top:0, left:0, child: Image.asset('assets/images/gold_ornaments.png', width: 100)),
           Positioned(top:0, right: 0, child: Transform.flip
           (
             flipX: true,
-            child: Image.asset('assets/gold_ornaments.png', width: 100),
+            child: Image.asset('assets/images/gold_ornaments.png', width: 100),
           )),
           Positioned(bottom:0, left: 0, child: Transform.flip
           (
             flipY: true,
-            child: Image.asset('assets/gold_ornaments.png', width: 100),
+            child: Image.asset('assets/images/gold_ornaments.png', width: 100),
           )),
           Positioned(bottom:0, right: 0, child: Transform.flip
           (
             flipY: true,
             flipX: true,
-            child: Image.asset('assets/gold_ornaments.png', width: 100),
+            child: Image.asset('assets/images/gold_ornaments.png', width: 100),
           )),          
         ],
       ),
