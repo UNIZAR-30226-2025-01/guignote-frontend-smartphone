@@ -80,7 +80,7 @@ class WelcomeScreen extends StatelessWidget
                   CustomButton
                   (
                     buttonText: 'Iniciar Sesión',
-                    buttonRoute: '/login',
+                    onPressedAction: () => Navigator.pushNamed(context, '/login'),
                     color: Colors.grey.shade400,
                   ),
                   const SizedBox(height: 20),
@@ -89,7 +89,7 @@ class WelcomeScreen extends StatelessWidget
                   CustomButton
                   (
                     buttonText: 'Crear Cuenta',
-                    buttonRoute: '/register',
+                    onPressedAction: () => Navigator.pushNamed(context, '/register'),
                     color: Colors.grey.shade400,
                   ),
                 ],

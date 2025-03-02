@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Ignora el fichero config.json con las configuraciones sensibles
+assets/json/config.json

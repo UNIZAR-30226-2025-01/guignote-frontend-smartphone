@@ -3,29 +3,26 @@ import 'package:flutter/material.dart';
 // ignore: depend_on_referenced_packages
 import 'package:google_fonts/google_fonts.dart';
 
-/// Widget personalizado que crea un botón de navegación con los parámetros deseados.
-/// Debe recibir el texto que se desea dentro del botón, el color del botón y la ruta
-/// de navegación.
-/// El propósito es facilitar el añadir botones mediante la reutilización
-/// del código y asegurando que se mantenga un diseño constante en la aplicación.
-/// 
+/// Widget personalizado que crea un botón con una acción personalizada.
+/// Recibe el texto del botón, el color y la acción que debe ejecutar
+/// cuando se presiona el botón.
+///
 /// Parámetros:
-/// 
 ///   - 'buttonText': Texto que irá dentro del botón.
-///   - 'buttonRoute': Ruta a la que navegará el botón.
-///   - color: Color del fondo del botón.
+///   - 'onPressedAction': Acción que ejecutará el botón al ser presionado.
+///   - color: Color de fondo del botón.
 
 class CustomButton extends StatelessWidget
 {
 
   final String buttonText;
-  final String buttonRoute;
+  final VoidCallback onPressedAction;
   final Color color;
 
   const CustomButton
   ({
     required this.buttonText, 
-    required this.buttonRoute,
+    required this.onPressedAction,
     required this.color, 
     super.key,
   });
@@ -51,7 +48,7 @@ class CustomButton extends StatelessWidget
             fontWeight:  FontWeight.w600,
           ),
         ),
-        onPressed: () => Navigator.pushNamed(context, buttonRoute),
+        onPressed: onPressedAction,
         child: Text(buttonText),
       ),
     );
