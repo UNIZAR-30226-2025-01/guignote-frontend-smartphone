@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/widgets/custom_button.dart';
+import 'package:http/http.dart' as http; // Para conectar con backend.
+import 'dart:convert'; // Para convertir JSON a Map.
 
 class LoginScreen extends StatefulWidget 
 {
@@ -13,12 +15,24 @@ class LoginScreen extends StatefulWidget
 
 class LoginScreenState extends State<LoginScreen>
 {
+  final _formKey = GlobalKey<FormState>(); // Clave global para el formulario.
+  final _usrController = TextEditingController(); // Controlador para el campo de usuario.
+  final _passwdController = TextEditingController(); // Controlador para el campo de contraseña
+  bool _rememberMe = false; // Estado Para la opción de recuerdame.
+  bool _hidePasswd = true; // Estado Para ocultar/mostrar la contraseña.
 
-  final _usrController = TextEditingController();
-  final _passwdController = TextEditingController();
-  bool _rememberMe = false; // Para la opción de recuerdame.
-  bool _hidePasswd = true; // Para ocultar/mostrar la contraseña.
 
+  void _validateAndLogin()
+  {
+    if(_formKey.currentState!.validate())
+    {
+      // Muestra un mensaje temporal indicando el inicio de sesión.
+      ScaffoldMessenger.of(context).showSnackBar
+      (
+        const SnackBar(content: Text('Iniciando sesión')),
+      );
+    }
+  }
   
   @override
   Widget build(BuildContext context) 
@@ -30,7 +44,7 @@ class LoginScreenState extends State<LoginScreen>
       (
         children:
         [
-          // Fondo principal:
+          // Fondo principal con degradado gradial:
           Container
           (
             width: double.infinity,
@@ -47,6 +61,7 @@ class LoginScreenState extends State<LoginScreen>
             ),
           ),
           
+          // Cuadro negro con todas las opciones dentro.
           Center
           (
             child: Container
@@ -83,8 +98,9 @@ class LoginScreenState extends State<LoginScreen>
                   SizedBox
                   (
                     width: 300,
-                    child: TextField
+                    child: TextFormField
                     (
+                      key: const Key('usernameField'),
                       controller: _usrController,
                       decoration: InputDecoration
                       (
@@ -99,6 +115,8 @@ class LoginScreenState extends State<LoginScreen>
                           borderSide: BorderSide.none,
                         )
                       ),
+
+                      validator: (value) =>  value == null || value.isEmpty ? 'Ingrese su nombre de usuario' : null,
                     ),
                   ),
 
@@ -108,8 +126,9 @@ class LoginScreenState extends State<LoginScreen>
                   SizedBox
                   (
                     width: 300,
-                    child: TextField
+                    child: TextFormField
                     (
+                      key: const Key('passwordField'),
                       controller: _passwdController,
                       obscureText: _hidePasswd,
                       decoration: InputDecoration
@@ -140,6 +159,7 @@ class LoginScreenState extends State<LoginScreen>
                           },
                         ),
                       ),
+                      validator: (value) => value == null || value.isEmpty ? 'Ingrese su contraseña' : null,
                     ),
                   ),
 
