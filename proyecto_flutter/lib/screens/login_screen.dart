@@ -225,6 +225,7 @@ class LoginScreenState extends State<LoginScreen> {
           ),
         ),
         validator: (value) => value == null || value.isEmpty ? 'Ingrese su contraseña' : null,
+        style: TextStyle(color: Colors.black),
       ),
     );
   }
@@ -242,13 +243,14 @@ class LoginScreenState extends State<LoginScreen> {
           filled: true,
           fillColor: Colors.grey.shade400,
           border: OutlineInputBorder
-(
+          (
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide.none,
-          )
+          ),
         ),
 
         validator: (value) =>  value == null || value.isEmpty ? 'Ingrese su nombre de usuario' : null,
+        style: TextStyle(color: Colors.black),
       ),
     );
   }
