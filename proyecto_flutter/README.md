@@ -1,4 +1,4 @@
-# prototipos_v2
+# Sota, Caballo y Rey.
 
 A new Flutter project.
 

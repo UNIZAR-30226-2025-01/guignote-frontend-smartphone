@@ -14,8 +14,8 @@ import 'package:flutter/material.dart';
 class AppTheme
 {
   static const Color primaryColor = Color(0xFF1F5A1F); // Verde inicial del gradiente.
-  static const Color secundaryColor = Color(0xFF0A2A08); // Verde final del gradiente.
-  static const Color backgroundColor = Color(0xFF171718); // Gris oscuro para las cosas en negro.
+  static const Color secondaryColor = Color(0xFF0A2A08); // Verde final del gradiente.
+  static const Color blackColor = Color(0xFF171718); // Gris oscuro para las cosas en negro.
 
   // Estilo de texto para los títulos
   static const TextStyle titleTextStyle = TextStyle

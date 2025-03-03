@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:sota_caballo_rey/widgets/corner_decoration.dart';
-import 'package:sota_caballo_rey/widgets/custom_button.dart';
-import 'package:sota_caballo_rey/services/api_service.dart';
-import 'package:sota_caballo_rey/services/storage_service.dart';
-import 'package:sota_caballo_rey/models/user.dart';
+import 'package:sota_caballo_rey/src/widgets/background.dart';
+import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
+import 'package:sota_caballo_rey/src/widgets/custom_button.dart';
+import 'package:sota_caballo_rey/src/services/api_service.dart';
+import 'package:sota_caballo_rey/src/services/storage_service.dart';
+import 'package:sota_caballo_rey/src/models/user.dart';
+import 'package:sota_caballo_rey/src/widgets/custom_title.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -52,7 +54,7 @@ class LoginScreenState extends State<LoginScreen> {
       body: Stack(
         children: [
           // Fondo principal con degradado gradial:
-          buildBackground(),
+          Background(),
           
           // Cuadro negro con todas las opciones dentro.
           buildLoginForm(context),
@@ -78,15 +80,7 @@ class LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Título APP
-                Text(
-                  'Iniciar Sesión',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'tituloApp',
-                    fontSize: 32,
-                    color: Colors.white,
-                  ),
-                ),
+                CustomTitle(title:  'Iniciar Sesión'),
 
                 const SizedBox(height: 35),
 
@@ -175,21 +169,6 @@ class LoginScreenState extends State<LoginScreen> {
                   )
                 ),
               ],
-            ),
-          ),
-        );
-  }
-
-  Container buildBackground() {
-    return Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              colors: [Color(0XAA1F5A1F), Color(0XAA0A2A08)],
-              center: Alignment.center,
-              radius: 1.8,
-              stops: [0.5, 1.0],
             ),
           ),
         );

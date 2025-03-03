@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sota_caballo_rey/main.dart';
-import 'package:sota_caballo_rey/screens/login_screen.dart';
-import 'package:sota_caballo_rey/screens/register_screen.dart';
+import 'package:sota_caballo_rey/src/screens/auth/login_screen.dart';
+import 'package:sota_caballo_rey/src/screens/auth/register_screen.dart';
 
 // Tests reutilizables
 import 'tests_reutilizables.dart';

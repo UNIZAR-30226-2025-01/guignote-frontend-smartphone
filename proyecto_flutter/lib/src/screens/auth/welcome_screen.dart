@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:sota_caballo_rey/widgets/corner_decoration.dart';
-import 'package:sota_caballo_rey/widgets/custom_button.dart';
+import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
+import 'package:sota_caballo_rey/src/widgets/custom_button.dart';
+import 'package:sota_caballo_rey/src/widgets/background.dart';
+import 'package:sota_caballo_rey/src/widgets/custom_title.dart';
 
 class WelcomeScreen extends StatelessWidget 
 {
@@ -18,22 +20,8 @@ class WelcomeScreen extends StatelessWidget
         children:
         [
           // Fondo principal:
-          Container
-          (
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration
-            (
-              gradient: RadialGradient
-              (
-                colors: [Color(0XAA1F5A1F),Color(0XAA0A2A08)],
-                center: Alignment.center,
-                radius: 1.8,
-                stops: [0.5, 1.0],
-              ),
-            ),
-          ),
-          
+          Background(),
+                   
           Center
           (
             child: Container
@@ -52,17 +40,7 @@ class WelcomeScreen extends StatelessWidget
                 children:
                 [
                   // Título APP
-                  Text
-                  (
-                    'SOTA, CABALLO Y REY',
-                    textAlign: TextAlign.center,
-                    style: TextStyle
-                    (
-                      fontFamily: 'tituloApp',
-                      fontSize: 32,
-                      color: Colors.white,
-                    ),
-                  ),
+                  CustomTitle(title: 'Sota, Caballo y Rey'),
 
                   const SizedBox(height: 30),
 
