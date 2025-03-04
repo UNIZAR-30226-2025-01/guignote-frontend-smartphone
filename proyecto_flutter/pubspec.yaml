@@ -39,6 +39,7 @@ flutter:
   # Ruta a la carpeta con las imagenes a usar
   assets:
     - assets/images/
+    - assets/json/config.json
 
   # Fuentes usadas
   fonts:

@@ -36,8 +36,10 @@ class Background extends StatelessWidget
     (
           width: double.infinity,
           height: double.infinity,
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
+          decoration: BoxDecoration
+          (
+            gradient: RadialGradient
+            (
               colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
               center: Alignment.center,
               radius: 1.8,
