@@ -1,4 +1,4 @@
-// corner_decoration.dart
+// lib/widgets/corner_decoration.dart
 
 import 'package:flutter/material.dart';
 
@@ -12,8 +12,6 @@ import 'package:flutter/material.dart';
 /// 
 ///   - 'imageAsset': Ruta de la imagen a utilizar para las decoraciones.
 ///   - 'imageWidth': Ancho de la imagen a utilizar. Opcional, tendrá un valor predefinido.
-
-
 class CornerDecoration extends StatelessWidget
 {
   final String imageAsset; // Ruta de la imagen.
