@@ -21,3 +21,8 @@ class MethodNotAllowedException extends ApiException
 {
   MethodNotAllowedException(super.message);
 }
+
+class PasswordsDoNotMatchException extends ApiException 
+{
+  PasswordsDoNotMatchException(super.message);
+}

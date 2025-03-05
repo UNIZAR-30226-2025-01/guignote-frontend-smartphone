@@ -86,3 +86,80 @@ Future<void> login(String id, String password) async
     rethrow; // Relanza la excepción para que la UI la maneje como considere. 
   }
 }
+
+Future<void> register(String username, String email, String password, String confirmPassword) async
+{
+
+  if(password != confirmPassword)
+  {
+    // Si las contraseñas no coinciden, se lanza una excepción.
+    throw PasswordsDoNotMatchException("Las contraseñas no coinciden");
+  }
+
+  // Construye la URL de la API.
+  final url = Uri.parse('${Config.apiBaseURL}${Config.createUserEndPoint}');
+  
+  try
+  {
+    // Realiza una petición POST a la API.
+    final response = await http.post
+    (
+      // URL de la API.
+      url,
+      headers:{ "Content-Type": "application/json", "Accept": "application/json" },
+
+      // Cuerpo de la petición.
+      body: jsonEncode
+      (
+        {
+          "nombre": username,
+          "correo": email,
+          "contrasegna": password,
+        }
+      ),
+    );
+
+    // Comprobamos si la petición fue exitosa.
+    if(response.statusCode == 201)
+    {
+      // Si la petición fue exitosa, se decodifica el cuerpo de la respuesta.
+      final data = jsonDecode(response.body);
+      final token = data['token'];
+
+      if(token != null)
+      {
+        // Si el token no es nulo, se guarda en el almacenamiento seguro.
+        await StorageService.saveToken(token);
+      }
+      else
+      {
+        // Si el token es nulo, se lanza una excepción.
+        throw Exception("Error: Token no recibido");
+      }
+    }
+    else
+    {
+      // Comprobamos los posibles errores específicos de backend.
+      switch(response.statusCode)
+      {
+        case 400:
+          throw InvalidCredentialsException('Faltan campos o el usuario ya existe');
+        
+        case 405:
+          throw MethodNotAllowedException("Método no permitido");
+        
+        default:
+          throw Exception("Error desconocido. Código de error: ${response.statusCode}");
+      }
+    }
+
+  } catch(e)
+  {
+    if (kDebugMode) 
+    {
+      print("Error: en login $e"); // Si hay un error, lo imprime en consola. Para debug.
+    }
+
+    rethrow; // Relanza la excepción para que la UI la maneje como considere. 
+  }
+}
