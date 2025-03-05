@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:sota_caballo_rey/config.dart';
 import 'package:sota_caballo_rey/src/services/storage_service.dart';
+import 'package:sota_caballo_rey/src/services/exceptions.dart';
 
 
 /// Función para iniciar sesión en la API.
@@ -62,13 +63,13 @@ Future<void> login(String id, String password) async
       switch(response.statusCode)
       {
         case 400:
-          throw Exception("Faltan campos o la contraseña es incorrecta");
+          throw InvalidCredentialsException('Faltan campos o la contraseña es incorrecta');
         
         case 404:
-          throw Exception("Usuario no encontrado");
+          throw UserNotFoundException("Usuario no encontrado");
         
         case 405:
-          throw Exception("Método no permitido");
+          throw MethodNotAllowedException("Método no permitido");
         
         default:
           throw Exception("Error desconocido. Código de error: ${response.statusCode}");

@@ -4,6 +4,8 @@ import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_button.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_title.dart';
+import 'package:sota_caballo_rey/src/utils/show_error.dart';
+import 'package:sota_caballo_rey/src/services/exceptions.dart';
 
 /// Pantalla de inicio de sesión.
 ///
@@ -32,36 +34,42 @@ class LoginScreenState extends State<LoginScreen>
   /// - `password`: La contraseña.
   ///
   /// 
-  void loginAndValidate(String id, String password) async {
-  try {
-    // Muestra un indicador de carga antes de la petición
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
+  void loginAndValidate(String id, String password) async 
+  {
+    try 
+    {
+      // Muestra un indicador de carga antes de la petición
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
 
-    // Llama a la función de login en un hilo separado
-    await Future.delayed(Duration.zero, () async {
-      await login(id, password);
-    });
+      // Llama a la función de login en un hilo separado
+      await Future.delayed(Duration.zero, () async 
+      {
+        await login(id, password);
+      });
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    Navigator.pop(context); // Cierra el indicador de carga
+      Navigator.pop(context); // Cierra el indicador de carga
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Inicio de sesión correcto')),
-    );
-
-    Navigator.pushNamed(context, '/');
-  } catch (e) {
-    Navigator.pop(context); // Asegúrate de cerrar el indicador de carga
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(e.toString())),
-    );
+      Navigator.pushNamed(context, '/');
+    } catch (e) 
+    {
+      Navigator.pop(context); 
+        
+      if(e is ApiException)
+      {
+        showError(context, e.message);
+      }
+      else
+      {
+        showError(context, 'Error desconocido');
+      }
+    }
   }
-}
 
   @override
   Widget build(BuildContext context)
@@ -173,11 +181,12 @@ class LoginScreenState extends State<LoginScreen>
             // Botón para iniciar sesión.
             CustomButton
             (
+              key: const Key('loginButton'),  
               buttonText: 'Iniciar Sesión',
              
               onPressedAction: () async 
               {
-                loginAndValidate(_usrController.text, _passwdController.text); 
+                loginAndValidate(_usrController.text, _passwdController.text);            
               },
               color: Colors.grey.shade400,
             ),
