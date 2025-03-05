@@ -6,6 +6,7 @@ import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_title.dart';
 import 'package:sota_caballo_rey/src/utils/show_error.dart';
 import 'package:sota_caballo_rey/src/services/exceptions.dart';
+import 'package:sota_caballo_rey/src/widgets/custom_textform.dart';
 
 /// Pantalla de inicio de sesión.
 ///
@@ -227,47 +228,33 @@ class LoginScreenState extends State<LoginScreen>
     return SizedBox
     (
       width: 300,
-      
-      child: TextFormField
+
+      child:CustomTextForm
       (
         key: const Key('passwordField'),
+        hintText: 'Contraseña',
+        prefixIcon: Icons.lock,
         controller: _passwdController,
         obscureText: _hidePasswd,
-       
-        decoration: InputDecoration
-        (
-          hintText: 'Contraseña',
-          hintStyle: const TextStyle(color: Colors.black45),
-          prefixIcon: const Icon(Icons.lock, color: Colors.black),
-          filled: true,
-          fillColor: Colors.grey.shade400,
-         
-          border: OutlineInputBorder
-          (
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide.none,
-          ),
-          
-          suffixIcon: IconButton
-          (
-            icon: Icon
-            (
-              _hidePasswd ? Icons.visibility_off : Icons.visibility,
-              color: Colors.black45,
-            ),
-            onPressed: () 
-            {
-              setState(() 
-              {
-                _hidePasswd = !_hidePasswd; // Cambia el estado de mostrar y ocultar contraseña.
-              });
-            },
-          ),
-        ),
         validator: (value) => value == null || value.isEmpty ? 'Ingrese su contraseña' : null,
-       
-        style: const TextStyle(color: Colors.black),
+        keyboardType: TextInputType.visiblePassword,
+        suffixIcon: IconButton
+        (
+          icon: Icon
+          (
+            _hidePasswd ? Icons.visibility_off : Icons.visibility,
+            color: Colors.black45,
+          ),
+          onPressed: () 
+          {
+            setState(() 
+            {
+              _hidePasswd = !_hidePasswd; // Cambia el estado de mostrar y ocultar contraseña.
+            });
+          },
+        ),
       ),
+  
     );
   }
 
@@ -280,27 +267,14 @@ class LoginScreenState extends State<LoginScreen>
     return SizedBox
     (
       width: 300,
-      child: TextFormField
+      child:CustomTextForm
       (
         key: const Key('usernameField'),
+        hintText: 'Usuario',
+        prefixIcon: Icons.person,
         controller: _usrController,
-        
-        decoration: InputDecoration
-        (
-          hintText: 'Usuario',
-          hintStyle: const TextStyle(color: Colors.black45),
-          prefixIcon: const Icon(Icons.person, color: Colors.black),
-          filled: true,
-          fillColor: Colors.grey.shade400,
-          
-          border: OutlineInputBorder
-          (
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide.none,
-          ),
-        ),
         validator: (value) => value == null || value.isEmpty ? 'Ingrese su nombre de usuario' : null,
-        style: const TextStyle(color: Colors.black),
+        keyboardType: TextInputType.text,
       ),
     );
   }
