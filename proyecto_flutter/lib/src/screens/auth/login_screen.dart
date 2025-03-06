@@ -56,7 +56,7 @@ class LoginScreenState extends State<LoginScreen>
 
       Navigator.pop(context); // Cierra el indicador de carga
 
-      Navigator.pushNamed(context, '/');
+      Navigator.pushNamed(context, '/home'); // Navega a la pantalla de inicio.
     } catch (e) 
     {
       Navigator.pop(context); 

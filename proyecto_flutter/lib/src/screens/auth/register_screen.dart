@@ -59,7 +59,7 @@ class RegisterScreenState extends State<RegisterScreen>
 
       Navigator.pop(context); // Cierra el indicador de carga
 
-      Navigator.pushNamed(context, '/');
+      Navigator.pushNamed(context, '/home');
     } catch (e) 
     {
       Navigator.pop(context); 
