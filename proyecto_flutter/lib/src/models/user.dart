@@ -12,6 +12,10 @@
 /// - `Map<String, dynamic> toJson()`: Método que convierte una instancia de `User` a un mapa JSON.
 /// Modelo de usuario que se utiliza para el registro y login de usuarios en la aplicación.
 /// 
+/// Se utiliza para manejar la información de los usuarios durante el registro y el inicio de sesión.
+/// 
+library;
+
 class User
 {
   final String username;

@@ -34,18 +34,19 @@ class Background extends StatelessWidget
   {
     return Container
     (
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration
-          (
-            gradient: RadialGradient
-            (
-              colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
-              center: Alignment.center,
-              radius: 1.8,
-              stops: [0.5, 1.0],
-            ),
-          ),
-        );
+      width: double.infinity, // Ancho máximo
+      height: double.infinity, // Alto máximo
+      decoration: BoxDecoration
+      (
+        gradient: RadialGradient // Gradiente radial
+        (
+          // Colores del gradiente radial. Utiliza los definidos en AppTheme.
+          colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+          center: Alignment.center, // Centra el gradiente en el contenedor.
+          radius: 1.8, // Radio del gradiente.
+          stops: [0.5, 1.0], // Paradas de color.
+        ),
+      ),
+    );
   }
 }

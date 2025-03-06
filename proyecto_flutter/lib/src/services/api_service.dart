@@ -1,3 +1,27 @@
+/// Archivo de servicios de la API.
+/// 
+/// Contiene las funciones para iniciar sesión y registrar un usuario en la API.
+/// 
+/// Las funciones son asíncronas, por lo que se pueden usar el await para esperar a que terminen.
+/// 
+/// Las funciones lanzan excepciones específicas si hay un error en la petición.
+/// 
+/// Las excepciones se lanzan con un mensaje que se puede mostrar al usuario.
+/// 
+/// Las funciones también lanzan excepciones de tipo Exception si hay un error desconocido.
+/// 
+/// Si hay un error, lo imprime en consola si estamos en modo debug.
+/// 
+/// Relanza la excepción para que la UI la maneje como considere.
+/// 
+/// Para más información sobre `http`, se puede consultar la documentación en:
+/// https://pub.dev/packages/http
+/// 
+/// Para más información sobre `json`, se puede consultar la documentación en:
+/// https://api.dart.dev/stable/2.14.2/dart-convert/dart-convert-library.html
+/// 
+library;
+
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -87,6 +111,31 @@ Future<void> login(String id, String password) async
   }
 }
 
+/// Función para registrar un usuario en la API.
+/// 
+/// Recibe un nombre de usuario.
+/// Recibe un correo electrónico.
+/// Recibe una contraseña.
+/// Recibe una confirmación de la contraseña.
+/// 
+/// Devuelve un Future sin valor.
+/// 
+/// La función es asíncrona, por lo que se puede usar el await para esperar a que termine.
+
+/// * Si las contraseñas no coinciden, lanza una excepción de tipo PasswordsDoNotMatchException.
+/// 
+/// * Si hay un error en la petición, lanza una excepción de tipo Exception.
+/// 
+/// * Si el usuario ya existe, lanza una excepción de tipo InvalidCredentialsException.
+/// 
+/// * Si el método no está permitido, lanza una excepción de tipo MethodNotAllowedException.
+/// 
+/// * Si hay un error desconocido, lanza una excepción de tipo Exception.
+/// 
+/// * Si hay un error, lo imprime en consola si estamos en modo debug.
+/// 
+/// * Relanza la excepción para que la UI la maneje como considere.
+/// 
 Future<void> register(String username, String email, String password, String confirmPassword) async
 {
 
