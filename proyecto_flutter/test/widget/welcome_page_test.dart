@@ -18,14 +18,14 @@ void main()
       await tester.pumpWidget(const MyApp());
 
       // Verifica que el título de la app esté visible.
-      await checkVisibility(tester, 'SOTA, CABALLO Y REY');
+      await checkVisibility(tester, 'Sota, Caballo y Rey');
 
       // Verifica que el logo esté visible.
       expect(find.byKey(Key('logo-image')), findsOneWidget);
 
       // Verifica que los botones de 'Iniciar sesión' y 'Registrarse' estén visibles
-      await checkVisibility(tester, 'Iniciar Sesión');
-      await checkVisibility(tester, 'Registrarse');
+      await checkWidgetVisibilityByKey(tester, Key('login-button'));
+      await checkWidgetVisibilityByKey(tester, Key('register-button'));
     });
 
 
@@ -44,7 +44,7 @@ void main()
       await tester.pumpWidget(const MyApp());
 
       // Verifica la navegación a la pantalla de inicio de sesión
-      await checkNavigation(tester, 'Registrarse', RegisterScreen);
+      await checkNavigation(tester, 'Crear Cuenta', RegisterScreen);
     });
     
   });  

@@ -11,14 +11,17 @@
 /// Devuelve:
 /// - Un mensaje de error si el email está vacío o no es válido.
 /// - `null` si el email es válido.
+/// 
 String? validateEmail(String email)
 {
   if(email.isEmpty)
   {
+    // Si el email está vacío, se devuelve un mensaje de error.
     return 'Por favor, ingrese su email';
   }
   else if(!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email))
   {
+    // Si el email no es válido, se devuelve un mensaje de error.
     return 'El email no es válido';
   }
   return null;
@@ -40,12 +43,14 @@ String? validatePassword(String password)
 {
   if(password.isEmpty)
   {
+    // Si la contraseña está vacía, se devuelve un mensaje de error.
     return 'Por favor, ingrese su contraseña';
   }
   
   final passwordRegex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$');
   if(!passwordRegex.hasMatch(password))
   {
+    // Si la contraseña no cumple con los requisitos, se devuelve un mensaje de error.
     return 'La contraseña debe tener al menos 8 caracteres, una letra mayúscula, una letra minúscula y un número';
   }
 
@@ -67,6 +72,7 @@ String? validateUsername(String username)
 {
   if(username.isEmpty)
   {
+    // Si el nombre de usuario está vacío, se devuelve un mensaje de error.
     return 'Por favor, ingrese su nombre de usuario';
   }
 
@@ -74,6 +80,7 @@ String? validateUsername(String username)
 
   if(!usernameRegEx.hasMatch(username))
   {
+    // Si el nombre de usuario no cumple con el formato, se devuelve un mensaje de error.
     return 'El nombre de usuario solo puede contener letras y números';
   }
   

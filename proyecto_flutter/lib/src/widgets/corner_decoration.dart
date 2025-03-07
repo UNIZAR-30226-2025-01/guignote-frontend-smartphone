@@ -12,6 +12,17 @@ import 'package:flutter/material.dart';
 /// 
 ///   - 'imageAsset': Ruta de la imagen a utilizar para las decoraciones.
 ///   - 'imageWidth': Ancho de la imagen a utilizar. Opcional, tendrá un valor predefinido.
+/// 
+/// Ejemplo de uso:
+/// 
+/// ```dart
+/// CornerDecoration
+/// (
+///  imageAsset: 'assets/images/decoration.png',
+///  imageWidth: 100,
+/// )
+/// ```
+/// 
 class CornerDecoration extends StatelessWidget
 {
   final String imageAsset; // Ruta de la imagen.

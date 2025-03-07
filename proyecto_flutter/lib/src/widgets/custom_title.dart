@@ -1,5 +1,17 @@
 // lib/widgets/custom_title.dart
 
+/// Widget personalizado que crea un título personalizado.
+/// 
+/// Parámetros:
+///  - 'title': Título a mostrar.
+/// 
+/// Ejemplo de uso:
+/// 
+/// ```dart
+/// CustomTitle(title: 'Título de la aplicación')
+/// ```
+/// 
+library;
 
 import 'package:flutter/material.dart';
 

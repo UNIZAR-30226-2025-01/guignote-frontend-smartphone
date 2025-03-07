@@ -1,22 +1,45 @@
-///
-///
-///
-///
-///
+/// Clase que crea un campo de texto personalizado
+/// 
+/// Este widget extiende `StatelessWidget`, lo que significa que no mantiene
+/// ningún estado mutable. El campo de texto se crea utilizando un `TextFormField` que
+/// recibe varios parámetros para personalizar su apariencia y comportamiento.
+/// 
+/// Los parámetros obligatorios son:
+/// - `hintText`: El texto que se muestra como pista en el campo de texto.
+/// - `controller`: El controlador del campo de texto.
+/// 
+/// Los parámetros opcionales son:
+/// - `prefixIcon`: El icono que se muestra antes del texto.
+/// - `obscureText`: Un booleano que indica si el texto debe ocultarse.
+/// - `validator`: Una función que valida el texto introducido.
+/// - `keyboardType`: El tipo de teclado que se muestra al hacer foco en el campo de texto.
+/// - `suffixIcon`: El icono que se muestra después del texto.
+/// 
+/// Ejemplo de uso:
+/// ```dart
+/// CustomTextForm
+/// (
+///  hintText: 'Introduce tu email',
+///   prefixIcon: Icons.email,
+///   controller: _emailController,
+///   validator: validateEmail,
+///  keyboardType: TextInputType.emailAddress,
+/// )
+/// ```
 library;
 
 import 'package:flutter/material.dart';
 
-
+/// Un widget que proporciona un campo de texto personalizado.
 class CustomTextForm extends StatelessWidget
 {
-  final String hintText;
-  final IconData? prefixIcon;
-  final bool obscureText;
-  final TextEditingController controller;
-  final FormFieldValidator<String>? validator;
-  final TextInputType keyboardType;
-  final Widget? suffixIcon;
+  final String hintText; // Texto de pista
+  final IconData? prefixIcon; // Icono antes del texto
+  final bool obscureText; // Indica si el texto debe ocultarse
+  final TextEditingController controller; // Controlador del campo de texto
+  final FormFieldValidator<String>? validator; // Función de validación
+  final TextInputType keyboardType; // Tipo de teclado
+  final Widget? suffixIcon; // Icono después del texto
 
 
   const CustomTextForm
