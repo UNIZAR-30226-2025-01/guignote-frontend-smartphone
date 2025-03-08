@@ -212,3 +212,49 @@ Future<void> register(String username, String email, String password, String con
     rethrow; // Relanza la excepción para que la UI la maneje como considere. 
   }
 }
+
+/**
+ * La siguiente función permite obtener el listado de amigos de un usuario
+ * desde la API
+ */
+Future<List<Map<String, String>>> obtenerAmigos() async {
+  // Endpoint petición API
+  final url = Uri.parse('${Config.apiBaseURL}${Config.obtenerAmigos}');
+
+  // Obtener token de usuario, si existe
+  String? token = await StorageService.getToken();
+  if(token == null) {
+    throw Exception("No hay un token de autentificación disponible.");
+  }
+  // Realizar petición GET a API
+  try {
+    final response = await http.get(
+      url, headers: {"Auth": token}
+    );
+    if(response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      List<Map<String, String>> amigos = List<Map<String, String>>.from(
+        data['amigos'].map((amigo) => {
+          "id": amigo["id"].toString(),
+          "nombre": amigo["nombre"].toString()
+        })
+      );
+      return amigos;
+    } else {
+      switch (response.statusCode) {
+        case 401:
+          throw Exception("Token inválido o expirado. Debes iniciar sesión nuevamente.");
+        case 405:
+          throw Exception("Método no permitido.");
+        default:
+          throw Exception("Error desconocido. Código: ${response.statusCode}");
+      }
+    }
+  } catch(e) {
+    if (kDebugMode){
+      print("Error en obtenerAmigos: $e");
+    }
+    rethrow;
+  }
+}

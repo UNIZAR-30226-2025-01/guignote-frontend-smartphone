@@ -6,6 +6,7 @@ library;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:sota_caballo_rey/src/screens/auth/friends_screen.dart';
 import 'src/screens/auth/welcome_screen.dart';
 import 'src/screens/auth/login_screen.dart';
 import 'src/screens/auth/register_screen.dart';
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget
         '/': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
+        '/amigos': (context) => const FriendsScreen()
       },
     );
   }
