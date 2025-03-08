@@ -69,4 +69,5 @@ class Config
   static String get createUserEndPoint  => _config['create_user_endpoint'];
   static String get deleteUserEndPoint  => _config['delete_user_endpoint'];
   static String get obtenerAmigos => _config['obtener_amigos_endpoint'];
+  static String get buscarUsuarios => _config['buscar_usuarios_endpoint'];
 }

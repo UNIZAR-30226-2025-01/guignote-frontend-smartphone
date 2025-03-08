@@ -88,7 +88,7 @@ class FriendsListState extends State<FriendsListScreen> {
   }
 
   ///
-  /// Subcomponente: Lista
+  /// Subcomponente: Lista animada
   ///
   Widget _lista() {
     return Expanded(
