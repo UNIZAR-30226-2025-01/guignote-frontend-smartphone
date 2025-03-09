@@ -70,4 +70,9 @@ class Config
   static String get deleteUserEndPoint  => _config['delete_user_endpoint'];
   static String get obtenerAmigos => _config['obtener_amigos_endpoint'];
   static String get buscarUsuarios => _config['buscar_usuarios_endpoint'];
+  static String get eliminarAmigo => _config['eliminar_amigo_endpoint'];
+  static String get aceptarSolicitudAmistad => _config['aceptar_solicitud_amistad_endpoint'];
+  static String get denegarSolicitudAmistad => _config['denegar_solicitud_amistad_endpoint'];
+  static String get listarSolicitudesAmistad => _config['listar_solicitudes_amistad_endpoint'];
+  static String get enviarSolicitudAmistad => _config['enviar_solicitud_amistad_endpoint'];
 }

@@ -263,12 +263,16 @@ Future<List<Map<String, String>>> obtenerAmigos() async {
 ///
 /// La siguiente función permite obtener un listado de usuarios
 /// cuyo nombre contiene un prefijo dado a través de una petición a la API.
-/// Se puede elegir si incluir en los resultados a usuarios ya amigos.
+/// Incluir_amigos false: excluye de los resultados a los amigos del usuario
+/// Incluir_me false: excluye al usuario de los resultados
+/// Incluir_pendientes false: excluye usuarios a los que has enviado solicitud
 ///
-Future<List<Map<String, String>>> buscarUsuarios(String prefijo, bool incluirAmigos) async {
+Future<List<Map<String, String>>> buscarUsuarios(String prefijo, {bool incluirAmigos = false,
+    bool incluirMe = false, bool incluirPendientes = false}) async {
   // Endpoint petición API
   final url =
-    Uri.parse('${Config.apiBaseURL}${Config.buscarUsuarios}?nombre=$prefijo&incluir_amigos=$incluirAmigos');
+    Uri.parse('${Config.apiBaseURL}${Config.buscarUsuarios}?nombre=$prefijo&incluir_amigos=$incluirAmigos' +
+        '&incluir_me=$incluirMe&incluir_pendientes=$incluirPendientes');
 
   // Obtener token de usuario, si existe
   String? token = await StorageService.getToken();
@@ -303,7 +307,255 @@ Future<List<Map<String, String>>> buscarUsuarios(String prefijo, bool incluirAmi
     }
   } catch(e) {
     if (kDebugMode){
-      print("Error en obtenerAmigos: $e");
+      print("Error en buscarUsuarios: $e");
+    }
+    rethrow;
+  }
+}
+
+///
+/// La siguiente función permite eliminar a un amigo dado su identificador
+/// mediante una petición DELETE a la API
+///
+Future<String> eliminarAmigo(String amigoId) async {
+  // Endpoint petición API
+  final url =
+  Uri.parse('${Config.apiBaseURL}${Config.eliminarAmigo}?amigo_id=$amigoId');
+
+  // Obtener token de usuario, si existe
+  String? token = await StorageService.getToken();
+  if(token == null) {
+    throw Exception("No hay un token de autentificación disponible.");
+  }
+
+  // Realizar petición DELETE a la API
+  try {
+    final response = await http.delete(
+      url, headers: {"Auth": token}
+    );
+    if(response.statusCode == 200) {
+      return "Amigo eliminado con éxito";
+    } else {
+      switch (response.statusCode) {
+        case 400:
+          throw Exception("Faltan campos.");
+        case 401:
+          throw Exception(
+              "Token inválido o expirado. Debes iniciar sesión nuevamente (401)");
+        case 404:
+          throw Exception("Amigo no encontrado,");
+        case 405:
+          throw Exception("Método no permitido.");
+        default:
+          throw Exception("Error desconocido. Código: ${response.statusCode}");
+      }
+    }
+  } catch(e) {
+    if (kDebugMode){
+      print("Error en eliminarAmigo: $e");
+    }
+    rethrow;
+  }
+}
+
+///
+/// La siguiente función permite aceptar una solicitud de amistad
+/// mediante una petición POST a la API
+///
+Future<String> aceptarSolicitudAmistad(String solicitudId) async {
+  // Endpoint petición API
+  final url =
+  Uri.parse('${Config.apiBaseURL}${Config.aceptarSolicitudAmistad}');
+
+  // Obtener token de usuario, si existe
+  String? token = await StorageService.getToken();
+  if(token == null) {
+    throw Exception("No hay un token de autentificación disponible.");
+  }
+
+  // Realizar petición POST
+  try {
+    final response = await http.post(
+      url,
+      headers: {"Auth": token, "Content-Type": "application/json",
+        "Accept": "application/json"},
+      body: jsonEncode({
+        "solicitud_id": solicitudId
+      })
+    );
+    if(response.statusCode == 200) {
+      return "Solicitud aceptada con éxito";
+    } else {
+      switch (response.statusCode) {
+        case 400:
+          throw Exception("Faltan campos.");
+        case 401:
+          throw Exception(
+              "Token inválido o expirado. Debes iniciar sesión nuevamente (401)");
+        case 403:
+          throw Exception("No puedes aceptar una solicitud que no te pertenece.");
+        case 404:
+          throw Exception("Solicitud no encontrada.");
+        case 405:
+          throw Exception("Método no permitido.");
+        default:
+          throw Exception("Error desconocido. Código: ${response.statusCode}");
+      }
+    }
+  } catch(e) {
+    if (kDebugMode){
+      print("Error en aceptarSolicitudAmistad: $e");
+    }
+    rethrow;
+  }
+}
+
+///
+/// La siguiente función permite aceptar una solicitud de amistad
+/// mediante una petición POST a la API
+///
+Future<String> denegarSolicitudAmistad(String solicitudId) async {
+  // Endpoint petición API
+  final url =
+  Uri.parse('${Config.apiBaseURL}${Config.denegarSolicitudAmistad}');
+
+  // Obtener token de usuario, si existe
+  String? token = await StorageService.getToken();
+  if(token == null) {
+    throw Exception("No hay un token de autentificación disponible.");
+  }
+
+  // Realizar petición POST
+  try {
+    final response = await http.post(
+        url,
+        headers: {"Auth": token, "Content-Type": "application/json",
+          "Accept": "application/json"},
+        body: jsonEncode({
+          "solicitud_id": solicitudId
+        })
+    );
+    if(response.statusCode == 200) {
+      return "Solicitud denegada con éxito";
+    } else {
+      switch (response.statusCode) {
+        case 400:
+          throw Exception("Faltan campos.");
+        case 401:
+          throw Exception(
+              "Token inválido o expirado. Debes iniciar sesión nuevamente (401)");
+        case 403:
+          throw Exception("No puedes denegar una solicitud que no te pertenece.");
+        case 404:
+          throw Exception("Solicitud no encontrada.");
+        case 405:
+          throw Exception("Método no permitido.");
+        default:
+          throw Exception("Error desconocido. Código: ${response.statusCode}");
+      }
+    }
+  } catch(e) {
+    if (kDebugMode){
+      print("Error en denegarSolicitudAmistad: $e");
+    }
+    rethrow;
+  }
+}
+
+///
+/// La siguiente función permite obtener la lista de solicitudes de amistad pendientes
+/// mediante una petición GET a la API.
+///
+Future<List<Map<String, String>>> listarSolicitudesAmistad() async {
+  // Endpoint petición API
+  final url =
+  Uri.parse('${Config.apiBaseURL}${Config.listarSolicitudesAmistad}');
+
+  // Obtener token de usuario, si existe
+  String? token = await StorageService.getToken();
+  if(token == null) {
+    throw Exception("No hay un token de autentificación disponible.");
+  }
+
+  // Realizar la petición get a la API
+  try {
+    final response = await http.get(
+      url,
+      headers: {"Auth": token}
+    );
+    if(response.statusCode == 200) {
+      final data = json.decode(response.body);
+      List<Map<String, String>> solicitudes = List<Map<String, String>>.from(
+          data['solicitudes'].map((solicitud) => {
+            "id": solicitud["id"].toString(),
+            "solicitante": solicitud["solicitante"].toString()
+          })
+      );
+      return solicitudes;
+    } else {
+      switch (response.statusCode) {
+        case 401:
+          throw Exception(
+              "Token inválido o expirado. Debes iniciar sesión nuevamente (401)");
+        case 405:
+          throw Exception("Método no permitido.");
+        default:
+          throw Exception("Error desconocido.");
+      }
+    }
+  } catch(e) {
+    if (kDebugMode){
+      print("Error en denegarSolicitudAmistad: $e");
+    }
+    rethrow;
+  }
+}
+
+///
+/// La siguiente función permite enviar una solicitud de amistad
+/// a un usuario dado su id
+///
+Future<String> enviarSolicitud(String idRemitente) async {
+  // Endpoint petición API
+  final url =
+  Uri.parse('${Config.apiBaseURL}${Config.enviarSolicitudAmistad}');
+
+  // Obtener token de usuario, si existe
+  String? token = await StorageService.getToken();
+  if(token == null) {
+    throw Exception("No hay un token de autentificación disponible.");
+  }
+
+  // Realizar petición POST
+  try {
+    final response = await http.post(
+        url,
+        headers: {"Auth": token, "Content-Type": "application/json",
+          "Accept": "application/json"},
+        body: jsonEncode({
+          "destinatario_id": idRemitente
+        })
+    );
+    if(response.statusCode == 201) {
+      return "Solicitud envíada con éxito";
+    } else {
+      switch (response.statusCode) {
+        case 400:
+          throw Exception("Faltan campos o la solicitud ya fue enviada");
+        case 401:
+          throw Exception(
+              "Token inválido o expirado. Debes iniciar sesión nuevamente (401)");
+        case 404:
+          throw Exception("Destinatario no encontrada.");
+        case 405:
+          throw Exception("Método no permitido.");
+        default:
+          throw Exception("Error desconocido. Código: ${response.statusCode}");
+      }
+    }
+  } catch(e) {
+    if (kDebugMode){
+      print("Error en enviarSolicitudAmistad: $e");
     }
     rethrow;
   }

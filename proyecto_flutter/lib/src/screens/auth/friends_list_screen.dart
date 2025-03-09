@@ -52,17 +52,25 @@ class FriendsListState extends State<FriendsListScreen> {
   /// del usuario al usuario identificado por 'id'
   ///
   void _eliminarAmigo(int index, String id) async {
-    _animatedListKey.currentState!.removeItem(
-      index, (context, animation) => _itemLista(_amigos[index], index, animation),
-      duration: const Duration(milliseconds: 250),
-    );
-    Future.delayed(const Duration(milliseconds: 250), () {
+    try {
+      await eliminarAmigo(id);
+
+      _animatedListKey.currentState!.removeItem(
+        index, (context, animation) => _itemLista(_amigos[index], index, animation),
+        duration: const Duration(milliseconds: 250),
+      );
+      Future.delayed(const Duration(milliseconds: 250), () {
+        if(mounted) {
+          setState(() {
+            _amigos.removeAt(index);
+          });
+        }
+      });
+    } catch(e) {
       if(mounted) {
-        setState(() {
-          _amigos.removeAt(index);
-        });
+        Navigator.pushReplacementNamed(context, '/login');
       }
-    });
+    }
   }
 
   ///
@@ -148,12 +156,13 @@ class FriendsListState extends State<FriendsListScreen> {
                     fontWeight: FontWeight.bold)
             ),
           ),
-          Text(
+          Expanded(child: Text(
               nombre,
               style: const TextStyle(fontSize: 16),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-          ),
+              textAlign: TextAlign.center
+          )),
           IconButton(
               icon: const Icon(Icons.delete, color: Colors.white),
               onPressed: () => { _eliminarAmigo(index, id) }

@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:sota_caballo_rey/src/screens/auth/friend_request_screen.dart';
 import 'package:sota_caballo_rey/src/screens/auth/friends_list_screen.dart';
 import 'package:sota_caballo_rey/src/screens/auth/search_users_screen.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
@@ -18,7 +19,7 @@ class FriendsScreenState extends State<FriendsScreen> {
   // Lista de pantallas de gestión de amigos
   final List<Widget> _pantallas = [
     FriendsListScreen(),
-    const Center(child: Text('Pantalla 2', style: TextStyle(fontSize: 24))),
+    FriendRequestScreen(),
     SearchUsersScreen(),
   ];
 

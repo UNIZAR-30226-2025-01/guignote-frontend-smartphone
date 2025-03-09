@@ -23,6 +23,9 @@ class SearchUsersState extends State<SearchUsersScreen> {
   /// Contenido barra búsqueda
   String contenido = "";
 
+  /// Para animaciones
+  final GlobalKey<AnimatedListState> _animatedListKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -37,7 +40,7 @@ class SearchUsersState extends State<SearchUsersScreen> {
       _cargando = true;
     });
     try {
-      List<Map<String, String>> usuarios = await buscarUsuarios(prefijo, false);
+      List<Map<String, String>> usuarios = await buscarUsuarios(prefijo);
       setState(() {
         _usuarios = usuarios;
         _cargando = false;
@@ -47,6 +50,32 @@ class SearchUsersState extends State<SearchUsersScreen> {
         _error = true;
         _cargando = false;
       });
+    }
+  }
+
+  ///
+  /// Función que permite enviar una solicitud al usuario
+  /// identificado por 'id'
+  ///
+  void _enviarSolicitud(int index, String id) async {
+    try {
+      await enviarSolicitud(id);
+
+      _animatedListKey.currentState!.removeItem(
+        index, (context, animation) => _itemLista(_usuarios[index], index, animation),
+        duration: const Duration(milliseconds: 250),
+      );
+      Future.delayed(const Duration(milliseconds: 250), () {
+        if(mounted) {
+         setState(() {
+           _usuarios.removeAt(index);
+         });
+        }
+      });
+    } catch(e) {
+      if(mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
     }
   }
 
@@ -82,20 +111,30 @@ class SearchUsersState extends State<SearchUsersScreen> {
       child: _usuarios.isEmpty
           ? const Center(
           child: Text("Sin resultados"))
-          : ListView.builder(
-            itemCount: _usuarios.length,
-            itemBuilder: (context, index) {
-              Map<String, String> u = _usuarios[index];
-              return _usuario(u["id"]!, u["nombre"]!);
+          : AnimatedList(
+            key: _animatedListKey,
+            initialItemCount: _usuarios.length,
+            itemBuilder: (context, index, animation) {
+              return _itemLista(_usuarios[index], index, animation);
             },
           )
+    );
+  }
+
+  ///
+  /// Subcompoente: Item de la lista
+  ///
+  Widget _itemLista(Map<String, String> usuario, int index, Animation<double> animation) {
+    return SizeTransition(
+      sizeFactor: animation,
+      child: _usuario(index, usuario["id"]!, usuario["nombre"]!),
     );
   }
 
   /// Subcomponente: Contenido del ítem de la lista.
   /// Muestra un icono decorativo, el nombre del amigo y un botón
   /// para enviarle solicitud de amistad.
-  Widget _usuario(String id, String nombre) {
+  Widget _usuario(int index, String id, String nombre) {
     return Container(
       decoration: BoxDecoration(
         color: Color.fromRGBO(0, 0, 0, 0.5),
@@ -114,12 +153,13 @@ class SearchUsersState extends State<SearchUsersScreen> {
               style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)
             )
           ),
-          Text(
+          Expanded(child: Text(
             nombre,
             style: const TextStyle(fontSize: 16),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-          ),
+            textAlign: TextAlign.center
+          )),
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: TextButton(
@@ -134,7 +174,9 @@ class SearchUsersState extends State<SearchUsersScreen> {
                   "Enviar solicitud",
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)
               ),
-              onPressed: () {},
+              onPressed: () {
+                _enviarSolicitud(index, id);
+              },
             ),
           )
         ]
@@ -165,6 +207,4 @@ class SearchUsersState extends State<SearchUsersScreen> {
       onChanged: (content) { contenido = content.trim(); },
     );
   }
-
-
 }
