@@ -1,0 +1,13 @@
+{
+    "apiUrl": "http://188.165.76.134:8000",
+    "auth_endpoint": "/usuarios/iniciar_sesion/",
+    "create_user_endpoint": "/usuarios/crear_usuario/",
+    "delete_user_endpint": "/usuarios/eliminar_usuario/",
+    "obtener_amigos_endpoint": "/usuarios/obtener_amigos/",
+    "buscar_usuarios_endpoint": "/usuarios/buscar_usuarios/",
+    "eliminar_amigo_endpoint": "/usuarios/eliminar_amigo/",
+    "aceptar_solicitud_amistad_endpoint": "/usuarios/aceptar_solicitud_amistad/",
+    "denegar_solicitud_amistad_endpoint": "/usuarios/denegar_solicitud_amistad/",
+    "listar_solicitudes_amistad_endpoint": "/usuarios/listar_solicitudes_amistad/",
+    "enviar_solicitud_amistad_endpoint": "/usuarios/enviar_solicitud_amistad/"
+}

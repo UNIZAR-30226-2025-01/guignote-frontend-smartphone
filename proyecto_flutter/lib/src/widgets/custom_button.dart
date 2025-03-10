@@ -11,6 +11,18 @@ import 'package:google_fonts/google_fonts.dart';
 ///   - 'buttonText': Texto que irá dentro del botón.
 ///   - 'onPressedAction': Acción que ejecutará el botón al ser presionado.
 ///   - color: Color de fondo del botón.
+/// 
+/// Ejemplo de uso:
+/// 
+/// ```dart
+/// CustomButton
+/// (
+///  buttonText: 'Iniciar sesión',
+/// onPressedAction: () => Navigator.pushNamed(context, '/login'),
+/// color: Colors.blue,
+/// )
+/// ```
+/// 
 
 class CustomButton extends StatelessWidget
 {
