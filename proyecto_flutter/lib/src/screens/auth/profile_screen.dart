@@ -59,6 +59,21 @@ class ProfileScreenState extends State<ProfileScreen> {
           const CornerDecoration(
             imageAsset: 'assets/images/gold_ornaments.png',
           ),
+
+          //Boton para volver.
+          Positioned(
+            top: 40,
+            left: 40,
+            child: IconButton(
+              icon: const Icon(Icons.reply, 
+              color: Color(0xFF171718),
+              ),
+              iconSize: 40,
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/login');
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -206,6 +221,9 @@ Center buildProfileBox(BuildContext context) {
           ),
 
           // Contenido mochila.
+          const SizedBox(height: 30),
+          const BackPackTabs(),
+
         ],
       ),
     ),
@@ -251,6 +269,8 @@ Widget buildStatItem(String statName, String statValue, String imageAsset) {
   );
 }
 
+
+//Widget para crear una linea separadora entre secciones.
 Widget buildSectionSeparator() {
   return Column(
     children: const [
@@ -259,4 +279,112 @@ Widget buildSectionSeparator() {
       SizedBox(height: 30),
     ],
   );
+}
+
+
+//Widget para la creacion del contenido de la mochila.
+class BackPackTabs extends StatefulWidget {
+  const BackPackTabs({super.key});
+
+  @override
+  BackpackTabsState createState() => BackpackTabsState();
+}
+
+class BackpackTabsState extends State<BackPackTabs> {
+  // 0 --> Cartas.
+  // 1 --> Tapetes.
+  int selectedTab = 0;
+
+  @override
+  Widget build (BuildContext context) {
+    return Column (
+      //Fila con los botones de cada categoria.
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            //Boton de cartas.
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  selectedTab = 0;
+                });
+              },
+
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: selectedTab == 0 ? Colors.white : Colors.transparent,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.all(8),
+                child: Image.asset(
+                  'assets/images/Back.png', //URL CARTAS
+                  width: 50,
+                  height: 50,
+                ),
+              ),
+            ),
+            
+            const SizedBox(width: 20),
+            
+            //Boton de tapetes.
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  selectedTab = 1;
+                });
+              },
+              child: Container (
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: selectedTab == 1 ? Colors.white : Colors.transparent,
+                  ),
+                  borderRadius: BorderRadius.circular(8)
+                ),
+                padding: const EdgeInsets.all(8),
+                child: Image.asset ('assets/images/tapete.jpg', //URL TAPETES
+                width: 50,
+                height: 50,),
+              ),
+            ),
+          ],
+        ),
+
+        //Muestra la coleccion de skins segun la categoría seleccionada.
+        selectedTab == 0 ? buildGridContent("cartas") : buildGridContent("tapetes"),
+      ],
+    );
+  }
+
+
+// Método para construir el grid de elementos.
+Widget buildGridContent(String tipo) {
+  return GridView.count(
+    physics: const NeverScrollableScrollPhysics(),
+    shrinkWrap: true,
+    crossAxisCount: 2,
+    crossAxisSpacing: 10,
+    mainAxisSpacing: 10,
+    children: List.generate(4, (index) {
+      return Container (
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white),
+        ),
+        
+        child: Center (
+          child: Text(
+            tipo == "cartas"
+              ? 'skin de Carta ${index + 1}'
+              : 'skin de tapete ${index + 1}',
+            style: const TextStyle(color: Colors.white),
+          ),
+        )
+      );
+    })
+  );
+}
 }
