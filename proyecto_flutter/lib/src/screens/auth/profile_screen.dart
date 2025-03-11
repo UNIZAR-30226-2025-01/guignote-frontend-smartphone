@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:sota_caballo_rey/src/services/storage_service.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
+import 'package:sota_caballo_rey/src/themes/theme.dart';
 
 //Pantalla de perfil del usuario.
 //
@@ -71,10 +73,33 @@ class ProfileScreenState extends State<ProfileScreen> {
               ),
               iconSize: 40,
               onPressed: () {
-                Navigator.pushReplacementNamed(context, '/login');
+                Navigator.pushReplacementNamed(context, '/login'); //CAMBIAR A MENU PRINCIPAL.
               },
             ),
           ),
+
+          // Boton de cierre de sesión
+          Positioned(
+            top: 40,
+            right: 40,
+            child: IconButton(
+              icon: const Icon(
+                Icons.logout,
+                color: Color(0xFF171718),
+              ),
+            iconSize: 40,
+            onPressed: () async {
+              // Elimina el token del usuario.
+              await StorageService.deleteToken();
+
+              // Verifica si el widget sigue montado.
+              if (!mounted) return;
+
+              // Navega a la página de login.
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+            ),
+          )
         ],
       ),
     );
@@ -126,11 +151,7 @@ Widget buildProfileBox(BuildContext context) {
                 const SizedBox(height: 10),
                 const Text(
                   'Perfil',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTheme.titleTextStyle,
                 ),
 
                 // Foto del usuario.
@@ -145,7 +166,7 @@ Widget buildProfileBox(BuildContext context) {
                 const SizedBox(height: 10),
                 Text(
                   usuario,
-                  style: TextStyle(color: Colors.white, fontSize: 20),
+                  style: TextStyle(color: Colors.white, fontSize: 20, fontFamily: 'poppins',),
                 ),
 
                 // Rango y ELO del usuario.
@@ -154,13 +175,13 @@ Widget buildProfileBox(BuildContext context) {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
-                      'assets/images/default_portrait.png',
+                      'assets/images/default_portrait.png', // Por el momento no se implementa en el backend.
                       width: 24,
                       height: 24,
                     ),
 
                     const SizedBox(width: 5),
-                    Text('Oro', style: TextStyle(color: Colors.white, fontSize: 16)),
+                    Text('Oro', style: TextStyle(color: Colors.white, fontSize: 16, fontFamily: 'poppins',)), // Por el momento no se implementa en el backend.
 
                     SizedBox(width: 20),
                     Row(
@@ -173,8 +194,8 @@ Widget buildProfileBox(BuildContext context) {
 
                         const SizedBox(width: 5),
                         Text(
-                          '1500',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
+                          '0', // Por el momento no se implementa en el backend.
+                          style: TextStyle(color: Colors.white, fontSize: 16, fontFamily: 'poppins',),
                         ),
                       ],
                     ),
@@ -189,11 +210,7 @@ Widget buildProfileBox(BuildContext context) {
                 // Titulo de estadisticas.
                 const Text(
                   'Estadísticas',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTheme.titleTextStyle,
                 ),
 
                 // Recuadro de las estadisticas.
@@ -223,7 +240,7 @@ Widget buildProfileBox(BuildContext context) {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    buildStatItem("ELO max", "30", "assets/images/trophy.png"),
+                    buildStatItem("ELO max", "0", "assets/images/trophy.png"), // Por el momento no se implementa en el backend.
                     buildStatItem("Racha max", rachaMax.toString(), "assets/images/star.png"),
                   ],
                 ),
@@ -236,11 +253,7 @@ Widget buildProfileBox(BuildContext context) {
                 // Titulo mochila.
                 const Text(
                   'Mochila',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTheme.titleTextStyle,
                 ),
 
                 // Contenido mochila.
@@ -266,7 +279,7 @@ Widget buildStatItem(String statName, String statValue, String imageAsset) {
   return Column(
     children: [
       //Nombre de la estadistica.
-      Text(statName, style: const TextStyle(fontSize: 14, color: Colors.white)),
+      Text(statName, style: const TextStyle(fontSize: 14, color: Colors.white, fontFamily: 'poppins',)),
 
       //Recuadro blanco con el valor e imagen al lado.
       const SizedBox(height: 5),
@@ -290,6 +303,7 @@ Widget buildStatItem(String statName, String statValue, String imageAsset) {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
+                fontFamily: 'poppins',
                 color: Colors.black,
               ),
             ),
