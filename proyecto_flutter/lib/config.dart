@@ -75,4 +75,5 @@ class Config
   static String get denegarSolicitudAmistad => _config['denegar_solicitud_amistad_endpoint'];
   static String get listarSolicitudesAmistad => _config['listar_solicitudes_amistad_endpoint'];
   static String get enviarSolicitudAmistad => _config['enviar_solicitud_amistad_endpoint'];
+  static String get buscarEstadisticasUsuario => _config['buscar_estadisticas_usuario_endpoint'];
 }

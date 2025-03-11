@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
+import 'package:sota_caballo_rey/src/services/api_service.dart';
 
 //Pantalla de perfil del usuario.
 //
@@ -81,154 +82,186 @@ class ProfileScreenState extends State<ProfileScreen> {
 }
 
 // Construye la caja con la información del perfil, estadisticas y mochila.
-Center buildProfileBox(BuildContext context) {
-  return Center(
-    child: Container(
-      constraints: const BoxConstraints(maxWidth: 300),
-      padding: const EdgeInsets.all(20),
+Widget buildProfileBox(BuildContext context) {
+  return FutureBuilder<Map<String, dynamic>> (
+    future: getUserStatistics(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center (child: CircularProgressIndicator());
+      }
+      else if (snapshot.hasError)
+      {
+        return Center(
+          child: Text("Error: ${snapshot.error}",
+          style: const TextStyle(color: Colors.white),),
+        );
+      }
+      else if (snapshot.hasData) 
+      {
+        final stats = snapshot.data!;
+        int victorias = stats["victorias"];
+        int derrotas = stats["derrotas"];
+        int racha = stats["racha_victorias"];
+        int rachaMax = stats["mayor_racha_victorias"];
+        //int totalPartidas = stats["total_partidas"];
+        String winloss = (derrotas != 0)
+          ? (victorias/derrotas).toStringAsFixed(2)
+          : "N/A";
 
-      decoration: BoxDecoration(
-        color: const Color(0XFF171718),
-        borderRadius: BorderRadius.circular(15),
-      ),
-
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // PERFIL
-
-          // Titulo del perfil.
-          const SizedBox(height: 10),
-          const Text(
-            'Perfil',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+        return Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 300),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0XFF171718),
+              borderRadius: BorderRadius.circular(15),
             ),
-          ),
 
-          // Foto del usuario.
-          const SizedBox(height: 30),
-          const CircleAvatar(
-            radius: 40,
-            backgroundColor: Colors.transparent,
-            backgroundImage: AssetImage('assets/images/default_portrait.png'),
-          ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // PERFIL
 
-          // Nombre del usuario.
-          const SizedBox(height: 10),
-          const Text(
-            'Nombre del usuario',
-            style: TextStyle(color: Colors.white, fontSize: 20),
-          ),
-
-          // Rango y ELO del usuario.
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/images/default_portrait.png',
-                width: 24,
-                height: 24,
-              ),
-
-              const SizedBox(width: 5),
-              Text('Oro', style: TextStyle(color: Colors.white, fontSize: 16)),
-
-              SizedBox(width: 20),
-              Row(
-                children: [
-                  Image.asset(
-                    'assets/images/trophy.png',
-                    width: 24,
-                    height: 24,
+                // Titulo del perfil.
+                const SizedBox(height: 10),
+                const Text(
+                  'Perfil',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
 
-                  const SizedBox(width: 5),
-                  Text(
-                    '1500',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                // Foto del usuario.
+                const SizedBox(height: 30),
+                const CircleAvatar(
+                  radius: 40,
+                  backgroundColor: Colors.transparent,
+                  backgroundImage: AssetImage('assets/images/default_portrait.png'),
+                ),
+
+                // Nombre del usuario.
+                const SizedBox(height: 10),
+                Text(
+                  stats["user"],
+                  style: TextStyle(color: Colors.white, fontSize: 20),
+                ),
+
+                // Rango y ELO del usuario.
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/default_portrait.png',
+                      width: 24,
+                      height: 24,
+                    ),
+
+                    const SizedBox(width: 5),
+                    Text('Oro', style: TextStyle(color: Colors.white, fontSize: 16)),
+
+                    SizedBox(width: 20),
+                    Row(
+                      children: [
+                        Image.asset(
+                          'assets/images/trophy.png',
+                          width: 24,
+                          height: 24,
+                        ),
+
+                        const SizedBox(width: 5),
+                        Text(
+                          '1500',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                //ESTADISTICAS
+
+                // Separador de sección
+                buildSectionSeparator(),
+
+                // Titulo de estadisticas.
+                const Text(
+                  'Estadísticas',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
 
-          //ESTADISTICAS
+                // Recuadro de las estadisticas.
 
-          // Separador de sección
-          buildSectionSeparator(),
+                // Primera fila.
+                const SizedBox(height: 30),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    buildStatItem("Nº Victorias", victorias.toString(), "assets/images/victory.png"),
+                    buildStatItem("Nº Derrotas", derrotas.toString(), "assets/images/loss.png"),
+                  ],
+                ),
 
-          // Titulo de estadisticas.
-          const Text(
-            'Estadísticas',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+                // Segunda fila.
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    buildStatItem("Win/Loss", winloss, "assets/images/laurel.png"),
+                    buildStatItem("Racha", racha.toString(), "assets/images/star.png"),
+                  ],
+                ),
+
+                // Tercera fila.
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    buildStatItem("ELO max", "30", "assets/images/trophy.png"),
+                    buildStatItem("Racha max", rachaMax.toString(), "assets/images/star.png"),
+                  ],
+                ),
+
+                // MOCHILA
+
+                // Separador de sección
+                buildSectionSeparator(),
+
+                // Titulo mochila.
+                const Text(
+                  'Mochila',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                // Contenido mochila.
+                const SizedBox(height: 30),
+                const BackPackTabs(),
+
+              ],
             ),
           ),
-
-          // Recuadro de las estadisticas.
-
-          // Primera fila.
-          const SizedBox(height: 30),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              buildStatItem("Nº Victorias", "300", "assets/images/victory.png"),
-              buildStatItem("Nº Derrotas", "30", "assets/images/loss.png"),
-            ],
-          ),
-
-          // Segunda fila.
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              buildStatItem("Win/Loss", "30", "assets/images/laurel.png"),
-              buildStatItem("Racha", "3000", "assets/images/star.png"),
-            ],
-          ),
-
-          // Tercera fila.
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              buildStatItem("ELO max", "30", "assets/images/trophy.png"),
-              buildStatItem("Racha max", "30", "assets/images/star.png"),
-            ],
-          ),
-
-          // MOCHILA
-
-          // Separador de sección
-          buildSectionSeparator(),
-
-          // Titulo mochila.
-          const Text(
-            'Mochila',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          // Contenido mochila.
-          const SizedBox(height: 30),
-          const BackPackTabs(),
-
-        ],
-      ),
-    ),
+        );
+      }
+      else
+      {
+        return const SizedBox();
+      }
+      },
   );
 }
+
 
 //Widget para rectangulo de estadisticas.
 Widget buildStatItem(String statName, String statValue, String imageAsset) {

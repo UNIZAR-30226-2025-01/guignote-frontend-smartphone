@@ -26,8 +26,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:sota_caballo_rey/config.dart';
+import 'package:sota_caballo_rey/src/models/user.dart';
 import 'package:sota_caballo_rey/src/services/storage_service.dart';
 import 'package:sota_caballo_rey/src/services/exceptions.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 
 /// Función para iniciar sesión en la API.
@@ -558,5 +560,45 @@ Future<String> enviarSolicitud(String idRemitente) async {
       print("Error en enviarSolicitudAmistad: $e");
     }
     rethrow;
+  }
+}
+
+
+// La siguiente función busca extraer de la BD la información del usuario y de sus estadísticas.
+Future<Map<String,dynamic>> getUserStatistics () async {
+  // Obtenemos el token de autenticación.
+  String? token = await StorageService.getToken();
+  if (token == null || token.isEmpty)
+  {
+    throw Exception("No hay token de autenticación disponible.");
+  }
+
+  //Decodificamos el token para obtener el id del usuario.
+  Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+  int? userID = decodedToken['id'];
+  if (userID == null || token.isEmpty)
+  {
+    throw Exception("El token no contiene el userId");
+  }
+
+  final url = Uri.parse ('${Config.apiBaseURL}${Config.buscarEstadisticasUsuario}$userID/');
+
+  final response = await http.get(url, headers: {"Auth": token});
+
+  if (response.statusCode == 200)
+  {
+    return jsonDecode(response.body);
+  }
+  else if (response.statusCode == 403)
+  {
+    throw Exception("Token inválido.");
+  }
+  else if (response.statusCode == 404)
+  {
+    throw Exception("Usuario no encontrado.");
+  }
+  else
+  {
+    throw Exception("Error desconocido. Codigo ${response.statusCode}");
   }
 }

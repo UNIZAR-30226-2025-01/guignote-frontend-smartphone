@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget
       theme: ThemeData(
         colorScheme: ColorScheme.dark(), 
       ),
-      initialRoute: '/profile',
+      initialRoute: '/',
       routes: 
       {
         '/': (context) => const WelcomeScreen(),
