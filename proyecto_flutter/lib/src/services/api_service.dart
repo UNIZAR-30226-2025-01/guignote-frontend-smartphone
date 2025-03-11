@@ -29,7 +29,6 @@ import 'package:sota_caballo_rey/config.dart';
 import 'package:sota_caballo_rey/src/models/user.dart';
 import 'package:sota_caballo_rey/src/services/storage_service.dart';
 import 'package:sota_caballo_rey/src/services/exceptions.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
 
 
 /// Función para iniciar sesión en la API.
@@ -573,15 +572,7 @@ Future<Map<String,dynamic>> getUserStatistics () async {
     throw Exception("No hay token de autenticación disponible.");
   }
 
-  //Decodificamos el token para obtener el id del usuario.
-  Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-  int? userID = decodedToken['id'];
-  if (userID == null || token.isEmpty)
-  {
-    throw Exception("El token no contiene el userId");
-  }
-
-  final url = Uri.parse ('${Config.apiBaseURL}${Config.buscarEstadisticasUsuario}$userID/');
+  final url = Uri.parse ('${Config.apiBaseURL}${Config.buscarEstadisticasUsuario}');
 
   final response = await http.get(url, headers: {"Auth": token});
 
@@ -589,13 +580,13 @@ Future<Map<String,dynamic>> getUserStatistics () async {
   {
     return jsonDecode(response.body);
   }
-  else if (response.statusCode == 403)
+  else if (response.statusCode == 401)
   {
-    throw Exception("Token inválido.");
+    throw Exception("Token inválido o no proporcionado.");
   }
-  else if (response.statusCode == 404)
+  else if (response.statusCode == 405)
   {
-    throw Exception("Usuario no encontrado.");
+    throw Exception("Método no permitido.");
   }
   else
   {

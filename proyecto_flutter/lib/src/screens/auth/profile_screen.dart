@@ -103,10 +103,8 @@ Widget buildProfileBox(BuildContext context) {
         int derrotas = stats["derrotas"];
         int racha = stats["racha_victorias"];
         int rachaMax = stats["mayor_racha_victorias"];
-        //int totalPartidas = stats["total_partidas"];
-        String winloss = (derrotas != 0)
-          ? (victorias/derrotas).toStringAsFixed(2)
-          : "N/A";
+        String usuario = stats["nombre"];
+        double winLoss = stats["porcentaje_victorias"];
 
         return Center(
           child: Container(
@@ -146,7 +144,7 @@ Widget buildProfileBox(BuildContext context) {
                 // Nombre del usuario.
                 const SizedBox(height: 10),
                 Text(
-                  stats["user"],
+                  usuario,
                   style: TextStyle(color: Colors.white, fontSize: 20),
                 ),
 
@@ -215,7 +213,7 @@ Widget buildProfileBox(BuildContext context) {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    buildStatItem("Win/Loss", winloss, "assets/images/laurel.png"),
+                    buildStatItem("Win/Loss", winLoss.toString(), "assets/images/laurel.png"),
                     buildStatItem("Racha", racha.toString(), "assets/images/star.png"),
                   ],
                 ),
