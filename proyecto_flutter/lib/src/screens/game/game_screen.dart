@@ -23,6 +23,9 @@ class _GameScreenState extends State<GameScreen> {
   String playerPlayedCard = '2E';
   List<String> playerHand = ['1O', '2O', '3O', '4O', '5O', '6O'];
   List<String> rivalHand = ['Back', 'Back', 'Back', 'Back', 'Back', 'Back'];
+  int puntosJugador = 0;
+  int puntosRival = 0;
+  int turnos = 10;
 
   void jugarCarta(String card) {
     setState(() {
@@ -119,6 +122,12 @@ class _GameScreenState extends State<GameScreen> {
             child: buildGameButtons(context),
           ),
 
+          // Información de la partida
+          Align(
+            alignment: const Alignment(-0.95, -0.60),
+            child: buildInfoPartida(context),
+          ),
+
 
           // Iconos de los jugadores
           Align(
@@ -130,6 +139,45 @@ class _GameScreenState extends State<GameScreen> {
             child: buildPlayerIcon(context, rivalName, rivalIcon),
           ),
         ],
+      ),
+    );
+  }
+
+  buildInfoPartida(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+      color: Colors.black.withOpacity(0.5),
+      borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+        'Turnos:',
+        style: const TextStyle(color: Colors.white),
+        ),
+        Text(
+        '$turnos',
+        style: const TextStyle(color: Colors.white),
+        ),
+        Text(
+        'Puntos:',
+        style: const TextStyle(color: Colors.white),
+        ),
+        Text(
+        '$puntosJugador',
+        style: const TextStyle(color: Colors.white),
+        ),
+        Text(
+        'Pts. rival:',
+        style: const TextStyle(color: Colors.white),
+        ),
+        Text(
+        '$puntosRival',
+        style: const TextStyle(color: Colors.white),
+        ),
+      ],
       ),
     );
   }
