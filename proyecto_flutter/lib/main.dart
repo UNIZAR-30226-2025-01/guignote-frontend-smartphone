@@ -25,12 +25,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.dark(), 
       ),
-      initialRoute: '/game',
+      initialRoute: '/',
       routes: {
         '/': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        '/game': (context) => const GameScreen(),
+        '/game': (context) => const GameScreen(partidaID: 1,),
       },
     );
   }

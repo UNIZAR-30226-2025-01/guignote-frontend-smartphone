@@ -4,7 +4,10 @@ import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/widgets/game/game_card.dart';
 
 class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
+
+  final int partidaID;
+
+  const GameScreen({super.key, required this.partidaID});
 
   @override
   State<GameScreen> createState() => _GameScreenState();
