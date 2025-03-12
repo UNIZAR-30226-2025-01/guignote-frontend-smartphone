@@ -159,7 +159,7 @@ Widget buildProfileBox(BuildContext context) {
                 const CircleAvatar(
                   radius: 40,
                   backgroundColor: Colors.transparent,
-                  backgroundImage: AssetImage('assets/images/default_portrait.png'),
+                  backgroundImage: AssetImage('assets/images/default_portrait.png'), // Por el momento no se implementa en el backend.
                 ),
 
                 // Nombre del usuario.
