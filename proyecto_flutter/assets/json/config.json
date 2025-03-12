@@ -9,5 +9,6 @@
     "aceptar_solicitud_amistad_endpoint": "/usuarios/aceptar_solicitud_amistad/",
     "denegar_solicitud_amistad_endpoint": "/usuarios/denegar_solicitud_amistad/",
     "listar_solicitudes_amistad_endpoint": "/usuarios/listar_solicitudes_amistad/",
-    "enviar_solicitud_amistad_endpoint": "/usuarios/enviar_solicitud_amistad/"
+    "enviar_solicitud_amistad_endpoint": "/usuarios/enviar_solicitud_amistad/",
+    "buscar_estadisticas_usuario_endpoint": "/usuarios/estadisticas/"
 }

@@ -26,6 +26,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:sota_caballo_rey/config.dart';
+import 'package:sota_caballo_rey/src/models/user.dart';
 import 'package:sota_caballo_rey/src/services/storage_service.dart';
 import 'package:sota_caballo_rey/src/services/exceptions.dart';
 
@@ -558,5 +559,37 @@ Future<String> enviarSolicitud(String idRemitente) async {
       print("Error en enviarSolicitudAmistad: $e");
     }
     rethrow;
+  }
+}
+
+
+// La siguiente función busca extraer de la BD la información del usuario y de sus estadísticas.
+Future<Map<String,dynamic>> getUserStatistics () async {
+  // Obtenemos el token de autenticación.
+  String? token = await StorageService.getToken();
+  if (token == null || token.isEmpty)
+  {
+    throw Exception("No hay token de autenticación disponible.");
+  }
+
+  final url = Uri.parse ('${Config.apiBaseURL}${Config.buscarEstadisticasUsuario}');
+
+  final response = await http.get(url, headers: {"Auth": token});
+
+  if (response.statusCode == 200)
+  {
+    return jsonDecode(response.body);
+  }
+  else if (response.statusCode == 401)
+  {
+    throw Exception("Token inválido o no proporcionado.");
+  }
+  else if (response.statusCode == 405)
+  {
+    throw Exception("Método no permitido.");
+  }
+  else
+  {
+    throw Exception("Error desconocido. Codigo ${response.statusCode}");
   }
 }
