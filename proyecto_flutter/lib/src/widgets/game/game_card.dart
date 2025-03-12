@@ -22,13 +22,13 @@ class GameCard extends StatelessWidget
 
   // Constructor que inicializa el widget con los valores proporcionados.
   const GameCard
-  (
-    {
-      super.key,
-      required this.imageAsset,
-      required this.width,
-    }
-  );
+    (
+      {
+        super.key,
+        required String card,
+        required this.width,
+      }
+    ) : imageAsset = 'assets/images/cards/$card.png';
 
   @override
   Widget build(BuildContext context)
