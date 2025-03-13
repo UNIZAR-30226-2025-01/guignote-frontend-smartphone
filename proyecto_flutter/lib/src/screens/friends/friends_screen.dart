@@ -1,8 +1,8 @@
 
 import 'package:flutter/material.dart';
-import 'package:sota_caballo_rey/src/screens/auth/friend_request_screen.dart';
-import 'package:sota_caballo_rey/src/screens/auth/friends_list_screen.dart';
-import 'package:sota_caballo_rey/src/screens/auth/search_users_screen.dart';
+import 'package:sota_caballo_rey/src/screens/friends/friend_request_screen.dart';
+import 'package:sota_caballo_rey/src/screens/friends/friends_list_screen.dart';
+import 'package:sota_caballo_rey/src/screens/friends/search_users_screen.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 

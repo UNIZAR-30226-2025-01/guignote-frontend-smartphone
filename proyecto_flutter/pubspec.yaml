@@ -40,7 +40,8 @@ flutter:
   assets:
     - assets/images/
     - assets/images/cards/
-
+    - assets/json/config.json
+    
   # Fuentes usadas
   fonts:
     - family: tituloApp
