@@ -15,13 +15,15 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
 
+  double _volume = 0.5;
+
   String playerName = 'Jugador 1';
   String playerIcon = 'assets/images/app_logo_white.png';
   String rivalName = 'Jugador 2';
   String rivalIcon = 'assets/images/app_logo_white.png';
 
 
-  String triunfo = '1O';
+  String triunfo = '1E';
   String rivalPlayedCard = '3C';
   String playerPlayedCard = '2E';
   List<String> playerHand = ['1O', '2O', '3O', '4O', '5O', '6O'];
@@ -244,7 +246,52 @@ class _GameScreenState extends State<GameScreen> {
   ElevatedButton buildSettingsButton(BuildContext context){
     return ElevatedButton(
       onPressed: () {
-      // Acción cuando se presiona el botón
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              backgroundColor: Colors.black,
+              content: SizedBox(
+                height: 200,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                  const Text(
+                    'Ajustes',
+                    style: TextStyle(color: Colors.white, fontSize: 24),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Volumen',
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                  Slider(
+                    value: _volume,
+                    min: 0,
+                    max: 1,
+                    divisions: 10,
+                    onChanged: (value) {
+                    setState(() {
+                      _volume = value;
+                    });
+                    },
+                    activeColor: Colors.white,
+                    inactiveColor: Colors.grey,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
+                    onPressed: () {
+                    Navigator.of(context).pop();
+                    },
+                    child: const Text('Cerrar', style: TextStyle(color: Colors.black)),
+                  ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
       },
       style: ElevatedButton.styleFrom(
       shape: CircleBorder(),           // Forma circular

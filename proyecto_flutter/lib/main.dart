@@ -7,6 +7,7 @@ library;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/screens/friends/friends_screen.dart';
+import 'package:sota_caballo_rey/src/screens/home/help_screen.dart';
 import 'package:sota_caballo_rey/src/screens/user/profile_screen.dart';
 import 'src/screens/auth/welcome_screen.dart';
 import 'src/screens/auth/login_screen.dart';
@@ -14,6 +15,7 @@ import 'src/screens/auth/register_screen.dart';
 import 'package:sota_caballo_rey/config.dart';
 import 'package:sota_caballo_rey/src/screens/home/home_screen.dart'; 
 import 'src/screens/game/game_screen.dart';
+import 'package:sota_caballo_rey/src/screens/home/ranking_screen.dart';
 
 void main() async {
   // Necesario para las operaciones asíncronas.
@@ -46,6 +48,8 @@ class MyApp extends StatelessWidget
         '/amigos': (context) => const FriendsScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/home': (context) => const HomeScreen(),
+        '/help': (context) => const HelpScreen(),
+        '/ranking': (context) => const RankingScreen(),
       },
     );
   }

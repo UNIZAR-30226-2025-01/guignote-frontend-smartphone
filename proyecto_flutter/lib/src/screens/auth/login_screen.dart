@@ -31,7 +31,7 @@ class LoginScreen extends StatefulWidget
 /// 
 class LoginScreenState extends State<LoginScreen> 
 {
-  final _formKey = GlobalKey<FormState>(); // Clave global para el formulario.
+  //final _formKey = GlobalKey<FormState>(); // Clave global para el formulario.
   final _usrController = TextEditingController(); // Controlador para el campo de usuario.
   final _passwdController = TextEditingController(); // Controlador para el campo de contraseña.
   bool _rememberMe = false; // Estado para la opción de recordar al usuario.

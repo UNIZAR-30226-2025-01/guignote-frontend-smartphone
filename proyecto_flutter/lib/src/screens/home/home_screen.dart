@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_button.dart';
+import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
 
 class HomeScreen extends StatefulWidget 
 {
@@ -17,57 +17,10 @@ class HomeScreen extends StatefulWidget
 class HomeScreenState extends State<HomeScreen> 
 {
   final String? profileImageUrl = 'https://www.pngkey.com/png/full/114-1149878_setting-user-avatar-in-specific-size-without-breaking.png';
-  int _currentIndex = 0;
   int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
+  double _volume = 0.5; // initial volume value
 
   final _pageController = PageController();
-
-  /// Método que se ejecuta al pulsar en un elemento del BottomNavigationBar
-  /// index: índice del elemento pulsado
-  /// 
-  /// En este caso, se cambia el índice seleccionado y se navega a la pantalla correspondiente
-  /// 
-  /// 0: Perfil
-  /// 1: Notificaciones
-  /// 2: Inicio
-  /// 3: Clasificación
-  /// 4: Ayuda
-  /// 
-  /// En cada caso, se navega a la pantalla correspondiente
-  /// 
-  void _onItemTaped(int index) 
-  {
-    setState(() 
-    {
-      _selectedIndex = index;
-    });
-
-    switch (index)
-    {
-      case 0:
-        Navigator.pushNamed(context, '/profile');
-        break;
-      
-      case 1:
-        Navigator.pushNamed(context, '/notifications');
-        break;
-
-      case 2:
-        Navigator.pushNamed(context, '/home');
-        break;
-
-      case 3:
-        Navigator.pushNamed(context, '/ranking');
-        break;
-      
-      case 4:
-        Navigator.pushNamed(context, '/help');
-        break;
-      
-      default:
-        break;
-    }
-  }
 
 
 
@@ -78,7 +31,7 @@ class HomeScreenState extends State<HomeScreen>
     (
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
-    appBar:AppBar
+      appBar:AppBar
       (
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -95,14 +48,51 @@ class HomeScreenState extends State<HomeScreen>
               icon: const Icon(Icons.settings, color: Colors.white),
               onPressed: () 
               {
-                ScaffoldMessenger.of(context).showSnackBar
-                (
-                  const SnackBar
-                  (
-                    content: Text('Configuración', style: TextStyle(color: Colors.white)),
-                    backgroundColor: Colors.black,
-                    duration: Duration(seconds: 2),
-                  ),
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      backgroundColor: Colors.black,
+                      content: SizedBox(
+                        height: 200,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                          const Text(
+                            'Ajustes',
+                            style: TextStyle(color: Colors.white, fontSize: 24),
+                          ),
+                          const SizedBox(height: 20),
+                          const Text(
+                            'Volumen',
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                          Slider(
+                            value: _volume,
+                            min: 0,
+                            max: 1,
+                            divisions: 10,
+                            onChanged: (value) {
+                              setState(() {
+                                _volume = value;
+                              });
+                            },
+                            activeColor: Colors.white,
+                            inactiveColor: Colors.grey,
+                          ),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
+                            onPressed: () {
+                            Navigator.of(context).pop();
+                            },
+                            child: const Text('Cerrar', style: TextStyle(color: Colors.black)),
+                          ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -160,6 +150,7 @@ class HomeScreenState extends State<HomeScreen>
                     const SizedBox(height: 20),
                     
                     _buildPlayButton(),
+
                     
                   ],
                 ),
@@ -168,52 +159,7 @@ class HomeScreenState extends State<HomeScreen>
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar
-      (
-        items: const <BottomNavigationBarItem>
-        [
-          
-          BottomNavigationBarItem
-          (
-            icon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-                    
-          BottomNavigationBarItem
-          (
-            icon: Icon(Icons.inbox),
-            label: 'Notificaciones',
-          ),
-
-          BottomNavigationBarItem
-          (
-            icon: Icon(Icons.home), 
-            label: 'Inicio',
-          ),
-
-          BottomNavigationBarItem
-          (
-            icon: Icon(Icons.emoji_events),
-            label: 'Clasificación',
-          ),
-
-          BottomNavigationBarItem
-          (
-            icon: Icon(Icons.help),
-            label: 'Ayuda',
-          ),
-        ],
-
-        
-        currentIndex: _selectedIndex, // Índice del elemento seleccionado
-        selectedItemColor: Colors.amber[800],
-        unselectedItemColor: Colors.grey,
-        backgroundColor: AppTheme.blackColor,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        type: BottomNavigationBarType.fixed,
-        onTap: _onItemTaped,
-      ),
+      bottomNavigationBar: CustomNavBar(selectedIndex: _selectedIndex),
     );
   }
 
@@ -373,7 +319,10 @@ class HomeScreenState extends State<HomeScreen>
         duration: const Duration(milliseconds: 100),
         curve: Curves.easeInOut,
         transform: Matrix4.translationValues(1.05, 1.05, 1),
-        child: CustomButton(buttonText: 'Buscar Partida', onPressedAction:(){}, color: Colors.amber),
+        child: CustomButton(buttonText: 'Buscar Partida', onPressedAction: ()
+        {
+          Navigator.pushNamed(context, '/game');
+        }, color: Colors.amber),
       ),
     );
   }

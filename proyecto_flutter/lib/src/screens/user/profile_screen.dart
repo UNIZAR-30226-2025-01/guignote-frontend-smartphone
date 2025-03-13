@@ -4,6 +4,7 @@ import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
+import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
 
 //Pantalla de perfil del usuario.
 //
@@ -20,9 +21,10 @@ class ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final containerHeight = size.height * 0.8;
+    final containerHeight = size.height * 0.76;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
@@ -73,7 +75,7 @@ class ProfileScreenState extends State<ProfileScreen> {
               ),
               iconSize: 40,
               onPressed: () {
-                Navigator.pushReplacementNamed(context, '/login'); //CAMBIAR A MENU PRINCIPAL.
+                Navigator.pushReplacementNamed(context, '/home'); //CAMBIAR A MENU PRINCIPAL.
               },
             ),
           ),
@@ -102,6 +104,7 @@ class ProfileScreenState extends State<ProfileScreen> {
           )
         ],
       ),
+      bottomNavigationBar: CustomNavBar(selectedIndex: 0),
     );
   }
 }
