@@ -41,6 +41,7 @@ class MyApp extends StatelessWidget
         '/': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
+        '/game': (context) => const GameScreen(partidaID: 1,),
         '/amigos': (context) => const FriendsScreen(),
         '/profile': (context) => const ProfileScreen(),
       },
