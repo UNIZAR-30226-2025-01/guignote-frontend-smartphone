@@ -65,20 +65,6 @@ class ProfileScreenState extends State<ProfileScreen> {
             imageAsset: 'assets/images/gold_ornaments.png',
           ),
 
-          //Boton para volver.
-          Positioned(
-            top: 40,
-            left: 40,
-            child: IconButton(
-              icon: const Icon(Icons.reply, 
-              color: Color(0xFF171718),
-              ),
-              iconSize: 40,
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/home'); //CAMBIAR A MENU PRINCIPAL.
-              },
-            ),
-          ),
 
           // Boton de cierre de sesión
           Positioned(
@@ -322,9 +308,9 @@ Widget buildStatItem(String statName, String statValue, String imageAsset) {
 Widget buildSectionSeparator() {
   return Column(
     children: const [
-      SizedBox(height: 60),
+      SizedBox(height: 40),
       Divider(color: Colors.white, thickness: 1, indent: 20, endIndent: 20),
-      SizedBox(height: 30),
+      SizedBox(height: 20),
     ],
   );
 }
