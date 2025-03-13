@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sota_caballo_rey/src/screens/friends/friend_chat.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_title.dart';
 
@@ -156,13 +157,28 @@ class FriendsListState extends State<FriendsListScreen> {
                     fontWeight: FontWeight.bold)
             ),
           ),
-          Expanded(child: Text(
-              nombre,
-              style: const TextStyle(fontSize: 16),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center
-          )),
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FriendChat(receptorId: id),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(
+                  nombre,
+                  style: const TextStyle(fontSize: 16),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
           IconButton(
               icon: const Icon(Icons.delete, color: Colors.white),
               onPressed: () => { _eliminarAmigo(index, id) }

@@ -23,6 +23,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:core';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:sota_caballo_rey/config.dart';
@@ -271,8 +272,8 @@ Future<List<Map<String, String>>> buscarUsuarios(String prefijo, {bool incluirAm
     bool incluirMe = false, bool incluirPendientes = false}) async {
   // Endpoint petición API
   final url =
-    Uri.parse('${Config.apiBaseURL}${Config.buscarUsuarios}?nombre=$prefijo&incluir_amigos=$incluirAmigos' +
-        '&incluir_me=$incluirMe&incluir_pendientes=$incluirPendientes');
+    Uri.parse('${Config.apiBaseURL}${Config.buscarUsuarios}?nombre=$prefijo&'
+        'incluir_amigos=$incluirAmigos&incluir_me=$incluirMe&incluir_pendientes=$incluirPendientes');
 
   // Obtener token de usuario, si existe
   String? token = await StorageService.getToken();
@@ -561,6 +562,111 @@ Future<String> enviarSolicitud(String idRemitente) async {
   }
 }
 
+
+///
+/// La siguiente función permite enviar un mensaje a un usuario
+/// con una petición POST
+///
+Future<String> enviarMensaje(String receptorId, String contenido) async {
+  // Endpoint petición API
+  final url =
+    Uri.parse('${Config.apiBaseURL}${Config.enviarMensajeAmigo}');
+
+  // Obtener token de usuario, si existe
+  String? token = await StorageService.getToken();
+  if(token == null) {
+    throw Exception("No hay un token de autentificación disponible.");
+  }
+
+  // Realizar petición POST
+  try {
+    final response = await http.post(
+      url,
+      headers: {"Auth": token, "Content-Type": "application/json"},
+      body: jsonEncode({
+        "receptor_id": receptorId,
+        "contenido": contenido
+      })
+    );
+    if(response.statusCode == 201) {
+      return "Mensaje enviado con éxito";
+    } else {
+      switch (response.statusCode) {
+        case 400:
+          throw Exception("El mensaje no puede ser vacío o los datos son inválidos.");
+        case 401:
+          throw Exception("Token inválido o expirado. Debes iniciar sesión nuevamente.");
+        case 403:
+          throw Exception("Solo puedes chatear con amigos.");
+        case 404:
+          throw Exception("Usuario no encontrado.");
+        case 405:
+          throw Exception("Método no permitido.");
+        default:
+          throw Exception("Error desconocido. Código: ${response.statusCode} - ${response.body}");
+      }
+    }
+  } catch(e) {
+    if(kDebugMode) {
+      print("Error en enviarMensajeAmigo: $e");
+    }
+    rethrow;
+  }
+}
+
+///
+/// Obtener mensajes de un chat específico
+///
+Future<List<Map<String, String>>> obtenerMensajes(String receptorId) async {
+  // Endpoint petición API
+  final url =
+  Uri.parse('${Config.apiBaseURL}${Config.obtenerMensajes}?receptor_id=$receptorId');
+
+  // Obtener token de usuario, si existe
+  String? token = await StorageService.getToken();
+  if(token == null) {
+    throw Exception("No hay un token de autentificación disponible.");
+  }
+
+  // Petición GET
+  try {
+    final response = await http.get(
+      url,
+      headers: {"Auth": token}
+    );
+    if(response.statusCode == 200) {
+      final data = json.decode(response.body);
+      List<Map<String, String>> mensajes = List<Map<String, String>>.from(
+        data["mensajes"].map((mensaje) => {
+          "emisor": mensaje["emisor"].toString(),
+          "contenido": mensaje["contenido"].toString(),
+          "fecha_envio": mensaje["fecha_envio"].toString()
+        })
+      );
+      return mensajes;
+    } else {
+      switch (response.statusCode) {
+        case 400:
+          throw Exception("Datos inválidos.");
+        case 401:
+          throw Exception("Token inválido o expirado.");
+        case 403:
+          throw Exception("No tienes permiso para ver estos mensajes.");
+        case 404:
+          throw Exception("El chat no existe o el destinatario no fue encontrado.");
+        case 405:
+          throw Exception("Método no permitido.");
+        default:
+          throw Exception("Error desconocido. Código: ${response.statusCode} - ${response.body}"); // ⚠️ Mensaje más detallado
+      }
+    }
+  } catch(e) {
+    if(kDebugMode) {
+      print("Error en obtenerMensajes: $e");
+    }
+    rethrow;
+  }
+}
 
 // La siguiente función busca extraer de la BD la información del usuario y de sus estadísticas.
 Future<Map<String,dynamic>> getUserStatistics () async {
