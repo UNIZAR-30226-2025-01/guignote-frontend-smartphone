@@ -12,6 +12,7 @@ import 'src/screens/auth/welcome_screen.dart';
 import 'src/screens/auth/login_screen.dart';
 import 'src/screens/auth/register_screen.dart';
 import 'package:sota_caballo_rey/config.dart';
+import 'package:sota_caballo_rey/src/screens/home/home_screen.dart'; 
 import 'src/screens/game/game_screen.dart';
 
 void main() async {
@@ -44,6 +45,7 @@ class MyApp extends StatelessWidget
         '/game': (context) => const GameScreen(partidaID: 1,),
         '/amigos': (context) => const FriendsScreen(),
         '/profile': (context) => const ProfileScreen(),
+        '/home': (context) => const HomeScreen(),
       },
     );
   }
