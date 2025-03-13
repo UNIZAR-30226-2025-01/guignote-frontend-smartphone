@@ -22,7 +22,7 @@ class RegisterScreen extends StatefulWidget
 
 class RegisterScreenState extends State<RegisterScreen> 
 {
-  final _formKey = GlobalKey<FormState>(); // Clave global para el formulario.
+  //final _formKey = GlobalKey<FormState>(); // Clave global para el formulario.
   final _usrController = TextEditingController(); // Controlador para el campo de usuario.
   final _emailController = TextEditingController(); // Controlador para el campo de correo.
   final _passwdController = TextEditingController(); // Controlador para el campo de contraseña.
@@ -59,7 +59,7 @@ class RegisterScreenState extends State<RegisterScreen>
 
       Navigator.pop(context); // Cierra el indicador de carga
 
-      Navigator.pushNamed(context, '/');
+      Navigator.pushNamed(context, '/home');
     } catch (e) 
     {
       Navigator.pop(context); 

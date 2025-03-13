@@ -4,6 +4,7 @@ import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
+import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
 
 //Pantalla de perfil del usuario.
 //
@@ -20,9 +21,10 @@ class ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final containerHeight = size.height * 0.8;
+    final containerHeight = size.height * 0.76;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
@@ -63,20 +65,6 @@ class ProfileScreenState extends State<ProfileScreen> {
             imageAsset: 'assets/images/gold_ornaments.png',
           ),
 
-          //Boton para volver.
-          Positioned(
-            top: 40,
-            left: 40,
-            child: IconButton(
-              icon: const Icon(Icons.reply, 
-              color: Color(0xFF171718),
-              ),
-              iconSize: 40,
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/login'); //CAMBIAR A MENU PRINCIPAL.
-              },
-            ),
-          ),
 
           // Boton de cierre de sesión
           Positioned(
@@ -102,6 +90,7 @@ class ProfileScreenState extends State<ProfileScreen> {
           )
         ],
       ),
+      bottomNavigationBar: CustomNavBar(selectedIndex: 0),
     );
   }
 }
@@ -319,9 +308,9 @@ Widget buildStatItem(String statName, String statValue, String imageAsset) {
 Widget buildSectionSeparator() {
   return Column(
     children: const [
-      SizedBox(height: 60),
+      SizedBox(height: 40),
       Divider(color: Colors.white, thickness: 1, indent: 20, endIndent: 20),
-      SizedBox(height: 30),
+      SizedBox(height: 20),
     ],
   );
 }

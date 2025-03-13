@@ -5,6 +5,7 @@ import 'package:sota_caballo_rey/src/screens/friends/friends_list_screen.dart';
 import 'package:sota_caballo_rey/src/screens/friends/search_users_screen.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
+import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
 
 class FriendsScreen extends StatefulWidget {
   const FriendsScreen({super.key});
@@ -26,6 +27,7 @@ class FriendsScreenState extends State<FriendsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
@@ -44,7 +46,8 @@ class FriendsScreenState extends State<FriendsScreen> {
             )
           )
         ],
-      )
+      ),
+      bottomNavigationBar: CustomNavBar(selectedIndex: 1),
     );
   }
 

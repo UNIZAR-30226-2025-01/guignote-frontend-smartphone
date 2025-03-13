@@ -31,7 +31,7 @@ class LoginScreen extends StatefulWidget
 /// 
 class LoginScreenState extends State<LoginScreen> 
 {
-  final _formKey = GlobalKey<FormState>(); // Clave global para el formulario.
+  //final _formKey = GlobalKey<FormState>(); // Clave global para el formulario.
   final _usrController = TextEditingController(); // Controlador para el campo de usuario.
   final _passwdController = TextEditingController(); // Controlador para el campo de contraseña.
   bool _rememberMe = false; // Estado para la opción de recordar al usuario.
@@ -67,8 +67,7 @@ class LoginScreenState extends State<LoginScreen>
 
       Navigator.pop(context); // Cierra el indicador de carga
 
-      // Navega a la pantalla principal.
-      Navigator.pushNamed(context, '/amigos'); //CAMBIAR
+      Navigator.pushNamed(context, '/home'); // Navega a la pantalla de inicio.
     } catch (e) 
     {
       // Si hay un error, cierra el indicador de carga y muestra un mensaje de error.
