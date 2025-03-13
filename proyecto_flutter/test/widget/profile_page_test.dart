@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sota_caballo_rey/src/screens/auth/profile_screen.dart';
+import 'package:sota_caballo_rey/src/screens/user/profile_screen.dart';
 import 'package:flutter/services.dart';
 
 void main ()
