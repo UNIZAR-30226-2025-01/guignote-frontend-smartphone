@@ -3,6 +3,8 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:sota_caballo_rey/src/widgets/custom_button.dart';
 
 class HomeScreen extends StatefulWidget 
 {
@@ -15,21 +17,98 @@ class HomeScreen extends StatefulWidget
 class HomeScreenState extends State<HomeScreen> 
 {
   final String? profileImageUrl = 'https://www.pngkey.com/png/full/114-1149878_setting-user-avatar-in-specific-size-without-breaking.png';
-  final CarouselSliderController _carouselController = CarouselSliderController();
   int _currentIndex = 0;
+  int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
 
-  final List<String> _gameModes = 
-  [
-    'assets/images/AsOros.png',
-    'assets/images/2Oros.png',
-  ];
+  final _pageController = PageController();
+
+  /// Método que se ejecuta al pulsar en un elemento del BottomNavigationBar
+  /// index: índice del elemento pulsado
+  /// 
+  /// En este caso, se cambia el índice seleccionado y se navega a la pantalla correspondiente
+  /// 
+  /// 0: Perfil
+  /// 1: Notificaciones
+  /// 2: Inicio
+  /// 3: Clasificación
+  /// 4: Ayuda
+  /// 
+  /// En cada caso, se navega a la pantalla correspondiente
+  /// 
+  void _onItemTaped(int index) 
+  {
+    setState(() 
+    {
+      _selectedIndex = index;
+    });
+
+    switch (index)
+    {
+      case 0:
+        Navigator.pushNamed(context, '/profile');
+        break;
+      
+      case 1:
+        Navigator.pushNamed(context, '/notifications');
+        break;
+
+      case 2:
+        Navigator.pushNamed(context, '/home');
+        break;
+
+      case 3:
+        Navigator.pushNamed(context, '/ranking');
+        break;
+      
+      case 4:
+        Navigator.pushNamed(context, '/help');
+        break;
+      
+      default:
+        break;
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) 
   {
     return Scaffold
     (
+      extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
+    appBar:AppBar
+      (
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Row
+        (
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: 
+          [
+            profileButton(context),
+            Image.asset('assets/images/app_logo_white.png', width: 60, height: 60),
+            IconButton
+            (
+              icon: const Icon(Icons.settings, color: Colors.white),
+              onPressed: () 
+              {
+                ScaffoldMessenger.of(context).showSnackBar
+                (
+                  const SnackBar
+                  (
+                    content: Text('Configuración', style: TextStyle(color: Colors.white)),
+                    backgroundColor: Colors.black,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
       body: Stack
       (
         children:
@@ -41,37 +120,6 @@ class HomeScreenState extends State<HomeScreen>
           (
             children: 
             [
-              AppBar
-              (
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                automaticallyImplyLeading: false,
-                title: Row
-                (
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: 
-                  [
-                    profileButton(context),
-                    Image.asset('assets/images/app_logo_white.png', width: 60, height: 60),
-                    IconButton
-                    (
-                      icon: const Icon(Icons.settings, color: Colors.white),
-                      onPressed: () 
-                      {
-                        ScaffoldMessenger.of(context).showSnackBar
-                        (
-                          const SnackBar
-                          (
-                            content: Text('Configuración', style: TextStyle(color: Colors.white)),
-                            backgroundColor: Colors.black,
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 20),
               Expanded
               (
@@ -80,108 +128,39 @@ class HomeScreenState extends State<HomeScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children:
                    [
-                    CarouselSlider
+
+                    SizedBox
                     (
-                      items: _gameModes.map((mode) 
-                      {
-                        return Builder
-                        (
-                          builder: (BuildContext context) 
-                          {
-                            return GestureDetector
-                            (
-                              onTap: () 
-                              {
-                                // Acción al pulsar en la imagen del modo de juego
-                                ScaffoldMessenger.of(context).showSnackBar
-                                (
-                                  SnackBar
-                                  (
-                                    content: Text('Seleccionado: $mode'),
-                                    backgroundColor: Colors.black,
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              },
-                              child: Image.asset(mode, fit: BoxFit.cover, width: 300),
-                            );
-                          },
-                        );
-                      }).toList(),
-                      
-                      carouselController: _carouselController,
-                      options: CarouselOptions
+                      height: 500,
+                      child:  PageView
                       (
-                        height: 400,
-                        enlargeCenterPage: true,
-                        onPageChanged: (index, reason) 
-                        {
-                          setState(() 
-                          {
-                            _currentIndex = index;
-                          });
-                        },
+                        controller: _pageController,
+                        children: 
+                        [
+                          _buildGameModeCard('Modo 2vs2', 'assets/images/cartasBoton.png', 'Juega en equipos de dos.'),
+                          _buildGameModeCard('Modo 1vs1', 'assets/images/cartaBoton.png', 'Desafía a un solo oponente.'),
+                        ],
                       ),
                     ),
-                    Row
+
+                    const SizedBox(height: 10),
+
+                    SmoothPageIndicator
                     (
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: _gameModes.asMap().entries.map((entry) 
-                      {
-                        return GestureDetector
-                        (
-                          onTap: () => _carouselController.animateToPage(entry.key),
-                          child: Container
-                          (
-                            width: 12.0,
-                            height: 12.0,
-                            margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                            decoration: BoxDecoration
-                            (
-                              shape: BoxShape.circle,
-                              color: (Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.white
-                                      : Colors.black)
-                                  .withOpacity(_currentIndex == entry.key ? 0.9 : 0.4),
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                      controller: _pageController,
+                      count: 2,
+                      effect: WormEffect
+                      (
+                        dotHeight: 10,
+                        dotWidth: 10,
+                        activeDotColor: Colors.white,
+                      ),
                     ),
-                    Row
-                    (
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: 
-                      [
-                        IconButton
-                        (
-                          icon: Icon(Icons.arrow_back),
-                          onPressed: () => _carouselController.previousPage(),
-                        ),
-                        IconButton
-                        (
-                          icon: Icon(Icons.arrow_forward),
-                          onPressed: () => _carouselController.nextPage(),
-                        ),
-                      ],
-                    ),
-                    ElevatedButton
-                    (
-                      onPressed: ()
-                      {
-                        // Acción al pulsar en el botón de buscar partida
-                        ScaffoldMessenger.of(context).showSnackBar
-                        (
-                          const SnackBar
-                          (
-                            content: Text('Buscando partida...'),
-                            backgroundColor: Colors.black,
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                      child: Text('Buscar Partida'),
-                    ),
+
+                    const SizedBox(height: 20),
+                    
+                    _buildPlayButton(),
+                    
                   ],
                 ),
               ),
@@ -193,29 +172,47 @@ class HomeScreenState extends State<HomeScreen>
       (
         items: const <BottomNavigationBarItem>
         [
-          BottomNavigationBarItem
-          (
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem
-          (
-            icon: Icon(Icons.search),
-            label: 'Buscar',
-          ),
+          
           BottomNavigationBarItem
           (
             icon: Icon(Icons.person),
             label: 'Perfil',
           ),
+                    
+          BottomNavigationBarItem
+          (
+            icon: Icon(Icons.inbox),
+            label: 'Notificaciones',
+          ),
+
+          BottomNavigationBarItem
+          (
+            icon: Icon(Icons.home), 
+            label: 'Inicio',
+          ),
+
+          BottomNavigationBarItem
+          (
+            icon: Icon(Icons.emoji_events),
+            label: 'Clasificación',
+          ),
+
+          BottomNavigationBarItem
+          (
+            icon: Icon(Icons.help),
+            label: 'Ayuda',
+          ),
         ],
 
-        currentIndex: 0, // Índice del elemento seleccionado
+        
+        currentIndex: _selectedIndex, // Índice del elemento seleccionado
         selectedItemColor: Colors.amber[800],
-        onTap: (index) 
-        {
-          // Acción al pulsar en un elemento del BottomNavigationBar
-        },
+        unselectedItemColor: Colors.grey,
+        backgroundColor: AppTheme.blackColor,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
+        onTap: _onItemTaped,
       ),
     );
   }
@@ -250,6 +247,133 @@ class HomeScreenState extends State<HomeScreen>
               ? const Icon(Icons.person, color: Colors.white)
               : null,
         ),
+      ),
+    );
+  }
+
+  Widget _buildGameModeCard(String title, String assetPath, String description)
+  {
+    return Padding
+    (
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Card
+      (
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 5,
+
+        child: Stack
+        (
+          children: 
+          [
+            Container
+            (
+              decoration: BoxDecoration
+              (
+                borderRadius: BorderRadius.circular(20),
+                image: DecorationImage
+                (
+                  image: AssetImage(assetPath),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.3), BlendMode.darken),
+                ),
+              ),
+            ),
+
+            Container
+            (
+              decoration: BoxDecoration
+              (
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient
+                (
+                  colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+
+            Padding
+            (
+              padding: const EdgeInsets.all(16.0),
+              child: Column
+              (
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: 
+                [
+                  Text
+                  (
+                    title, 
+                    style: const TextStyle
+                    (
+                      color: Colors.white, 
+                      fontSize: 24, 
+                      fontWeight: FontWeight.bold,
+                      shadows: 
+                      [
+                        Shadow
+                        (
+                          offset: Offset(2, 2),
+                          blurRadius: 3.0,
+                          color: AppTheme.blackColor,
+                        )
+                      ],
+                    )
+                  ),
+                  const SizedBox(height: 8),
+                  Text
+                  (
+                    description,
+                    style: TextStyle
+                    (
+                      fontSize: 16,
+                      color: Colors.white70,
+                      shadows:
+                      [
+                        Shadow
+                        (
+                          offset: Offset(1, 1),
+                          blurRadius: 2.0,
+                          color: AppTheme.blackColor,
+                        ),
+                      ]
+
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlayButton()
+  {
+    return GestureDetector
+    (
+      key: const Key('play_button'),
+      onTap: ()
+      {
+        ScaffoldMessenger.of(context).showSnackBar
+        (
+          const SnackBar
+          (
+            content: Text('¡A jugar!'),
+            backgroundColor: Colors.black,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      },
+
+      child: AnimatedContainer
+      (
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeInOut,
+        transform: Matrix4.translationValues(1.05, 1.05, 1),
+        child: CustomButton(buttonText: 'Buscar Partida', onPressedAction:(){}, color: Colors.amber),
       ),
     );
   }

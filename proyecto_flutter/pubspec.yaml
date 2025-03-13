@@ -24,6 +24,9 @@ dependencies:
   # Paquete para añadir carrusel de imagenes
   carousel_slider: ^5.0.0
 
+  # Paquete para transiciones más suaves.
+  smooth_page_indicator: ^1.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
