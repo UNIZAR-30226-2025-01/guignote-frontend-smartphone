@@ -5,7 +5,31 @@ import 'package:sota_caballo_rey/src/themes/theme.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_button.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
+import 'package:sota_caballo_rey/src/widgets/display_settings.dart';
 
+
+/// HomeScreen
+///
+/// Pantalla de inicio de la aplicación
+/// 
+/// Muestra las opciones de juego disponibles
+/// 
+/// * Permite al usuario seleccionar el modo de juego
+/// 
+/// * Permite al usuario acceder a la configuración de la aplicación
+/// 
+/// * Permite al usuario acceder a su perfil
+/// 
+/// * Permite al usuario acceder a la pantalla de juego
+/// 
+/// * Permite al usuario acceder a la pantalla de amigos
+/// 
+/// * Permite al usuario acceder a la pantalla de estadísticas
+/// 
+/// * Permite al usuario acceder a la pantalla de ajustes
+/// 
+/// * Permite al usuario acceder a la pantalla de ayuda
+/// 
 class HomeScreen extends StatefulWidget 
 {
   const HomeScreen({super.key});
@@ -14,26 +38,29 @@ class HomeScreen extends StatefulWidget
   HomeScreenState createState() => HomeScreenState();
 }
 
+
+/// HomeScreenState
+/// 
+/// Estado de la pantalla de inicio
+/// 
 class HomeScreenState extends State<HomeScreen> 
 {
   final String? profileImageUrl = 'https://www.pngkey.com/png/full/114-1149878_setting-user-avatar-in-specific-size-without-breaking.png';
   int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
   double _volume = 0.5; // initial volume value
 
-  final _pageController = PageController();
-
-
+  final _pageController = PageController(); // controlador de página
 
   @override
   Widget build(BuildContext context) 
   {
     return Scaffold
     (
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
-      appBar:AppBar
+      extendBodyBehindAppBar: true, // extender el fondo detrás de la barra de aplicaciones
+      backgroundColor: Colors.transparent, // fondo transparente
+      appBar:AppBar // barra de aplicaciones
       (
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.transparent, 
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Row
@@ -43,57 +70,15 @@ class HomeScreenState extends State<HomeScreen>
           [
             profileButton(context),
             Image.asset('assets/images/app_logo_white.png', width: 60, height: 60),
-            IconButton
+            DisplaySettings
             (
-              icon: const Icon(Icons.settings, color: Colors.white),
-              onPressed: () 
+              volume: _volume,
+              onVolumeChanged: (value) 
               {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      backgroundColor: Colors.black,
-                      content: SizedBox(
-                        height: 200,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                          const Text(
-                            'Ajustes',
-                            style: TextStyle(color: Colors.white, fontSize: 24),
-                          ),
-                          const SizedBox(height: 20),
-                          const Text(
-                            'Volumen',
-                            style: TextStyle(color: Colors.white, fontSize: 18),
-                          ),
-                          Slider(
-                            value: _volume,
-                            min: 0,
-                            max: 1,
-                            divisions: 10,
-                            onChanged: (value) {
-                              setState(() {
-                                _volume = value;
-                              });
-                            },
-                            activeColor: Colors.white,
-                            inactiveColor: Colors.grey,
-                          ),
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
-                            onPressed: () {
-                            Navigator.of(context).pop();
-                            },
-                            child: const Text('Cerrar', style: TextStyle(color: Colors.black)),
-                          ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
+                setState(() 
+                {
+                  _volume = value;
+                });
               },
             ),
           ],
