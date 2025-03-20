@@ -163,7 +163,7 @@ class FriendsListState extends State<FriendsListScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => FriendChat(receptorId: id),
+                    builder: (context) => FriendChat(receptorId: id, receptorNom: nombre),
                   ),
                 );
               },
