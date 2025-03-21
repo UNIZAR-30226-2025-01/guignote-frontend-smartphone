@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
-import 'package:sota_caballo_rey/src/themes/theme.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_button.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
 import 'package:sota_caballo_rey/src/widgets/display_settings.dart';
+import 'package:sota_caballo_rey/src/widgets/gamemode_card.dart';
 
 
 /// HomeScreen
@@ -46,7 +46,7 @@ class HomeScreen extends StatefulWidget
 class HomeScreenState extends State<HomeScreen> 
 {
   final String? profileImageUrl = 'https://www.pngkey.com/png/full/114-1149878_setting-user-avatar-in-specific-size-without-breaking.png';
-  int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
+  final int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
   double _volume = 0.5; // initial volume value
 
   final _pageController = PageController(); // controlador de página
@@ -112,8 +112,8 @@ class HomeScreenState extends State<HomeScreen>
                         controller: _pageController,
                         children: 
                         [
-                          _buildGameModeCard('Modo 2vs2', 'assets/images/cartasBoton.png', 'Juega en equipos de dos.'),
-                          _buildGameModeCard('Modo 1vs1', 'assets/images/cartaBoton.png', 'Desafía a un solo oponente.'),
+                          BuildGameModeCard(title: 'Modo 2vs2', assetPath: 'assets/images/cartasBoton.png', description: 'Juega en equipos de dos.'),
+                          BuildGameModeCard(title: 'Modo 1vs1', assetPath: 'assets/images/cartaBoton.png', description: 'Desafía a un solo oponente.'),
                         ],
                       ),
                     ),
@@ -177,105 +177,6 @@ class HomeScreenState extends State<HomeScreen>
           child: profileImageUrl == null
               ? const Icon(Icons.person, color: Colors.white)
               : null,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGameModeCard(String title, String assetPath, String description)
-  {
-    return Padding
-    (
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Card
-      (
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        elevation: 5,
-
-        child: Stack
-        (
-          children: 
-          [
-            Container
-            (
-              decoration: BoxDecoration
-              (
-                borderRadius: BorderRadius.circular(20),
-                image: DecorationImage
-                (
-                  image: AssetImage(assetPath),
-                  fit: BoxFit.cover,
-                  colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.3), BlendMode.darken),
-                ),
-              ),
-            ),
-
-            Container
-            (
-              decoration: BoxDecoration
-              (
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient
-                (
-                  colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
-
-            Padding
-            (
-              padding: const EdgeInsets.all(16.0),
-              child: Column
-              (
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: 
-                [
-                  Text
-                  (
-                    title, 
-                    style: const TextStyle
-                    (
-                      color: Colors.white, 
-                      fontSize: 24, 
-                      fontWeight: FontWeight.bold,
-                      shadows: 
-                      [
-                        Shadow
-                        (
-                          offset: Offset(2, 2),
-                          blurRadius: 3.0,
-                          color: AppTheme.blackColor,
-                        )
-                      ],
-                    )
-                  ),
-                  const SizedBox(height: 8),
-                  Text
-                  (
-                    description,
-                    style: TextStyle
-                    (
-                      fontSize: 16,
-                      color: Colors.white70,
-                      shadows:
-                      [
-                        Shadow
-                        (
-                          offset: Offset(1, 1),
-                          blurRadius: 2.0,
-                          color: AppTheme.blackColor,
-                        ),
-                      ]
-
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );

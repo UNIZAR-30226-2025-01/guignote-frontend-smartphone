@@ -38,6 +38,7 @@ class DisplaySettingsState extends State<DisplaySettings>
     return IconButton
     (
       icon: const Icon(Icons.settings, color: Colors.white),
+
       onPressed: ()
       {
         showDialog
