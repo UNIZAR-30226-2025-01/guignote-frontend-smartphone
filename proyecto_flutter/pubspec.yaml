@@ -28,6 +28,12 @@ dependencies:
   # Paquete para transiciones más suaves.
   smooth_page_indicator: ^1.2.1
 
+  # Paquete para añadir efectos de sonido
+  audioplayers: ^6.4.0
+
+  # Paquete para guardar las preferencias del usuario
+  shared_preferences: ^2.5.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -47,9 +53,11 @@ flutter:
     - assets/images/
     - assets/images/cards/
     - assets/json/config.json
+    - assets/sounds/
     
   # Fuentes usadas
   fonts:
     - family: tituloApp
       fonts:
         - asset: assets/fonts/GlossypersonaluseRegular-eZL93.otf
+ 

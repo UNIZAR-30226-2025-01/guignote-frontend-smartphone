@@ -47,7 +47,9 @@ class HomeScreenState extends State<HomeScreen>
 {
   final String? profileImageUrl = 'https://www.pngkey.com/png/full/114-1149878_setting-user-avatar-in-specific-size-without-breaking.png';
   final int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
-  double _volume = 0.5; // initial volume value
+  double _volume = 0.5; // valor inicial del volumen
+  double _musicVolume = 0.5; // valor inicial del volumen de la música
+  double _effectsVolume = 0.5; // valor inicial del volumen de los efectos de sonido
 
   final _pageController = PageController(); // controlador de página
 
@@ -70,14 +72,31 @@ class HomeScreenState extends State<HomeScreen>
           [
             profileButton(context),
             Image.asset('assets/images/app_logo_white.png', width: 60, height: 60),
-            DisplaySettings
-            (
+           DisplaySettings
+           (
               volume: _volume,
+              musicVolume: _musicVolume,
+              effectsVolume: _effectsVolume,
+
               onVolumeChanged: (value) 
               {
                 setState(() 
                 {
                   _volume = value;
+                });
+              },
+
+              onMusicVolumeChanged: (value) 
+              {
+                setState(() {
+                  _musicVolume = value;
+                });
+              },
+
+              onEffectsVolumeChanged: (value) 
+              {
+                setState(() {
+                  _effectsVolume = value;
                 });
               },
             ),

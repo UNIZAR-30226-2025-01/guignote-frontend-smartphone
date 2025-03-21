@@ -1,6 +1,5 @@
 /// Proyecto: Sota, Caballo y Rey
 /// Autores: Grupo Grace Hopper
-/// Fecha de última modificación: 06/03/2025.
 /// 
 library;
 
@@ -16,6 +15,8 @@ import 'package:sota_caballo_rey/config.dart';
 import 'package:sota_caballo_rey/src/screens/home/home_screen.dart'; 
 import 'src/screens/game/game_screen.dart';
 import 'package:sota_caballo_rey/src/screens/home/ranking_screen.dart';
+import 'package:sota_caballo_rey/src/screens/settings/account_info_screen.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 void main() async {
   // Necesario para las operaciones asíncronas.
@@ -24,9 +25,41 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget 
+class MyApp extends StatefulWidget 
 {
   const MyApp({super.key});
+
+  @override
+  MyAppState createState() => MyAppState();
+}
+
+class MyAppState extends State<MyApp>
+{
+  final AudioPlayer _audioController = AudioPlayer();
+
+  @override
+  void initState() 
+  {
+    super.initState();
+
+    _audioController.setReleaseMode(ReleaseMode.stop);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async 
+    {
+      await _audioController.setSource(AssetSource('sounds/menu_jazz_lofi.mp3'));
+      await _audioController.resume();
+    });
+
+
+  }
+
+  @override
+  void dispose() 
+  {
+    _audioController.dispose();
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) 
@@ -50,6 +83,8 @@ class MyApp extends StatelessWidget
         '/home': (context) => const HomeScreen(),
         '/help': (context) => const HelpScreen(),
         '/ranking': (context) => const RankingScreen(),
+        '/account_info': (context) => const AccountInfoScreen(),
+        'security': (context) => const AccountInfoScreen(),
       },
     );
   }

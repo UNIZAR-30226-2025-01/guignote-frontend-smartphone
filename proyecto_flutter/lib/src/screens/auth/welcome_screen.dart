@@ -12,11 +12,11 @@ import 'package:sota_caballo_rey/src/themes/theme.dart';
 /// Permite al usuario iniciar sesión o registrarse.
 /// 
 /// * Rutas de navegación:
-///  * **Inicio de sesión**: '/login'
+/// * **Inicio de sesión**: '/login'
 /// * **Registro**: '/register'
 /// 
 /// * *Parámetros*:
-///  * **key**: Llave para identificar el widget.
+/// * **key**: Llave para identificar el widget.
 ///
 class WelcomeScreen extends StatelessWidget 
 {

@@ -18,10 +18,14 @@ library;
 
 class User
 {
+
+  static const String defaultProfileImageUrl = 'assets/images/default_profile.png';
+
   final String username;
   final String email;
   final String password;
   final String? token;
+  final String profileImageUrl;
 
   User
   ({
@@ -29,6 +33,7 @@ class User
     required this.email,
     required this.password,
     this.token,
+    this.profileImageUrl = defaultProfileImageUrl,
   });
 
   // Conversión de JSON a modelo utilizable por la aplicación.
@@ -38,6 +43,7 @@ class User
     email: json['correo'],
     password: json['contrasegna'],
     token: json['token'],
+    profileImageUrl: json['imagen'] ?? defaultProfileImageUrl,
   );
 
   // Conversión de modelo a JSON para enviar a la API.
@@ -47,5 +53,6 @@ class User
     'correo': email,
     'contrasegna': password,
     'token': token,
+    'imagen': profileImageUrl,
   };
 }
