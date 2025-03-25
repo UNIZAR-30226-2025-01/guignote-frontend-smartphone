@@ -24,6 +24,7 @@ library;
 
 import 'dart:convert';
 import 'dart:core';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:sota_caballo_rey/config.dart';
@@ -239,7 +240,8 @@ Future<List<Map<String, String>>> obtenerAmigos() async {
       List<Map<String, String>> amigos = List<Map<String, String>>.from(
         data['amigos'].map((amigo) => {
           "id": amigo["id"].toString(),
-          "nombre": amigo["nombre"].toString()
+          "nombre": amigo["nombre"].toString(),
+          "imagen": amigo["imagen"]?.toString() ?? ""
         })
       );
       return amigos;
@@ -292,7 +294,8 @@ Future<List<Map<String, String>>> buscarUsuarios(String prefijo, {bool incluirAm
       List<Map<String, String>> usuarios = List<Map<String, String>>.from(
           data['usuarios'].map((usuario) => {
             "id": usuario["id"].toString(),
-            "nombre": usuario["nombre"].toString()
+            "nombre": usuario["nombre"].toString(),
+            "imagen": usuario["imagen"]?.toString() ?? ""
           })
       );
       return usuarios;
@@ -664,6 +667,38 @@ Future<List<Map<String, String>>> obtenerMensajes(String receptorId) async {
     if(kDebugMode) {
       print("Error en obtenerMensajes: $e");
     }
+    rethrow;
+  }
+}
+
+///
+/// Cambiar imagen de perfil
+///
+Future<String> cambiarImagenPerfil(File imagen) async {
+  // Endpoint petición API
+  final url = Uri.parse('${Config.apiBaseURL}/usuarios/imagen/');
+
+  // Obtener token de usuario
+  String? token = await StorageService.getToken();
+  if (token == null) {
+    throw Exception("No hay un token de autentificación disponible.");
+  }
+
+  try {
+    final request = http.MultipartRequest('POST', url)
+      ..headers['Auth'] = token
+      ..files.add(await http.MultipartFile.fromPath('imagen', imagen.path));
+
+    final response = await request.send();
+    final respuesta = await http.Response.fromStream(response);
+
+    if (respuesta.statusCode == 200) {
+      return "Imagen de perfil actualizada con éxito";
+    } else {
+      throw Exception("Error: ${respuesta.statusCode} - ${respuesta.body}");
+    }
+  } catch (e) {
+    if(kDebugMode) print("Error al cambiar imagen: $e");
     rethrow;
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/services/storage_service.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
@@ -5,6 +7,7 @@ import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
+import 'package:image_picker/image_picker.dart';
 
 //Pantalla de perfil del usuario.
 //
@@ -51,7 +54,7 @@ class ProfileScreenState extends State<ProfileScreen> {
 
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.all(20),
-                        child: buildProfileBox(context),
+                        child: buildProfileBox(context, setState),
                       ),
                     ),
                   ),
@@ -91,8 +94,44 @@ class ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
+// Devuelve widget con imagen de perfil y opción de cambiarla
+Widget _buildProfileImage(String imagenUrl, BuildContext context, Function setState) {
+  return GestureDetector(
+    onTap: () async {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(source: ImageSource.gallery);
+
+      if (picked != null) {
+        final imagen = File(picked.path);
+        try {
+          await cambiarImagenPerfil(imagen);
+          setState(() {}); // Fuerza recarga para mostrar la nueva imagen
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Error al actualizar imagen: $e")),
+            );
+          }
+        }
+      }
+    },
+    child: imagenUrl.isNotEmpty
+        ? ClipOval(
+      child: Image.network(
+        imagenUrl,
+        width: 64,
+        height: 64,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) =>
+        const Icon(Icons.person, size: 32, color: Colors.white),
+      ),
+    )
+        : const Icon(Icons.person, size: 32, color: Colors.white),
+  );
+}
+
 // Construye la caja con la información del perfil, estadisticas y mochila.
-Widget buildProfileBox(BuildContext context) {
+Widget buildProfileBox(BuildContext context, Function setState) {
   return FutureBuilder<Map<String, dynamic>>(
     future: getUserStatistics(),
     builder: (context, snapshot) {
@@ -112,6 +151,7 @@ Widget buildProfileBox(BuildContext context) {
         int racha = stats["racha_victorias"];
         int rachaMax = stats["mayor_racha_victorias"];
         String usuario = stats["nombre"];
+        String imagenUrl = stats["imagen"].toString();
         double winLoss = stats["porcentaje_victorias"];
         int elo = stats["elo"];
 
@@ -137,13 +177,7 @@ Widget buildProfileBox(BuildContext context) {
 
                 // Foto del usuario.
                 const SizedBox(height: 30),
-                const CircleAvatar(
-                  radius: 40,
-                  backgroundColor: Colors.transparent,
-                  backgroundImage: AssetImage(
-                    'assets/images/default_portrait.png',
-                  ), // Por el momento no se implementa en el backend.
-                ),
+                _buildProfileImage(imagenUrl, context, setState),
 
                 // Nombre del usuario.
                 const SizedBox(height: 10),
@@ -166,7 +200,6 @@ Widget buildProfileBox(BuildContext context) {
                       width: 24,
                       height: 24,
                     ),
-
                     const SizedBox(width: 5),
                     Text(
                       'Oro',
