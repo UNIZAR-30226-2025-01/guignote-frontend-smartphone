@@ -109,11 +109,13 @@ Widget buildProfileBox(BuildContext context) {
         final stats = snapshot.data!;
         int victorias = stats["victorias"];
         int derrotas = stats["derrotas"];
+        int partidas = stats["total_partidas"];
         int racha = stats["racha_victorias"];
         int rachaMax = stats["mayor_racha_victorias"];
         String usuario = stats["nombre"];
         double winLoss = stats["porcentaje_victorias"];
         int elo = stats["elo"];
+        int elo_parejas = stats["elo_parejas"];
 
         return Center(
           child: Container(
@@ -239,9 +241,9 @@ Widget buildProfileBox(BuildContext context) {
                       "assets/images/laurel.png",
                     ),
                     buildStatItem(
-                      "Racha",
-                      racha.toString(),
-                      "assets/images/star.png",
+                      "Partidas",
+                      partidas.toString(),
+                      "assets/images/laurel.png",
                     ),
                   ],
                 ),
@@ -252,14 +254,32 @@ Widget buildProfileBox(BuildContext context) {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     buildStatItem(
-                      "ELO max",
-                      elo.toString(),
-                      "assets/images/trophy.png",
-                    ), // Por el momento no se implementa en el backend.
+                      "Racha",
+                      racha.toString(),
+                      "assets/images/star.png",
+                    ),
                     buildStatItem(
                       "Racha max",
                       rachaMax.toString(),
                       "assets/images/star.png",
+                    ),
+                  ],
+                ),
+
+                // Cuarta fila.
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    buildStatItem(
+                      "ELO 1vs1",
+                      elo.toString(),
+                      "assets/images/trophy.png",
+                    ),
+                    buildStatItem(
+                      "ELO 2vs2",
+                      elo_parejas.toString(),
+                      "assets/images/trophy.png",
                     ),
                   ],
                 ),
