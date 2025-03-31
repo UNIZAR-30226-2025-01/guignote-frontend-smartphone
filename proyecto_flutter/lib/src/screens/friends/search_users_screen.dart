@@ -127,14 +127,14 @@ class SearchUsersState extends State<SearchUsersScreen> {
   Widget _itemLista(Map<String, String> usuario, int index, Animation<double> animation) {
     return SizeTransition(
       sizeFactor: animation,
-      child: _usuario(index, usuario["id"]!, usuario["nombre"]!),
+      child: _usuario(index, usuario["id"]!, usuario["nombre"]!,  usuario["imagen"]??""),
     );
   }
 
   /// Subcomponente: Contenido del ítem de la lista.
   /// Muestra un icono decorativo, el nombre del amigo y un botón
   /// para enviarle solicitud de amistad.
-  Widget _usuario(int index, String id, String nombre) {
+  Widget _usuario(int index, String id, String nombre, String imagenUrl) {
     return Container(
       decoration: BoxDecoration(
         color: Color.fromRGBO(0, 0, 0, 0.5),
@@ -145,13 +145,19 @@ class SearchUsersState extends State<SearchUsersScreen> {
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            height: 64, width: 64,
-            alignment: Alignment.center,
-            child: Text(
-              nombre[0],
-              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)
-            )
+          Padding(
+              padding: const EdgeInsets.symmetric(vertical:8, horizontal:8),
+              child: imagenUrl.isNotEmpty
+                  ? ClipOval(
+                  child: Image.network(
+                      imagenUrl,
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 32, color: Colors.white)
+                  )
+              )
+                  : const Icon(Icons.person, size: 32, color: Colors.white)
           ),
           Expanded(child: Text(
             nombre,
