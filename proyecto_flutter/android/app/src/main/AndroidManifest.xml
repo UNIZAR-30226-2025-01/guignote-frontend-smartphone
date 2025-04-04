@@ -2,7 +2,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <application
-        android:label="prototipos_v2"
+        android:label="Sota, Caballo y Rey"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         android:usesCleartextTraffic="true"

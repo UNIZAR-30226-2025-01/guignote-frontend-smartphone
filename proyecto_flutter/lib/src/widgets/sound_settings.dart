@@ -1,9 +1,14 @@
-
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';  
 import 'package:audioplayers/audioplayers.dart';
 
+/// Diálogo para los ajustes de sonido.
+/// 
+/// Se puede ajustar el volumen general, el volumen de la música y el volumen de los efectos.
+/// 
+/// Se guardan los ajustes en las preferencias del dispositivo.
+/// 
 class SoundSettingsDialog extends StatefulWidget
 {
   final double volume;
@@ -13,7 +18,15 @@ class SoundSettingsDialog extends StatefulWidget
   final Function(double) onMusicVolumeChanged;
   final Function(double) onEffectsVolumeChanged;
   
-  
+  /// Constructor.
+  /// 
+  /// [volume] Volumen general.
+  /// [musicVolume] Volumen de la música.
+  /// [effectsVolume] Volumen de los efectos.
+  /// [onVolumeChanged] Función que se ejecuta cuando se cambia el volumen general.
+  /// [onMusicVolumeChanged] Función que se ejecuta cuando se cambia el volumen de la música.
+  /// [onEffectsVolumeChanged] Función que se ejecuta cuando se cambia el volumen de los efectos.
+  /// 
   const SoundSettingsDialog
   (
     {
@@ -27,6 +40,12 @@ class SoundSettingsDialog extends StatefulWidget
     }
   );
 
+  /// Crea el estado del diálogo.
+  /// 
+  /// Devuelve [SoundSettingsDialogState].
+  /// 
+  /// Se ejecuta al crear el widget.
+  /// 
   @override
   SoundSettingsDialogState createState() => SoundSettingsDialogState();
 }
