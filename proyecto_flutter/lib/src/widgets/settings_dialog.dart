@@ -2,57 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sota_caballo_rey/src/widgets/sound_settings.dart';
+import 'package:sota_caballo_rey/src/services/notifications_service.dart';
 
 
 /// Clase que muestra un diálogo con los ajustes de la aplicación.
 /// 
-/// Parámetros:
-/// - 'volume': Volumen actual.
-/// - 'musicVolume': Volumen de la música actual.
-/// - 'effectsVolume': Volumen de los efectos de sonido actual.
-/// - 'onVolumeChanged': Función que se ejecuta cuando se cambia el volumen.
-/// - 'onMusicVolumeChanged': Función que se ejecuta cuando se cambia el volumen de la música.
-/// - 'onEffectsVolumeChanged': Función que se ejecuta cuando se cambia el volumen de los efectos de sonido.
+/// Esta clase permite al usuario ajustar el volumen de la música y los efectos de sonido,
+/// así como acceder a la información de la cuenta y a la configuración de seguridad y privacidad.
 /// 
-/// 
-/// Ejemplo de uso:
-/// 
-/// ```dart
-/// SettingsDialog
-/// (
-///  volume: 0.5,
-/// musicVolume: 0.5,
-/// effectsVolume: 0.5,
-/// onVolumeChanged: (double value) {},
-/// onMusicVolumeChanged: (double value) {},
-/// onEffectsVolumeChanged: (double value) {},
-/// 
-/// )
-/// ```
-///
 class SettingsDialog extends StatefulWidget 
 {
-  final double volume; // Volumen actual.
-  final double musicVolume; // Volumen de la música actual.
-  final double effectsVolume; // Volumen de los efectos de sonido actual.
-  final Function(double) onVolumeChanged; // Función que se ejecuta cuando se cambia el volumen.
-  final Function(double) onMusicVolumeChanged; // Función que se ejecuta cuando se cambia el volumen de la música.
-  final Function(double) onEffectsVolumeChanged; // Función que se ejecuta cuando se cambia el volumen de los efectos de sonido.
 
-  /// Constructor que inicializa el widget con los valores proporcionados.
-  /// 
-  const SettingsDialog
-  (
-    {
-      super.key, // Llave del widget.
-      required this.volume, // Volumen actual.
-      required this.musicVolume,  // Volumen de la música actual.
-      required this.effectsVolume, // Volumen de los efectos de sonido actual.
-      required this.onVolumeChanged, // Función que se ejecuta cuando se cambia el volumen.
-      required this.onMusicVolumeChanged, // Función que se ejecuta cuando se cambia el volumen de la música.
-      required this.onEffectsVolumeChanged,   // Función que se ejecuta cuando se cambia el volumen de los efectos de sonido.
-    }
-  );
+  const SettingsDialog({super.key});
 
   @override
   SettingsDialogState createState() => SettingsDialogState(); // Devuelve el estado del widget.
@@ -61,22 +22,6 @@ class SettingsDialog extends StatefulWidget
 /// Clase que crea el estado del widget SettingsDialog.
 ///
 /// Esta clase crea el estado del widget SettingsDialog y contiene la lógica del widget.
-/// 
-/// 
-/// Ejemplo de uso:
-/// 
-/// ```dart
-/// SettingsDialogState
-/// (
-/// volume: 0.5,
-/// musicVolume: 0.5,
-/// effectsVolume: 0.5,
-/// onVolumeChanged: (double value) {},
-/// onMusicVolumeChanged: (double value) {},
-/// onEffectsVolumeChanged: (double value) {},
-///
-/// )
-/// ```
 /// 
 class SettingsDialogState extends State<SettingsDialog> 
 {
@@ -131,6 +76,8 @@ class SettingsDialogState extends State<SettingsDialog>
     final prefs = await SharedPreferences.getInstance();
     // Guarda las notificaciones.
     await prefs.setBool('notifications', value);
+
+    await NotificationsService().setNotificationsEnabled(value);
   }
 
   @override
@@ -165,15 +112,7 @@ class SettingsDialogState extends State<SettingsDialog>
                   context: context,
                   builder: (BuildContext context) 
                   {
-                    return SoundSettingsDialog
-                    (
-                      volume: widget.volume,
-                      musicVolume: widget.musicVolume,
-                      effectsVolume: widget.effectsVolume,
-                      onVolumeChanged: widget.onVolumeChanged,
-                      onMusicVolumeChanged: widget.onMusicVolumeChanged,
-                      onEffectsVolumeChanged: widget.onEffectsVolumeChanged,
-                    );
+                    return const SoundSettingsDialog();
                   },
                 );
               },
@@ -195,14 +134,16 @@ class SettingsDialogState extends State<SettingsDialog>
               trailing: Switch
               (
                 value: _notifications,
-                onChanged: (bool value) 
+                onChanged: (bool value) async 
                 {
                   setState(() 
                   {
                     _notifications = value;
                   });
                   
-                  _saveNotifications(value);
+                  await _saveNotifications(value);
+
+                  NotificationsService().showNotification('Notificación', 'Las notificaciones han cambiado');
                 },
 
                 activeColor: Colors.amber,

@@ -6,6 +6,8 @@ import 'package:sota_caballo_rey/src/widgets/custom_button.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
 import 'package:sota_caballo_rey/src/widgets/display_settings.dart';
 import 'package:sota_caballo_rey/src/widgets/gamemode_card.dart';
+import 'package:sota_caballo_rey/src/services/audio_service.dart';
+import 'package:sota_caballo_rey/src/services/notifications_service.dart';
 
 
 /// HomeScreen
@@ -47,9 +49,8 @@ class HomeScreenState extends State<HomeScreen>
 {
   final String? profileImageUrl = 'https://www.pngkey.com/png/full/114-1149878_setting-user-avatar-in-specific-size-without-breaking.png';
   final int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
-  double _volume = 0.5; // valor inicial del volumen
-  double _musicVolume = 0.5; // valor inicial del volumen de la música
-  double _effectsVolume = 0.5; // valor inicial del volumen de los efectos de sonido
+  final NotificationsService notificacion = NotificationsService(); // instancia del servicio de notificaciones
+
 
   final _pageController = PageController(); // controlador de página
 
@@ -74,31 +75,9 @@ class HomeScreenState extends State<HomeScreen>
             Image.asset('assets/images/app_logo_white.png', width: 60, height: 60),
            DisplaySettings
            (
-              volume: _volume,
-              musicVolume: _musicVolume,
-              effectsVolume: _effectsVolume,
-
-              onVolumeChanged: (value) 
-              {
-                setState(() 
-                {
-                  _volume = value;
-                });
-              },
-
-              onMusicVolumeChanged: (value) 
-              {
-                setState(() {
-                  _musicVolume = value;
-                });
-              },
-
-              onEffectsVolumeChanged: (value) 
-              {
-                setState(() {
-                  _effectsVolume = value;
-                });
-              },
+              onVolumeChanged: (value) => AudioService().setGeneralVolume(value),
+              onMusicVolumeChanged: (value) => AudioService().setMusicVolume(value),
+              onEffectsVolumeChanged: (value) => AudioService().setEffectsVolume(value),
             ),
           ],
         ),
@@ -176,14 +155,10 @@ class HomeScreenState extends State<HomeScreen>
       (
         onTap: () 
         {
-          ScaffoldMessenger.of(context).showSnackBar
+          notificacion.showNotification
           (
-            const SnackBar
-            (
-              content: Text('¡Hola!', style: TextStyle(color: Colors.white)),
-              backgroundColor: Colors.black,
-              duration: Duration(seconds: 2),
-            ),
+            '¡Hola!',
+            'Bienvenido a la pantalla de inicio.',
           );
         },
         child: CircleAvatar

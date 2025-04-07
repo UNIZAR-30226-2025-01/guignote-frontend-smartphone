@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sota_caballo_rey/src/services/audio_service.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
-import 'package:shared_preferences/shared_preferences.dart';  
-import 'package:audioplayers/audioplayers.dart';
+
 
 /// Diálogo para los ajustes de sonido.
 /// 
@@ -11,34 +11,8 @@ import 'package:audioplayers/audioplayers.dart';
 /// 
 class SoundSettingsDialog extends StatefulWidget
 {
-  final double volume;
-  final double musicVolume;
-  final double effectsVolume;
-  final Function(double) onVolumeChanged;
-  final Function(double) onMusicVolumeChanged;
-  final Function(double) onEffectsVolumeChanged;
-  
-  /// Constructor.
-  /// 
-  /// [volume] Volumen general.
-  /// [musicVolume] Volumen de la música.
-  /// [effectsVolume] Volumen de los efectos.
-  /// [onVolumeChanged] Función que se ejecuta cuando se cambia el volumen general.
-  /// [onMusicVolumeChanged] Función que se ejecuta cuando se cambia el volumen de la música.
-  /// [onEffectsVolumeChanged] Función que se ejecuta cuando se cambia el volumen de los efectos.
-  /// 
-  const SoundSettingsDialog
-  (
-    {
-      super.key,
-      required this.volume,
-      required this.onVolumeChanged,
-      required this.musicVolume,
-      required this.onMusicVolumeChanged,
-      required this.effectsVolume,
-      required this.onEffectsVolumeChanged,
-    }
-  );
+
+  const SoundSettingsDialog({super.key});
 
   /// Crea el estado del diálogo.
   /// 
@@ -56,31 +30,15 @@ class SoundSettingsDialogState extends State<SoundSettingsDialog>
   late double _currentMusicVolume;
   late double _currentEffectsVolume;
 
+  final audio = AudioService(); // Instancia del servicio de audio.
+
   @override
   void initState() 
   {
     super.initState();
-    _currentVolume = widget.volume;
-    _currentEffectsVolume = widget.effectsVolume;
-    _currentMusicVolume = widget.musicVolume;
-  }
-
-  Future<void> _saveVolume(double value) async 
-  {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('volume', value);
-  }
-
-  Future<void> _saveMusicVolume(double value) async 
-  {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('musicVolume', value);
-  }
-
-  Future<void> _saveEffectsVolume(double value) async 
-  {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('effectsVolume', value);
+    _currentVolume = audio.generalVolume;
+    _currentEffectsVolume = audio.effectsVolume;
+    _currentMusicVolume = audio.musicVolume;
   }
 
   @override
@@ -111,8 +69,7 @@ class SoundSettingsDialogState extends State<SoundSettingsDialog>
                 {
                   _currentVolume = value;
                 });
-                widget.onVolumeChanged(value);
-                _saveVolume(value);
+                audio.setGeneralVolume(value);
               },
               min: 0,
               max: 1,
@@ -131,8 +88,7 @@ class SoundSettingsDialogState extends State<SoundSettingsDialog>
                 {
                   _currentMusicVolume = value;
                 });
-                widget.onMusicVolumeChanged(value);
-                _saveMusicVolume(value);
+                audio.setMusicVolume(value);
               },
               min: 0,
               max: 1,
@@ -151,8 +107,8 @@ class SoundSettingsDialogState extends State<SoundSettingsDialog>
                 {
                   _currentEffectsVolume = value;
                 });
-                widget.onEffectsVolumeChanged(value);
-                _saveEffectsVolume(value);
+
+                audio.setEffectsVolume(value);
               },
               min: 0,
               max: 1,

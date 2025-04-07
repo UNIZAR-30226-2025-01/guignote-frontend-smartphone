@@ -16,11 +16,15 @@ import 'package:sota_caballo_rey/src/screens/home/home_screen.dart';
 import 'src/screens/game/game_screen.dart';
 import 'package:sota_caballo_rey/src/screens/home/ranking_screen.dart';
 import 'package:sota_caballo_rey/src/screens/settings/account_info_screen.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:sota_caballo_rey/src/services/audio_service.dart';
+import 'package:sota_caballo_rey/src/services/notifications_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   // Necesario para las operaciones asíncronas.
   WidgetsFlutterBinding.ensureInitialized();
+  await AudioService().init();
+  await NotificationsService().init(); // Inicializa el servicio de notificaciones.
   await Config.load();
   runApp(const MyApp());
 }
@@ -35,31 +39,21 @@ class MyApp extends StatefulWidget
 
 class MyAppState extends State<MyApp>
 {
-  final AudioPlayer _audioController = AudioPlayer();
-
   @override
   void initState() 
   {
     super.initState();
 
-    _audioController.setReleaseMode(ReleaseMode.stop);
-
+   
     WidgetsBinding.instance.addPostFrameCallback((_) async 
     {
-      await _audioController.setSource(AssetSource('sounds/menu_jazz_lofi.mp3'));
-      await _audioController.resume();
+      await AudioService().playMenuMusic(); // Música de fondo del menú.
+      final prefs = await SharedPreferences.getInstance(); // Obtiene las preferencias compartidas.
+      final notificationsEnabled = prefs.getBool('notifications') ?? true; // Obtiene las notificaciones.
+      await NotificationsService().setNotificationsEnabled(notificationsEnabled); // Activa o desactiva las notificaciones.
     });
 
-
   }
-
-  @override
-  void dispose() 
-  {
-    _audioController.dispose();
-    super.dispose();
-  }
-
 
   @override
   Widget build(BuildContext context) 
