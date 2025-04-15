@@ -14,7 +14,15 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1 # Para las fuentes de google
+
+  # Paquete para uso de web sockets
   web_socket_channel: ^2.4.0
+
+  # Paquete para seleccionar imágenes
+  image_picker: ^1.0.0
+
+  # Paquete para cargar el video de la pantalla de carga.
+  video_player: ^2.5.5
 
   # Paquete para almacenar tokens de forma segura.
   flutter_secure_storage: ^9.2.4

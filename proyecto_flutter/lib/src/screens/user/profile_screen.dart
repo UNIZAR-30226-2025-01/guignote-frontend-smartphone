@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/services/storage_service.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
@@ -5,6 +7,7 @@ import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
+import 'package:image_picker/image_picker.dart';
 
 //Pantalla de perfil del usuario.
 //
@@ -51,7 +54,7 @@ class ProfileScreenState extends State<ProfileScreen> {
 
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.all(20),
-                        child: buildProfileBox(context),
+                        child: buildProfileBox(context, setState),
                       ),
                     ),
                   ),
@@ -65,29 +68,25 @@ class ProfileScreenState extends State<ProfileScreen> {
             imageAsset: 'assets/images/gold_ornaments.png',
           ),
 
-
           // Boton de cierre de sesión
           Positioned(
             top: 40,
             right: 40,
             child: IconButton(
-              icon: const Icon(
-                Icons.logout,
-                color: Color(0xFF171718),
-              ),
-            iconSize: 40,
-            onPressed: () async {
-              // Elimina el token del usuario.
-              await StorageService.deleteToken();
+              icon: const Icon(Icons.logout, color: Color(0xFF171718)),
+              iconSize: 40,
+              onPressed: () async {
+                // Elimina el token del usuario.
+                await StorageService.deleteToken();
 
-              // Verifica si el widget sigue montado.
-              if (!mounted) return;
+                // Verifica si el widget sigue montado.
+                if (!mounted) return;
 
-              // Navega a la página de login.
-              Navigator.pushReplacementNamed(context, '/login');
-            },
+                // Navega a la página de login.
+                Navigator.pushReplacementNamed(context, '/login');
+              },
             ),
-          )
+          ),
         ],
       ),
       bottomNavigationBar: CustomNavBar(selectedIndex: 0),
@@ -95,30 +94,68 @@ class ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
+// Devuelve widget con imagen de perfil y opción de cambiarla
+Widget _buildProfileImage(String imagenUrl, BuildContext context, Function setState) {
+  return GestureDetector(
+    onTap: () async {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(source: ImageSource.gallery);
+
+      if (picked != null) {
+        final imagen = File(picked.path);
+        try {
+          await cambiarImagenPerfil(imagen);
+          setState(() {}); // Fuerza recarga para mostrar la nueva imagen
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Error al actualizar imagen: $e")),
+            );
+          }
+        }
+      }
+    },
+    child: imagenUrl.isNotEmpty
+        ? ClipOval(
+      child: Image.network(
+        imagenUrl,
+        width: 64,
+        height: 64,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) =>
+        const Icon(Icons.person, size: 32, color: Colors.white),
+      ),
+    )
+        : const Icon(Icons.person, size: 32, color: Colors.white),
+  );
+}
+
 // Construye la caja con la información del perfil, estadisticas y mochila.
-Widget buildProfileBox(BuildContext context) {
-  return FutureBuilder<Map<String, dynamic>> (
+Widget buildProfileBox(BuildContext context, Function setState) {
+  return FutureBuilder<Map<String, dynamic>>(
     future: getUserStatistics(),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return const Center (child: CircularProgressIndicator());
-      }
-      else if (snapshot.hasError)
-      {
+        return const Center(child: CircularProgressIndicator());
+      } else if (snapshot.hasError) {
         return Center(
-          child: Text("Error: ${snapshot.error}",
-          style: const TextStyle(color: Colors.white),),
+          child: Text(
+            "Error: ${snapshot.error}",
+            style: const TextStyle(color: Colors.white),
+          ),
         );
-      }
-      else if (snapshot.hasData) 
-      {
+      } else if (snapshot.hasData) {
         final stats = snapshot.data!;
         int victorias = stats["victorias"];
         int derrotas = stats["derrotas"];
+        int partidas = stats["total_partidas"];
         int racha = stats["racha_victorias"];
         int rachaMax = stats["mayor_racha_victorias"];
         String usuario = stats["nombre"];
+        String imagenUrl = stats["imagen"].toString();
         double winLoss = stats["porcentaje_victorias"];
+        int elo = stats["elo"];
+        int elo_parejas = stats["elo_parejas"];
 
         return Center(
           child: Container(
@@ -138,24 +175,21 @@ Widget buildProfileBox(BuildContext context) {
 
                 // Titulo del perfil.
                 const SizedBox(height: 10),
-                const Text(
-                  'Perfil',
-                  style: AppTheme.titleTextStyle,
-                ),
+                const Text('Perfil', style: AppTheme.titleTextStyle),
 
                 // Foto del usuario.
                 const SizedBox(height: 30),
-                const CircleAvatar(
-                  radius: 40,
-                  backgroundColor: Colors.transparent,
-                  backgroundImage: AssetImage('assets/images/default_portrait.png'), // Por el momento no se implementa en el backend.
-                ),
+                _buildProfileImage(imagenUrl, context, setState),
 
                 // Nombre del usuario.
                 const SizedBox(height: 10),
                 Text(
                   usuario,
-                  style: TextStyle(color: Colors.white, fontSize: 20, fontFamily: 'poppins',),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontFamily: 'poppins',
+                  ),
                 ),
 
                 // Rango y ELO del usuario.
@@ -168,9 +202,15 @@ Widget buildProfileBox(BuildContext context) {
                       width: 24,
                       height: 24,
                     ),
-
                     const SizedBox(width: 5),
-                    Text('Oro', style: TextStyle(color: Colors.white, fontSize: 16, fontFamily: 'poppins',)), // Por el momento no se implementa en el backend.
+                    Text(
+                      'Oro',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontFamily: 'poppins',
+                      ),
+                    ), // Por el momento no se implementa en el backend.
 
                     SizedBox(width: 20),
                     Row(
@@ -183,8 +223,12 @@ Widget buildProfileBox(BuildContext context) {
 
                         const SizedBox(width: 5),
                         Text(
-                          '0', // Por el momento no se implementa en el backend.
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontFamily: 'poppins',),
+                          elo.toString(),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontFamily: 'poppins',
+                          ),
                         ),
                       ],
                     ),
@@ -197,10 +241,7 @@ Widget buildProfileBox(BuildContext context) {
                 buildSectionSeparator(),
 
                 // Titulo de estadisticas.
-                const Text(
-                  'Estadísticas',
-                  style: AppTheme.titleTextStyle,
-                ),
+                const Text('Estadísticas', style: AppTheme.titleTextStyle),
 
                 // Recuadro de las estadisticas.
 
@@ -209,8 +250,16 @@ Widget buildProfileBox(BuildContext context) {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    buildStatItem("Nº Victorias", victorias.toString(), "assets/images/victory.png"),
-                    buildStatItem("Nº Derrotas", derrotas.toString(), "assets/images/loss.png"),
+                    buildStatItem(
+                      "Nº Victorias",
+                      victorias.toString(),
+                      "assets/images/victory.png",
+                    ),
+                    buildStatItem(
+                      "Nº Derrotas",
+                      derrotas.toString(),
+                      "assets/images/loss.png",
+                    ),
                   ],
                 ),
 
@@ -219,8 +268,16 @@ Widget buildProfileBox(BuildContext context) {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    buildStatItem("Win/Loss", winLoss.toString(), "assets/images/laurel.png"),
-                    buildStatItem("Racha", racha.toString(), "assets/images/star.png"),
+                    buildStatItem(
+                      "Win/Loss",
+                      winLoss.toString(),
+                      "assets/images/laurel.png",
+                    ),
+                    buildStatItem(
+                      "Partidas",
+                      partidas.toString(),
+                      "assets/images/laurel.png",
+                    ),
                   ],
                 ),
 
@@ -229,8 +286,34 @@ Widget buildProfileBox(BuildContext context) {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    buildStatItem("ELO max", "0", "assets/images/trophy.png"), // Por el momento no se implementa en el backend.
-                    buildStatItem("Racha max", rachaMax.toString(), "assets/images/star.png"),
+                    buildStatItem(
+                      "Racha",
+                      racha.toString(),
+                      "assets/images/star.png",
+                    ),
+                    buildStatItem(
+                      "Racha max",
+                      rachaMax.toString(),
+                      "assets/images/star.png",
+                    ),
+                  ],
+                ),
+
+                // Cuarta fila.
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    buildStatItem(
+                      "ELO 1vs1",
+                      elo.toString(),
+                      "assets/images/trophy.png",
+                    ),
+                    buildStatItem(
+                      "ELO 2vs2",
+                      elo_parejas.toString(),
+                      "assets/images/trophy.png",
+                    ),
                   ],
                 ),
 
@@ -240,35 +323,35 @@ Widget buildProfileBox(BuildContext context) {
                 buildSectionSeparator(),
 
                 // Titulo mochila.
-                const Text(
-                  'Mochila',
-                  style: AppTheme.titleTextStyle,
-                ),
+                const Text('Mochila', style: AppTheme.titleTextStyle),
 
                 // Contenido mochila.
                 const SizedBox(height: 30),
                 const BackPackTabs(),
-
               ],
             ),
           ),
         );
-      }
-      else
-      {
+      } else {
         return const SizedBox();
       }
-      },
+    },
   );
 }
-
 
 //Widget para rectangulo de estadisticas.
 Widget buildStatItem(String statName, String statValue, String imageAsset) {
   return Column(
     children: [
       //Nombre de la estadistica.
-      Text(statName, style: const TextStyle(fontSize: 14, color: Colors.white, fontFamily: 'poppins',)),
+      Text(
+        statName,
+        style: const TextStyle(
+          fontSize: 14,
+          color: Colors.white,
+          fontFamily: 'poppins',
+        ),
+      ),
 
       //Recuadro blanco con el valor e imagen al lado.
       const SizedBox(height: 5),
@@ -303,7 +386,6 @@ Widget buildStatItem(String statName, String statValue, String imageAsset) {
   );
 }
 
-
 //Widget para crear una linea separadora entre secciones.
 Widget buildSectionSeparator() {
   return Column(
@@ -314,7 +396,6 @@ Widget buildSectionSeparator() {
     ],
   );
 }
-
 
 //Widget para la creacion del contenido de la mochila.
 class BackPackTabs extends StatefulWidget {
@@ -330,8 +411,8 @@ class BackpackTabsState extends State<BackPackTabs> {
   int selectedTab = 0;
 
   @override
-  Widget build (BuildContext context) {
-    return Column (
+  Widget build(BuildContext context) {
+    return Column(
       //Fila con los botones de cada categoria.
       children: [
         Row(
@@ -360,9 +441,9 @@ class BackpackTabsState extends State<BackPackTabs> {
                 ),
               ),
             ),
-            
+
             const SizedBox(width: 20),
-            
+
             //Boton de tapetes.
             GestureDetector(
               onTap: () {
@@ -370,55 +451,58 @@ class BackpackTabsState extends State<BackPackTabs> {
                   selectedTab = 1;
                 });
               },
-              child: Container (
+              child: Container(
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: selectedTab == 1 ? Colors.white : Colors.transparent,
                   ),
-                  borderRadius: BorderRadius.circular(8)
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 padding: const EdgeInsets.all(8),
-                child: Image.asset ('assets/images/tapete.jpg', //URL TAPETES
-                width: 50,
-                height: 50,),
+                child: Image.asset(
+                  'assets/images/tapete.jpg', //URL TAPETES
+                  width: 50,
+                  height: 50,
+                ),
               ),
             ),
           ],
         ),
 
         //Muestra la coleccion de skins segun la categoría seleccionada.
-        selectedTab == 0 ? buildGridContent("cartas") : buildGridContent("tapetes"),
+        selectedTab == 0
+            ? buildGridContent("cartas")
+            : buildGridContent("tapetes"),
       ],
     );
   }
 
-
-// Método para construir el grid de elementos.
-Widget buildGridContent(String tipo) {
-  return GridView.count(
-    physics: const NeverScrollableScrollPhysics(),
-    shrinkWrap: true,
-    crossAxisCount: 2,
-    crossAxisSpacing: 10,
-    mainAxisSpacing: 10,
-    children: List.generate(4, (index) {
-      return Container (
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.white),
-        ),
-        
-        child: Center (
-          child: Text(
-            tipo == "cartas"
-              ? 'skin de Carta ${index + 1}'
-              : 'skin de tapete ${index + 1}',
-            style: const TextStyle(color: Colors.white),
+  // Método para construir el grid de elementos.
+  Widget buildGridContent(String tipo) {
+    return GridView.count(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      crossAxisCount: 2,
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+      children: List.generate(4, (index) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.white),
           ),
-        )
-      );
-    })
-  );
-}
+
+          child: Center(
+            child: Text(
+              tipo == "cartas"
+                  ? 'skin de Carta ${index + 1}'
+                  : 'skin de tapete ${index + 1}',
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        );
+      }),
+    );
+  }
 }

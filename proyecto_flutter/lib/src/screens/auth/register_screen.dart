@@ -12,36 +12,42 @@ import 'package:sota_caballo_rey/src/widgets/custom_textform.dart';
 ///
 /// Esta pantalla permite al usuario crear una cuenta proporcionando su nombre de usuario, correo y contraseña.
 
-class RegisterScreen extends StatefulWidget 
-{
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
   RegisterScreenState createState() => RegisterScreenState();
 }
 
-class RegisterScreenState extends State<RegisterScreen> 
-{
+class RegisterScreenState extends State<RegisterScreen> {
   //final _formKey = GlobalKey<FormState>(); // Clave global para el formulario.
-  final _usrController = TextEditingController(); // Controlador para el campo de usuario.
-  final _emailController = TextEditingController(); // Controlador para el campo de correo.
-  final _passwdController = TextEditingController(); // Controlador para el campo de contraseña.
-  final _confirmpasswdController = TextEditingController(); // Controlador para el campo de confirmar contraseña.
+  final _usrController =
+      TextEditingController(); // Controlador para el campo de usuario.
+  final _emailController =
+      TextEditingController(); // Controlador para el campo de correo.
+  final _passwdController =
+      TextEditingController(); // Controlador para el campo de contraseña.
+  final _confirmpasswdController =
+      TextEditingController(); // Controlador para el campo de confirmar contraseña.
   bool _hidePasswd = true; // Estado para ocultar/mostrar la contraseña.
-  bool _hideConfirmPasswd = true; // Estado para ocultar/mostrar la confirmación de la contraseña. 
+  bool _hideConfirmPasswd =
+      true; // Estado para ocultar/mostrar la confirmación de la contraseña.
 
   /// Crea y valida la cuenta del usuario.
-  /// 
+  ///
   /// Parámetros:
   /// - `username`: El nombre de usuario.
   /// - `email`: El correo del usuario.
   /// - `password`: La contraseña.
   /// - `confirmPassword`: La confirmación de la contraseña.
-  /// 
-  void createAndValidate(String username, String email, String password, String confirmPassword) async 
-  {
-    try 
-    {
+  ///
+  void createAndValidate(
+    String username,
+    String email,
+    String password,
+    String confirmPassword,
+  ) async {
+    try {
       // Muestra un indicador de carga antes de la petición
       showDialog(
         context: context,
@@ -50,9 +56,8 @@ class RegisterScreenState extends State<RegisterScreen>
       );
 
       // Llama a la función de login en un hilo separado
-      await Future.delayed(Duration.zero, () async 
-      {
-        await register(username,email, password, confirmPassword);
+      await Future.delayed(Duration.zero, () async {
+        await register(username, email, password, confirmPassword);
       });
 
       if (!mounted) return;
@@ -60,52 +65,42 @@ class RegisterScreenState extends State<RegisterScreen>
       Navigator.pop(context); // Cierra el indicador de carga
 
       Navigator.pushNamed(context, '/home');
-    } catch (e) 
-    {
-      Navigator.pop(context); 
-        
-      if(e is ApiException)
-      {
+    } catch (e) {
+      Navigator.pop(context);
+
+      if (e is ApiException) {
         showError(context, e.message);
-      }
-      else
-      {
+      } else {
         showError(context, 'Error desconocido');
       }
     }
   }
 
   @override
-  Widget build(BuildContext context)
-   {
-    return Scaffold
-    (
+  Widget build(BuildContext context) {
+    return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Stack
-      (
-        children: 
-        [
+      body: Stack(
+        children: [
           // Fondo principal con degradado radial.
           const Background(),
 
           // Cuadro negro con todas las opciones dentro.
-          SingleChildScrollView
-          (           
-            child: Center
-            (
-              child: Column
-              (
+          SingleChildScrollView(
+            child: Center(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: 
-                [
+                children: [
                   const SizedBox(height: 100),
                   buildRegisterForm(context),
-                ]
+                ],
               ),
             ),
           ),
           // Por último añadimos las decoraciones de las esquinas.
-          const CornerDecoration(imageAsset: 'assets/images/gold_ornaments.png'),    
+          const CornerDecoration(
+            imageAsset: 'assets/images/gold_ornaments.png',
+          ),
         ],
       ),
     );
@@ -118,27 +113,21 @@ class RegisterScreenState extends State<RegisterScreen>
   ///
   /// Retorna:
   /// - Un widget `Center` que contiene el formulario de inicio de sesión.
-  Center buildRegisterForm(BuildContext context) 
-  {
-    return Center
-    (
-      child: Container
-      (
+  Center buildRegisterForm(BuildContext context) {
+    return Center(
+      child: Container(
         padding: const EdgeInsets.all(20), // Espaciado interno.
-        
-        decoration: BoxDecoration
-        (
+
+        decoration: BoxDecoration(
           color: const Color(0XFF171718),
           borderRadius: BorderRadius.circular(15),
         ),
-       
-        child: Column
-        (
+
+        child: Column(
           mainAxisSize: MainAxisSize.min, // Para que ocupe solo lo necesario.
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: 
-          [
+          children: [
             // Título de la pantalla.
             const CustomTitle(title: 'Crear cuenta'),
 
@@ -161,18 +150,21 @@ class RegisterScreenState extends State<RegisterScreen>
 
             // Campo rellenable para confirmar la contraseña.
             confirmPasswordField(),
-    
+
             const SizedBox(height: 30),
 
             // Botón para Crear cuenta.
-            CustomButton
-            (
-              key: const Key('registerButton'),  
+            CustomButton(
+              key: const Key('registerButton'),
               buttonText: 'Crear cuenta',
-             
-              onPressedAction: () async 
-              {
-                createAndValidate(_usrController.text, _emailController.text , _passwdController.text, _confirmpasswdController.text);            
+
+              onPressedAction: () async {
+                createAndValidate(
+                  _usrController.text,
+                  _emailController.text,
+                  _passwdController.text,
+                  _confirmpasswdController.text,
+                );
               },
               color: Colors.grey.shade400,
             ),
@@ -180,23 +172,23 @@ class RegisterScreenState extends State<RegisterScreen>
             const SizedBox(height: 20),
 
             // Botón para volver.
-            CustomButton
-            (
+            CustomButton(
               buttonText: 'Volver',
-              onPressedAction: () => Navigator.pushNamed(context, '/'),
+              onPressedAction: () => Navigator.pushNamed(context, '/welcome'),
               color: Colors.grey.shade400,
             ),
 
             const SizedBox(height: 15),
 
             // La opción de ir a iniciar sesión.
-            TextButton
-            (
+            TextButton(
               onPressed: () => Navigator.pushNamed(context, '/login'),
-              child: const Text
-              (
+              child: const Text(
                 '¿Ya tienes cuenta? Inicia sesión',
-                style: TextStyle(decoration: TextDecoration.underline, color: Colors.grey),
+                style: TextStyle(
+                  decoration: TextDecoration.underline,
+                  color: Colors.grey,
+                ),
               ),
             ),
           ],
@@ -209,38 +201,33 @@ class RegisterScreenState extends State<RegisterScreen>
   ///
   /// Retorna:
   /// - Un widget `SizedBox` que contiene el campo de texto para la contraseña.
-  SizedBox passwordField() 
-  {
-    return SizedBox
-    (
+  SizedBox passwordField() {
+    return SizedBox(
       width: 300,
 
-      child:CustomTextForm
-      (
+      child: CustomTextForm(
         key: const Key('passwordField'),
         hintText: 'Contraseña',
         prefixIcon: Icons.lock,
         controller: _passwdController,
         obscureText: _hidePasswd,
-        validator: (value) => value == null || value.isEmpty ? 'Ingrese su contraseña' : null,
+        validator:
+            (value) =>
+                value == null || value.isEmpty ? 'Ingrese su contraseña' : null,
         keyboardType: TextInputType.visiblePassword,
-        suffixIcon: IconButton
-        (
-          icon: Icon
-          (
+        suffixIcon: IconButton(
+          icon: Icon(
             _hidePasswd ? Icons.visibility_off : Icons.visibility,
             color: Colors.black45,
           ),
-          onPressed: () 
-          {
-            setState(() 
-            {
-              _hidePasswd = !_hidePasswd; // Cambia el estado de mostrar y ocultar contraseña.
+          onPressed: () {
+            setState(() {
+              _hidePasswd =
+                  !_hidePasswd; // Cambia el estado de mostrar y ocultar contraseña.
             });
           },
         ),
       ),
-  
     );
   }
 
@@ -248,66 +235,64 @@ class RegisterScreenState extends State<RegisterScreen>
   ///
   /// Retorna:
   /// - Un widget `SizedBox` que contiene el campo de texto para el nombre de usuario.
-  SizedBox usernameField() 
-  {
-    return SizedBox
-    (
+  SizedBox usernameField() {
+    return SizedBox(
       width: 300,
-      child:CustomTextForm
-      (
+      child: CustomTextForm(
         key: const Key('usernameField'),
         hintText: 'Usuario',
         prefixIcon: Icons.person,
         controller: _usrController,
-        validator: (value) => value == null || value.isEmpty ? 'Ingrese su nombre de usuario' : null,
+        validator:
+            (value) =>
+                value == null || value.isEmpty
+                    ? 'Ingrese su nombre de usuario'
+                    : null,
         keyboardType: TextInputType.text,
       ),
     );
   }
 
-  SizedBox emailField() 
-  {
-    return SizedBox
-    (
+  SizedBox emailField() {
+    return SizedBox(
       width: 300,
-      child:CustomTextForm
-      (
+      child: CustomTextForm(
         key: const Key('emailField'),
         hintText: 'Correo Electrónico',
         prefixIcon: Icons.email,
         controller: _emailController,
-        validator: (value) => value == null || value.isEmpty ? 'Ingrese su correo' : null,
+        validator:
+            (value) =>
+                value == null || value.isEmpty ? 'Ingrese su correo' : null,
         keyboardType: TextInputType.emailAddress,
       ),
     );
   }
 
-  SizedBox confirmPasswordField()
-  {
-    return SizedBox
-    (
+  SizedBox confirmPasswordField() {
+    return SizedBox(
       width: 300,
-      child: CustomTextForm
-      (
+      child: CustomTextForm(
         key: const Key('confirmPasswordField'),
         hintText: 'Confirmar Contraseña',
         prefixIcon: Icons.lock,
         controller: _confirmpasswdController,
         obscureText: _hideConfirmPasswd,
-        validator: (value) => value == null || value.isEmpty ? 'Confirme su contraseña' : null,
+        validator:
+            (value) =>
+                value == null || value.isEmpty
+                    ? 'Confirme su contraseña'
+                    : null,
         keyboardType: TextInputType.visiblePassword,
-        suffixIcon: IconButton
-        (
-          icon: Icon
-          (
+        suffixIcon: IconButton(
+          icon: Icon(
             _hideConfirmPasswd ? Icons.visibility_off : Icons.visibility,
             color: Colors.black45,
           ),
-          onPressed: () 
-          {
-            setState(() 
-            {
-              _hideConfirmPasswd = !_hideConfirmPasswd; // Cambia el estado de mostrar y ocultar contraseña.
+          onPressed: () {
+            setState(() {
+              _hideConfirmPasswd =
+                  !_hideConfirmPasswd; // Cambia el estado de mostrar y ocultar contraseña.
             });
           },
         ),

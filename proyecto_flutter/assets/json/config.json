@@ -12,5 +12,7 @@
     "enviar_solicitud_amistad_endpoint": "/usuarios/enviar_solicitud_amistad/",
     "buscar_estadisticas_usuario_endpoint": "/usuarios/estadisticas/",
     "enviar_mensaje_amigo_endpoint": "/mensajes/enviar/",
-    "obtener_mensajes_endpoint": "/mensajes/obtener/"
+    "obtener_mensajes_endpoint": "/mensajes/obtener/",
+    "top_elo_endpoint": "/usuarios/usuarios/top_elo/",
+    "top_elo_parejas_endpoint": "/usuarios/usuarios/top_elo_parejas/"
 }

@@ -11,7 +11,13 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 class FriendChat extends StatefulWidget {
   final String receptorId;
-  const FriendChat({super.key, required this.receptorId});
+  final String receptorNom;
+
+  const FriendChat({
+    super.key,
+    required this.receptorId,
+    required this.receptorNom
+  });
 
   @override
   FriendChatState createState() => FriendChatState();
@@ -147,11 +153,12 @@ class FriendChatState extends State<FriendChat> {
           children: [
             Text(
                 mensaje["contenido"]!,
-                style: TextStyle(color: esPropio ? Colors.white : Colors.black)
+                style: TextStyle(color: esPropio ? Colors.white : Colors.black,
+                  fontSize: 16)
             ),
             Text(
               mensaje["fecha_envio"]!,
-              style: TextStyle(fontSize: 10, color: Colors.black54)
+              style: TextStyle(fontSize: 12, color: Colors.black54)
             )
           ],
         )
@@ -188,32 +195,43 @@ class FriendChatState extends State<FriendChat> {
   }
 
   ///
-  /// Botón de volver sin usar `AppBar`
+  /// Barra superior con botón para volver a pantalla
+  /// anterior y nombre del amigo con el que chateas
   ///
-  Widget _botonVolver() {
-    return Align(
-      alignment: Alignment.topLeft,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 10, left: 10),
-        child: GestureDetector(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.5),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.arrow_back, color: Colors.white),
+  Widget _barraSuperior() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: const Icon(Icons.arrow_back, color: Colors.white)
           ),
-        ),
-      ),
+          Expanded(
+            child: Text(
+              widget.receptorNom,
+              style: const TextStyle(
+                fontFamily: 'tituloApp',
+                fontSize: 24,
+                color: Colors.white
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              textAlign: TextAlign.center
+            )
+          )
+        ],
+      )
     );
   }
 
   @override
   Widget build(BuildContext context) {
+
+    double barraAltura = MediaQuery.of(context).padding.top + 52.0;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
@@ -221,17 +239,32 @@ class FriendChatState extends State<FriendChat> {
         children: [
           const Background(),
           const CornerDecoration(imageAsset: 'assets/images/gold_ornaments.png'),
+          Container(
+            height: barraAltura,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                colors: [Colors.black.withAlpha(192), Colors.black.withAlpha(64)]
+              )
+            ),
+          ),
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 32),
-              child: Column(
-                children: [
-                  _botonVolver(),
-                  _listaMensajes(),
-                  _inputMensaje()
-                ],
-              ),
-            )
+            child: Column(
+              children: [
+                _barraSuperior(),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    child: Column(
+                      children: [
+                        _listaMensajes(),
+                        _inputMensaje()
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            ),
           )
         ]
       )

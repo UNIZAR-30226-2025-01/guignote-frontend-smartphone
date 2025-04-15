@@ -120,7 +120,7 @@ class FriendsListState extends State<FriendsListScreen> {
   Widget _itemLista(Map<String, String> amigo, int index, Animation<double> animation) {
     return SizeTransition(
       sizeFactor: animation,
-      child: _amigo(index, amigo["id"]!, amigo["nombre"]!),
+      child: _amigo(index, amigo["id"]!, amigo["nombre"]!, amigo["imagen"]??""),
     );
   }
 
@@ -129,7 +129,7 @@ class FriendsListState extends State<FriendsListScreen> {
   /// Muestra la inicial del nombre del amigo, el nombre y
   /// un botón para eliminar a dicho amigo.
   ///
-  Widget _amigo(int index, String id, String nombre) {
+  Widget _amigo(int index, String id, String nombre, String imagenUrl) {
     return Container(
       decoration: BoxDecoration(
         color: Color.fromRGBO(0, 0, 0, 0.5),
@@ -140,22 +140,19 @@ class FriendsListState extends State<FriendsListScreen> {
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            height: 64,
-            width: 64,
-            decoration: BoxDecoration(
-                color: Color.fromRGBO(190, 95, 5, 1),
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    bottomLeft: Radius.circular(12)
+          Padding(
+              padding: const EdgeInsets.symmetric(vertical:8, horizontal:8),
+              child: imagenUrl.isNotEmpty
+                ? ClipOval(
+                  child: Image.network(
+                      imagenUrl,
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 32, color: Colors.white)
+                  )
                 )
-            ),
-            alignment: Alignment.center,
-            child: Text(
-                nombre[0],
-                style: const TextStyle(fontSize: 32,
-                    fontWeight: FontWeight.bold)
-            ),
+                : const Icon(Icons.person, size: 32, color: Colors.white)
           ),
           Expanded(
             child: InkWell(
@@ -163,7 +160,7 @@ class FriendsListState extends State<FriendsListScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => FriendChat(receptorId: id),
+                    builder: (context) => FriendChat(receptorId: id, receptorNom: nombre),
                   ),
                 );
               },
