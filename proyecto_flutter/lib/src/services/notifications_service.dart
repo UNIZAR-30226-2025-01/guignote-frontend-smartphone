@@ -1,4 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:io' show Platform;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationsService
 {
@@ -10,12 +12,33 @@ class NotificationsService
   
   Future<void> init() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('app_logo_white');
 
     const InitializationSettings initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
 
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+    // Pide permiso si es necesario
+    await requestNotificationPermissionIfNeeded();
+  }
+
+  /// Pide permiso para mostrar notificaciones si es necesario en Android 13 o superior
+  requestNotificationPermissionIfNeeded() async
+  {
+    if (Platform.isAndroid)
+    {
+      final androidImplementation = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
+      final isGranted = await androidImplementation?.areNotificationsEnabled();
+
+      if (isGranted != true)
+      {
+        await androidImplementation?.requestNotificationsPermission();
+      }
+    }
+
   }
 
   /// Activa o desactiva las notificaciones
@@ -46,6 +69,12 @@ class NotificationsService
   /// Método para mostrar una notificación.
   Future<void> showNotification(String title, String body) async
   {
+
+    final prefs = await SharedPreferences.getInstance();
+    final notificationsEnabled = prefs.getBool('notifications') ?? true;
+
+    if (!notificationsEnabled) return; // Si las notificaciones están desactivadas, no se muestra la notificación.
+
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'channel_id',

@@ -140,10 +140,12 @@ class SettingsDialogState extends State<SettingsDialog>
                   {
                     _notifications = value;
                   });
+
+                  // Activa o desactiva las notificaciones.
+                  await NotificationsService().setNotificationsEnabled(value);
                   
                   await _saveNotifications(value);
 
-                  NotificationsService().showNotification('Notificación', 'Las notificaciones han cambiado');
                 },
 
                 activeColor: Colors.amber,
