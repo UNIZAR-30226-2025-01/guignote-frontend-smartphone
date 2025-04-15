@@ -19,7 +19,7 @@ import 'package:sota_caballo_rey/src/screens/settings/account_info_screen.dart';
 import 'package:sota_caballo_rey/src/services/audio_service.dart';
 import 'package:sota_caballo_rey/src/services/notifications_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:sota_caballo_rey/src/screens/loading/loading_screen.dart';
 void main() async {
   // Necesario para las operaciones asíncronas.
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,7 +76,7 @@ class MyAppState extends State<MyApp>
         '/help': (context) => const HelpScreen(),
         '/ranking': (context) => const RankingScreen(),
         '/account_info': (context) => const AccountInfoScreen(),
-        'security': (context) => const AccountInfoScreen(),
+        '/security': (context) => const AccountInfoScreen(),
       },
     );
   }
