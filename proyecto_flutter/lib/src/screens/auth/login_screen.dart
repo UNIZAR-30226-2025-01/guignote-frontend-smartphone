@@ -8,6 +8,7 @@ import 'package:sota_caballo_rey/src/widgets/custom_title.dart';
 import 'package:sota_caballo_rey/src/utils/show_error.dart';
 import 'package:sota_caballo_rey/src/services/exceptions.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_textform.dart';
+import 'package:sota_caballo_rey/routes.dart';
 
 /// Pantalla de inicio de sesión.
 ///
@@ -66,7 +67,7 @@ class LoginScreenState extends State<LoginScreen> {
 
       Navigator.pop(context); // Cierra el indicador de carga
 
-      Navigator.pushNamed(context, '/home'); // Navega a la pantalla de inicio.
+      Navigator.pushNamed(context, AppRoutes.home); // Navega a la pantalla de inicio.
     } catch (e) {
       // Si hay un error, cierra el indicador de carga y muestra un mensaje de error.
       Navigator.pop(context);
@@ -200,7 +201,7 @@ class LoginScreenState extends State<LoginScreen> {
               onPressedAction:
                   () => Navigator.pushNamed(
                     context,
-                    '/welcome',
+                    AppRoutes.welcome,
                   ), // Navega a la pantalla de bienvenida.
               color: Colors.grey.shade400,
             ),
@@ -212,7 +213,7 @@ class LoginScreenState extends State<LoginScreen> {
               onPressed:
                   () => Navigator.pushNamed(
                     context,
-                    '/register',
+                    AppRoutes.register,
                   ), // Navega a la pantalla de registro.
               child: const Text(
                 // Texto del botón.

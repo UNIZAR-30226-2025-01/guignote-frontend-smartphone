@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:sota_caballo_rey/routes.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -29,12 +30,23 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
             // Inicia la reproducción.
             _controller.play();
+            
+            debugPrint("Video inicializado: ${_controller.value.isInitialized}");
+            debugPrint("Video en reproducción: ${_controller.value.isPlaying}");
+
+            // Fallback, si el video no termina en 5 segundos, redirige a la pantalla de bienvenida.
+            Timer(const Duration(seconds: 5), () {
+              if (_controller.value.isInitialized &&
+                  !_controller.value.isPlaying) {
+                Navigator.pushReplacementNamed(context, AppRoutes.welcome);
+              }
+            });
 
             _controller.addListener(() {
               if (_controller.value.isInitialized &&
                   !_controller.value.isPlaying &&
                   _controller.value.position >= _controller.value.duration) {
-                Navigator.pushReplacementNamed(context, '/welcome');
+                Navigator.pushReplacementNamed(context, AppRoutes.welcome);
               }
             });
           })

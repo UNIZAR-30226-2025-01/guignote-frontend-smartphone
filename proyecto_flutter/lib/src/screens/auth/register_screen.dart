@@ -7,6 +7,7 @@ import 'package:sota_caballo_rey/src/widgets/custom_title.dart';
 import 'package:sota_caballo_rey/src/utils/show_error.dart';
 import 'package:sota_caballo_rey/src/services/exceptions.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_textform.dart';
+import 'package:sota_caballo_rey/routes.dart';
 
 /// Pantalla de Crear cuenta.
 ///
@@ -64,7 +65,7 @@ class RegisterScreenState extends State<RegisterScreen> {
 
       Navigator.pop(context); // Cierra el indicador de carga
 
-      Navigator.pushNamed(context, '/home');
+      Navigator.pushNamed(context, AppRoutes.home);
     } catch (e) {
       Navigator.pop(context);
 
@@ -174,7 +175,7 @@ class RegisterScreenState extends State<RegisterScreen> {
             // Botón para volver.
             CustomButton(
               buttonText: 'Volver',
-              onPressedAction: () => Navigator.pushNamed(context, '/welcome'),
+              onPressedAction: () => Navigator.pushNamed(context, AppRoutes.welcome),
               color: Colors.grey.shade400,
             ),
 
@@ -182,7 +183,7 @@ class RegisterScreenState extends State<RegisterScreen> {
 
             // La opción de ir a iniciar sesión.
             TextButton(
-              onPressed: () => Navigator.pushNamed(context, '/login'),
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
               child: const Text(
                 '¿Ya tienes cuenta? Inicia sesión',
                 style: TextStyle(

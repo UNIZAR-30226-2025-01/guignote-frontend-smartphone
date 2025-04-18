@@ -3,6 +3,7 @@ import 'package:sota_caballo_rey/src/themes/theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sota_caballo_rey/src/widgets/sound_settings.dart';
 import 'package:sota_caballo_rey/src/services/notifications_service.dart';
+import 'package:sota_caballo_rey/routes.dart';
 
 
 /// Clase que muestra un diálogo con los ajustes de la aplicación.
@@ -88,7 +89,8 @@ class SettingsDialogState extends State<SettingsDialog>
       backgroundColor: AppTheme.blackColor,
       content: SizedBox
       (
-        height: 500,
+        height: 400,
+        width: 300,
         child: Column
         (
           mainAxisAlignment: MainAxisAlignment.center,
@@ -115,15 +117,6 @@ class SettingsDialogState extends State<SettingsDialog>
                     return const SoundSettingsDialog();
                   },
                 );
-              },
-            ),
-            ListTile
-            (
-              leading: const Icon(Icons.account_circle, color: Colors.white),
-              title: const Text('Información de la cuenta', style: TextStyle(color: Colors.white)),
-              onTap: () 
-              {
-                Navigator.pushNamed(context, '/account_info');
               },
             ),
             ListTile
@@ -158,7 +151,7 @@ class SettingsDialogState extends State<SettingsDialog>
               title: const Text('Seguridad y privacidad', style: TextStyle(color: Colors.white)),
               onTap: () 
               {
-                Navigator.pushNamed(context, '/security');
+                Navigator.pushNamed(context, AppRoutes.security);
               },
             ),
             const SizedBox(height: 20),

@@ -4,6 +4,7 @@ import 'package:sota_caballo_rey/src/widgets/custom_button.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_title.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
+import 'package:sota_caballo_rey/routes.dart';
 
 
 ///
@@ -81,7 +82,7 @@ class WelcomeScreen extends StatelessWidget
                     key: Key('login-button'), // Llave del botón.
                     // Texto del botón.
                     buttonText: 'Iniciar Sesión',
-                    onPressedAction: () => Navigator.pushNamed(context, '/login'), // Navegación a la pantalla de inicio de sesión.
+                    onPressedAction: () => Navigator.pushNamed(context, AppRoutes.login), // Navegación a la pantalla de inicio de sesión.
                     color: Colors.grey.shade400,
                   ),
                   const SizedBox(height: 20), // Espaciado
@@ -92,7 +93,7 @@ class WelcomeScreen extends StatelessWidget
                     key: Key('register-button'), // Llave del botón.
                     // Texto del botón.
                     buttonText: 'Crear Cuenta',
-                    onPressedAction: () => Navigator.pushNamed(context, '/register'), // Navegación a la pantalla de registro.
+                    onPressedAction: () => Navigator.pushNamed(context, AppRoutes.register), // Navegación a la pantalla de registro.
                     color: Colors.grey.shade400,
                   ),
                 ],

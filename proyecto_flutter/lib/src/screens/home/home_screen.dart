@@ -8,6 +8,7 @@ import 'package:sota_caballo_rey/src/widgets/display_settings.dart';
 import 'package:sota_caballo_rey/src/widgets/gamemode_card.dart';
 import 'package:sota_caballo_rey/src/services/audio_service.dart';
 import 'package:sota_caballo_rey/src/services/notifications_service.dart';
+import 'package:sota_caballo_rey/routes.dart';
 
 
 /// HomeScreen
@@ -47,6 +48,14 @@ class HomeScreen extends StatefulWidget
 /// 
 class HomeScreenState extends State<HomeScreen> 
 {
+
+  @override
+  void initState() 
+  {
+    super.initState(); // Inicializa el estado del widget.
+    AudioService().playMenuMusic(); // Reproduce la música del menú.
+  }
+
   final String? profileImageUrl = 'https://www.pngkey.com/png/full/114-1149878_setting-user-avatar-in-specific-size-without-breaking.png';
   final int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
   final NotificationsService notificacion = NotificationsService(); // instancia del servicio de notificaciones
@@ -201,7 +210,7 @@ class HomeScreenState extends State<HomeScreen>
         transform: Matrix4.translationValues(1.05, 1.05, 1),
         child: CustomButton(buttonText: 'Buscar Partida', onPressedAction: ()
         {
-          Navigator.pushNamed(context, '/game');
+          Navigator.pushNamed(context, AppRoutes.game);
         }, color: Colors.amber),
       ),
     );

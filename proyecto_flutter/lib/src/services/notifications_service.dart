@@ -2,6 +2,24 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:io' show Platform;
 import 'package:shared_preferences/shared_preferences.dart';
 
+
+/// Servicio de notificaciones
+/// 
+/// Esta clase se encarga de gestionar las notificaciones en la aplicación.
+/// 
+/// Proporciona métodos para inicializar el servicio, pedir permisos, activar o desactivar las notificaciones y mostrar notificaciones.
+/// 
+/// Ejemplo de uso:
+/// 
+/// ```dart
+/// import 'package:sota_caballo_rey/src/services/notifications_service.dart';
+/// 
+/// void main() {
+///  final notificationsService = NotificationsService();
+/// notificationsService.init();
+/// }
+/// ```dart
+/// 
 class NotificationsService
 {
   /// Instancia del servicio de notificaciones
@@ -9,14 +27,16 @@ class NotificationsService
       FlutterLocalNotificationsPlugin();
     
   /// Inicializa el servicio de notificaciones
-  
-  Future<void> init() async {
+  Future<void> init() async 
+  {
+    // Configuración de la inicialización de las notificaciones
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('app_logo_white');
 
     const InitializationSettings initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
 
+    // Inicializa el plugin de notificaciones
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
     // Pide permiso si es necesario
@@ -26,15 +46,17 @@ class NotificationsService
   /// Pide permiso para mostrar notificaciones si es necesario en Android 13 o superior
   requestNotificationPermissionIfNeeded() async
   {
+    // Verifica si la plataforma es Android y la versión es 13 o superior
     if (Platform.isAndroid)
-    {
+    {      
       final androidImplementation = flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-
-      final isGranted = await androidImplementation?.areNotificationsEnabled();
+      
+       final isGranted = await androidImplementation?.areNotificationsEnabled();
 
       if (isGranted != true)
       {
+        // Si no se ha concedido el permiso, pide permiso para mostrar notificaciones
         await androidImplementation?.requestNotificationsPermission();
       }
     }

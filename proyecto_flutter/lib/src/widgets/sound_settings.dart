@@ -50,6 +50,7 @@ class SoundSettingsDialogState extends State<SoundSettingsDialog>
       content: SizedBox
       (
         height: 400,
+        width: 300,
         child: Column
         (
           mainAxisAlignment: MainAxisAlignment.center,

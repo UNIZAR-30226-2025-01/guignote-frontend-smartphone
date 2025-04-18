@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
+import 'package:sota_caballo_rey/routes.dart';
 
 class CustomNavBar extends StatelessWidget
 {
@@ -26,23 +27,23 @@ class CustomNavBar extends StatelessWidget
     switch (index)
     {
       case 0:
-        Navigator.pushNamed(context, '/profile');
+        Navigator.pushNamed(context, AppRoutes.profile);
         break;
       
       case 1:
-        Navigator.pushNamed(context, '/amigos');
+        Navigator.pushNamed(context, AppRoutes.amigos);
         break;
 
       case 2:
-        Navigator.pushNamed(context, '/home');
+        Navigator.pushNamed(context, AppRoutes.home);
         break;
 
       case 3:
-        Navigator.pushNamed(context, '/ranking');
+        Navigator.pushNamed(context, AppRoutes.ranking);
         break;
       
       case 4:
-        Navigator.pushNamed(context, '/help');
+        Navigator.pushNamed(context, AppRoutes.help);
         break;
       
       default:
