@@ -30,7 +30,7 @@ import 'package:http/http.dart' as http;
 import 'package:sota_caballo_rey/config.dart';
 import 'package:sota_caballo_rey/src/services/storage_service.dart';
 import 'package:sota_caballo_rey/src/services/exceptions.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 /// Función para iniciar sesión en la API.
 ///
 /// Recibe un identificador que puede ser un nombre de usuario o un correo electrónico.
@@ -822,3 +822,85 @@ Future<List<Map<String, String>>> get2vs2GlobalRanking() async {
     rethrow;
   }
 }
+
+/// Elimina la cuenta del usuario actual.
+/// 
+/// Esta función realiza una petición POST al endpoint correspondiente para eliminar
+/// la cuenta del usuario. Antes de realizar la petición, verifica si existe un token
+/// de autenticación válido. Si el token no es válido o está vacío, lanza una excepción.
+/// 
+/// Si la petición es exitosa (código 200), se eliminan las preferencias de usuario
+/// almacenadas localmente y se devuelve `true`. En caso de errores, lanza excepciones
+/// específicas dependiendo del código de estado de la respuesta:
+/// 
+/// - 401: Token inválido o no proporcionado.
+/// - 405: Método no permitido.
+/// - Otros códigos: Lanza una excepción con el código de estado y el cuerpo de la respuesta.
+/// 
+/// ### Excepciones:
+/// - `Exception`: Si no hay un token de autenticación disponible.
+/// - `Exception`: Si ocurre un error en la petición.
+/// 
+/// ### Retorno:
+/// - `Future<bool>`: Devuelve `true` si la cuenta se eliminó correctamente.
+/// 
+/// ### Ejemplo de uso:
+/// ```dart
+/// try {
+///   bool resultado = await deleteUser();
+///   if (resultado) {
+///     print("Cuenta eliminada con éxito.");
+///   }
+/// } catch (e) {
+///   print("Error al eliminar la cuenta: $e");
+/// }
+/// ```
+Future<bool> deleteUser() async
+{
+  // Se obtienen las preferencias de usuario y el token de autenticación.
+  final prefs = await SharedPreferences.getInstance();
+  final token = await StorageService.getToken();
+
+  // Se comprueba la validez del token.
+  if (token == null || token.isEmpty) 
+  {
+    // El token no es válido, se lanza una excepción.
+    throw Exception("No hay token de autenticación disponible.");
+  }
+
+  final response = await http.delete
+  (
+    Uri.parse('${Config.apiBaseURL}${Config.deleteUserEndPoint}'),
+    headers: 
+    {
+      "Auth": token,
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    },
+  );
+
+  if (response.statusCode == 200) 
+  {
+    // Se eliminó la cuenta correctamente, se eliminan las preferencias de usuario.
+    await prefs.clear();
+    return true;
+  } 
+  else if (response.statusCode == 401) 
+  {
+    // El token no es válido o ha expirado.
+    throw Exception("Token inválido o no proporcionado.");
+  } 
+  else if (response.statusCode == 405) 
+  {
+    // El método no está permitido.
+    throw Exception("Método no permitido.");
+  } 
+  else 
+  {
+    // Se produjo un error desconocido.
+    throw Exception("Error desconocido. Código: ${response.statusCode} - ${response.body}");
+  }
+
+}
+
+

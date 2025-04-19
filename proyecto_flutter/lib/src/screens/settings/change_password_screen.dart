@@ -71,7 +71,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
     );
 
     // Tiempo de espera para que el usuario vea el mensaje
+    await Future.delayed(const Duration(seconds: 3));
 
+    if(!mounted) return;
+    Navigator.of(context).pop(); // Cierra la pantalla actual
   }
 
   @override
@@ -96,6 +99,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
         [
           const Background(),
           const CornerDecoration(imageAsset: 'assets/images/gold_ornaments.png'),
+
+          Positioned
+          (
+            top: MediaQuery.of(context).padding.top + 30,
+            left: 10,
+            child: IconButton
+            (
+              icon: const Icon(Icons.arrow_back, color: AppTheme.blackColor, size: 30),
+              onPressed: () => Navigator.of(context).pop(), // Cierra la pantalla actual
+            ),
+          ),
 
           Center
           (
