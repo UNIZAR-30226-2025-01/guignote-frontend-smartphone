@@ -8,6 +8,7 @@ import 'package:sota_caballo_rey/src/utils/show_error.dart';
 import 'package:sota_caballo_rey/src/services/exceptions.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_textform.dart';
 import 'package:sota_caballo_rey/routes.dart';
+import 'package:sota_caballo_rey/src/utils/validator.dart';
 
 /// Pantalla de Crear cuenta.
 ///
@@ -20,8 +21,9 @@ class RegisterScreen extends StatefulWidget {
   RegisterScreenState createState() => RegisterScreenState();
 }
 
-class RegisterScreenState extends State<RegisterScreen> {
-  //final _formKey = GlobalKey<FormState>(); // Clave global para el formulario.
+class RegisterScreenState extends State<RegisterScreen> 
+{
+  final _formKey = GlobalKey<FormState>(); // Clave global para el formulario.
   final _usrController =
       TextEditingController(); // Controlador para el campo de usuario.
   final _emailController =
@@ -124,75 +126,82 @@ class RegisterScreenState extends State<RegisterScreen> {
           borderRadius: BorderRadius.circular(15),
         ),
 
-        child: Column(
-          mainAxisSize: MainAxisSize.min, // Para que ocupe solo lo necesario.
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Título de la pantalla.
-            const CustomTitle(title: 'Crear cuenta'),
-
-            const SizedBox(height: 35),
-
-            // Campo rellenable para el nombre de usuario.
-            usernameField(),
-
-            const SizedBox(height: 16),
-
-            // Campo rellenable para el correo.
-            emailField(),
-
-            const SizedBox(height: 16),
-
-            // Campo rellenable para la contraseña.
-            passwordField(),
-
-            const SizedBox(height: 16),
-
-            // Campo rellenable para confirmar la contraseña.
-            confirmPasswordField(),
-
-            const SizedBox(height: 30),
-
-            // Botón para Crear cuenta.
-            CustomButton(
-              key: const Key('registerButton'),
-              buttonText: 'Crear cuenta',
-
-              onPressedAction: () async {
-                createAndValidate(
-                  _usrController.text,
-                  _emailController.text,
-                  _passwdController.text,
-                  _confirmpasswdController.text,
-                );
-              },
-              color: Colors.grey.shade400,
-            ),
-
-            const SizedBox(height: 20),
-
-            // Botón para volver.
-            CustomButton(
-              buttonText: 'Volver',
-              onPressedAction: () => Navigator.pushNamed(context, AppRoutes.welcome),
-              color: Colors.grey.shade400,
-            ),
-
-            const SizedBox(height: 15),
-
-            // La opción de ir a iniciar sesión.
-            TextButton(
-              onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
-              child: const Text(
-                '¿Ya tienes cuenta? Inicia sesión',
-                style: TextStyle(
-                  decoration: TextDecoration.underline,
-                  color: Colors.grey,
+        child: Form
+        (
+          key: _formKey, // Clave del formulario.
+          child: Column
+          (
+            mainAxisSize: MainAxisSize.min, // Para que ocupe solo lo necesario.
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Título de la pantalla.
+              const CustomTitle(title: 'Crear cuenta'),
+          
+              const SizedBox(height: 35),
+          
+              // Campo rellenable para el nombre de usuario.
+              usernameField(),
+          
+              const SizedBox(height: 16),
+          
+              // Campo rellenable para el correo.
+              emailField(),
+          
+              const SizedBox(height: 16),
+          
+              // Campo rellenable para la contraseña.
+              passwordField(),
+          
+              const SizedBox(height: 16),
+          
+              // Campo rellenable para confirmar la contraseña.
+              confirmPasswordField(),
+          
+              const SizedBox(height: 30),
+          
+              // Botón para Crear cuenta.
+              CustomButton(
+                key: const Key('registerButton'),
+                buttonText: 'Crear cuenta',
+          
+                onPressedAction: () async 
+                {
+                  if(_formKey.currentState?.validate() == false) return;
+                  createAndValidate(
+                    _usrController.text,
+                    _emailController.text,
+                    _passwdController.text,
+                    _confirmpasswdController.text,
+                  );
+                },
+                color: Colors.grey.shade400,
+              ),
+          
+              const SizedBox(height: 20),
+          
+              // Botón para volver.
+              CustomButton(
+                buttonText: 'Volver',
+                onPressedAction: () => Navigator.pushNamed(context, AppRoutes.welcome),
+                color: Colors.grey.shade400,
+              ),
+          
+              const SizedBox(height: 15),
+          
+              // La opción de ir a iniciar sesión.
+              TextButton(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.login),
+                child: const Text(
+                  '¿Ya tienes cuenta? Inicia sesión',
+                  style: TextStyle(
+                    decoration: TextDecoration.underline,
+                    color: Colors.grey,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -212,9 +221,7 @@ class RegisterScreenState extends State<RegisterScreen> {
         prefixIcon: Icons.lock,
         controller: _passwdController,
         obscureText: _hidePasswd,
-        validator:
-            (value) =>
-                value == null || value.isEmpty ? 'Ingrese su contraseña' : null,
+        validator: (value) => validatePassword(value ?? ''),
         keyboardType: TextInputType.visiblePassword,
         suffixIcon: IconButton(
           icon: Icon(
@@ -244,11 +251,7 @@ class RegisterScreenState extends State<RegisterScreen> {
         hintText: 'Usuario',
         prefixIcon: Icons.person,
         controller: _usrController,
-        validator:
-            (value) =>
-                value == null || value.isEmpty
-                    ? 'Ingrese su nombre de usuario'
-                    : null,
+        validator: (value) => validateUsername(value ?? ''),
         keyboardType: TextInputType.text,
       ),
     );
@@ -262,9 +265,7 @@ class RegisterScreenState extends State<RegisterScreen> {
         hintText: 'Correo Electrónico',
         prefixIcon: Icons.email,
         controller: _emailController,
-        validator:
-            (value) =>
-                value == null || value.isEmpty ? 'Ingrese su correo' : null,
+        validator: (value) => validateEmail(value ?? ''),
         keyboardType: TextInputType.emailAddress,
       ),
     );
@@ -279,11 +280,15 @@ class RegisterScreenState extends State<RegisterScreen> {
         prefixIcon: Icons.lock,
         controller: _confirmpasswdController,
         obscureText: _hideConfirmPasswd,
-        validator:
-            (value) =>
-                value == null || value.isEmpty
-                    ? 'Confirme su contraseña'
-                    : null,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Confirme su contraseña';
+          }
+          if (value != _passwdController.text) {
+            return 'Las contraseñas no coinciden';
+          }
+          return null;
+        },
         keyboardType: TextInputType.visiblePassword,
         suffixIcon: IconButton(
           icon: Icon(

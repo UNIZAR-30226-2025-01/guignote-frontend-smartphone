@@ -69,7 +69,7 @@ class CustomTextForm extends StatelessWidget
       style: const TextStyle(color: Colors.black),
       decoration: InputDecoration
       (
-        errorMaxLines: 2,
+        errorMaxLines: 3,
         hintText: hintText,
         hintStyle: const TextStyle(color: Colors.black45),
         filled: true,

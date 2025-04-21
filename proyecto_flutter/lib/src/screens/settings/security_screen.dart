@@ -12,6 +12,7 @@ import 'package:sota_caballo_rey/src/widgets/settings_tile_data.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
 import 'package:sota_caballo_rey/routes.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
+import 'package:sota_caballo_rey/src/services/audio_service.dart';
 
 class SecurityScreen extends StatelessWidget
 {
@@ -210,21 +211,22 @@ class SecurityScreen extends StatelessWidget
 
                         try
                         {
+                          await AudioService().stopMusic(); // Detiene la música de fondo
                           await deleteUser(); // Llama a la función para eliminar la cuenta
-                          
-                          Navigator.of(context).pop(); // Cierra el diálogo de carga
+
+                          Navigator.of(screenContext).pop(); // Cierra el diálogo de carga
 
                           //  redirige a la pantalla de inicio de bienvenida y limpiamos rutas
-                          Navigator.pushNamedAndRemoveUntil(context, AppRoutes.welcome, (route) => false); // Navega a la pantalla de bienvenida
+                          Navigator.pushNamedAndRemoveUntil(screenContext, AppRoutes.welcome, (route) => false); // Navega a la pantalla de bienvenida
                         } on Exception catch (e)
                         {
-                          Navigator.of(context).pop(); // Cierra el diálogo de carga
+                          Navigator.of(screenContext).pop(); // Cierra el diálogo de carga
 
                           final msg = e.toString().contains('token')
                             ? 'No se puede eliminar la cuenta. Por favor, cierra sesión e inténtalo de nuevo.'
                             : 'Error al eliminar la cuenta. Por favor, inténtalo de nuevo.'; // Mensaje de error
 
-                          ScaffoldMessenger.of(context).showSnackBar
+                          ScaffoldMessenger.of(screenContext).showSnackBar
                           (
                             SnackBar
                             (

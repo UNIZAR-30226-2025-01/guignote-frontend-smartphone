@@ -50,6 +50,14 @@ class AudioService
     await _musicPlayer.resume();
   }
 
+  /// Detiene la música de fondo.
+  /// 
+  /// Detiene la reproducción de la música y libera los recursos del reproductor.
+  Future<void> stopMusic() async 
+  {
+    await _musicPlayer.stop();
+  }
+
   /// Reproduce un efecto de sonido específico.
   ///
   /// Parámetros:
