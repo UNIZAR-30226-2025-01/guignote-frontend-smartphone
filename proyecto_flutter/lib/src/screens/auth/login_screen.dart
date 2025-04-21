@@ -9,6 +9,7 @@ import 'package:sota_caballo_rey/src/utils/show_error.dart';
 import 'package:sota_caballo_rey/src/services/exceptions.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_textform.dart';
 import 'package:sota_caballo_rey/routes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Pantalla de inicio de sesión.
 ///
@@ -29,7 +30,8 @@ class LoginScreen extends StatefulWidget {
 /// Este estado contiene la lógica de la pantalla de inicio de sesión.
 /// Incluye la validación de los campos de usuario y contraseña, así como la lógica para iniciar sesión.
 ///
-class LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> 
+{
   //final _formKey = GlobalKey<FormState>(); // Clave global para el formulario.
   final _usrController =
       TextEditingController(); // Controlador para el campo de usuario.
@@ -37,6 +39,26 @@ class LoginScreenState extends State<LoginScreen> {
       TextEditingController(); // Controlador para el campo de contraseña.
   bool _rememberMe = false; // Estado para la opción de recordar al usuario.
   bool _hidePasswd = true; // Estado para ocultar/mostrar la contraseña.
+
+  @override
+  void initState()
+  {
+    super.initState(); // Inicializa el estado.
+    _loadSavedCredentials(); // Carga las credenciales guardadas.
+  }
+
+  /// Carga las credenciales guardadas en las preferencias compartidas.
+  ///
+  void _loadSavedCredentials() async
+  {
+    final prefs = await SharedPreferences.getInstance(); // Obtiene las preferencias compartidas.
+
+    setState(() {
+      _usrController.text = prefs.getString('username') ?? ''; // Carga el nombre de usuario guardado.
+      _passwdController.text = prefs.getString('password') ?? ''; // Carga la contraseña guardada.
+      _rememberMe = prefs.getBool('remember_me') ?? false; // Carga la opción de recordar al usuario.
+    });
+  }
 
   /// Inicia sesión y valida las credenciales del usuario.
   ///
@@ -58,9 +80,27 @@ class LoginScreenState extends State<LoginScreen> {
       );
 
       // Llama a la función de login en un hilo separado
-      await Future.delayed(Duration.zero, () async {
+      await Future.delayed(Duration.zero, () async 
+      {
         await login(id, password);
       });
+
+      // Guardamos las credenciales en las preferencias compartidas si el usuario lo desea.
+      if (_rememberMe) 
+      {
+        final prefs = await SharedPreferences.getInstance(); // Obtiene las preferencias compartidas.
+        prefs.setString('username', id); // Guarda el nombre de usuario.
+        prefs.setString('password', password); // Guarda la contraseña.
+        prefs.setBool('remember_me', true);
+
+      }
+      else
+      {
+        final prefs = await SharedPreferences.getInstance(); // Obtiene las preferencias compartidas.
+        prefs.remove('username'); // Elimina el nombre de usuario guardado.
+        prefs.remove('password'); // Elimina la contraseña guardada.
+        prefs.setBool('remember_me', false);
+      }
 
       // Si la pantalla no está montada, no se puede navegar
       if (!mounted) return;
@@ -152,8 +192,10 @@ class LoginScreenState extends State<LoginScreen> {
               children: [
                 // Opción de recuperar contraseña.
                 TextButton(
-                  onPressed: () {
-                    // TODO: Implementar recuperación de contraseña.
+                  onPressed: () 
+                  {
+                    // Navega a la pantalla de recuperación de contraseña.
+                    Navigator.pushNamed(context, AppRoutes.passwordRecover);
                   },
                   child: const Text(
                     'Recuperar contraseña',
