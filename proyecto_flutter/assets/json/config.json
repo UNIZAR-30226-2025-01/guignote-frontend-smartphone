@@ -1,5 +1,6 @@
 {
     "apiUrl": "http://188.165.76.134:8000",
+    "ws_base_url": "ws://188.165.76.134:8000",
     "auth_endpoint": "/usuarios/iniciar_sesion/",
     "create_user_endpoint": "/usuarios/crear_usuario/",
     "delete_user_endpoint": "/usuarios/eliminar_usuario/",
@@ -14,5 +15,6 @@
     "enviar_mensaje_amigo_endpoint": "/mensajes/enviar/",
     "obtener_mensajes_endpoint": "/mensajes/obtener/",
     "top_elo_endpoint": "/usuarios/usuarios/top_elo/",
-    "top_elo_parejas_endpoint": "/usuarios/usuarios/top_elo_parejas/"
+    "top_elo_parejas_endpoint": "/usuarios/usuarios/top_elo_parejas/",
+    "conexion_partida_endpoint": "/ws/partida"
 }

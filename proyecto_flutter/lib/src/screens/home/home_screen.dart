@@ -9,6 +9,8 @@ import 'package:sota_caballo_rey/src/widgets/gamemode_card.dart';
 import 'package:sota_caballo_rey/src/services/audio_service.dart';
 import 'package:sota_caballo_rey/src/services/notifications_service.dart';
 import 'package:sota_caballo_rey/routes.dart';
+import 'dart:async';
+import 'package:sota_caballo_rey/src/services/websocket_service.dart';
 
 
 /// HomeScreen
@@ -48,20 +50,81 @@ class HomeScreen extends StatefulWidget
 /// 
 class HomeScreenState extends State<HomeScreen> 
 {
+  final WebsocketService websocketService = WebsocketService(); // instancia del servicio de WebSocket
+  final NotificationsService notificacion = NotificationsService(); // instancia del servicio de notificaciones
+  final PageController _pageController = PageController(); // controlador de página
+
+  bool _searching = false; // variable para controlar si se está buscando una partida
+  String _statusMessage = 'Pulsa "Buscar Partida" para comenzar'; // mensaje de estado
+  List <Map<String, dynamic>> _players = []; // lista de jugadores
+  late StreamSubscription<Map<String,dynamic>> _subscription; // suscripción al stream de mensajes entrantes
+  String? profileImageUrl; // URL de la imagen de perfil del usuario
+  final int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
+
 
   @override
   void initState() 
   {
     super.initState(); // Inicializa el estado del widget.
     AudioService().playMenuMusic(); // Reproduce la música del menú.
+
   }
 
-  final String? profileImageUrl = 'https://www.pngkey.com/png/full/114-1149878_setting-user-avatar-in-specific-size-without-breaking.png';
-  final int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
-  final NotificationsService notificacion = NotificationsService(); // instancia del servicio de notificaciones
+  Future<void> _loadProfileImage() async 
+  {
 
+  }
 
-  final _pageController = PageController(); // controlador de página
+  Future<void> _searchGame() async
+  {
+    setState(() 
+    {
+       _searching = true; // Cambia el estado a buscando.  
+    });
+
+    // Muestra un overlay de carga
+    showDialog
+    (
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try
+    {
+      // Conecta al socket pidiendo 2 jugadores
+      await websocketService.connect(capacidad: 2, soloAmigos: false);
+
+      // Escucha los mensajes entrantes del socket
+      _subscription = websocketService.incomingMessages.listen
+      (
+        (message) 
+        {
+          // Si el mensaje es de tipo "partida_encontrada", navega a la pantalla de juego
+          if (message['tipo'] == 'partida_encontrada') 
+          {
+            Navigator.pushNamed(context, AppRoutes.game, arguments: message['partida_id']);
+          }
+        },
+        onError: (error) 
+        {
+          // Maneja el error
+          ScaffoldMessenger.of(context).showSnackBar
+          (
+            const SnackBar(content: Text('Error al buscar partida')),
+          );
+        },
+        onDone: () 
+        {
+          // Cierra la suscripción cuando se complete
+          _subscription.cancel();
+        },
+      );
+    } catch (e)
+    {
+
+    }
+  }
 
   @override
   Widget build(BuildContext context) 

@@ -63,6 +63,7 @@ class Config {
 
   // Métodos para acceder a los valores de configuración.
   static String get apiBaseURL => _config['apiUrl'];
+  static String get wsBaseURL => _config['ws_base_url'];
   static String get authEndPoint => _config['auth_endpoint'];
   static String get createUserEndPoint => _config['create_user_endpoint'];
   static String get deleteUserEndPoint => _config['delete_user_endpoint'];
@@ -85,4 +86,6 @@ class Config {
   static String get topEloEndpoint => _config['top_elo_endpoint'];
   static String get topEloParejasEndpoint =>
       _config['top_elo_parejas_endpoint'];
+  
+  static String get conexionPartida => _config['conexion_partida_endpoint'];
 }
