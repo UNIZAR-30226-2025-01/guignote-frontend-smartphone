@@ -131,13 +131,20 @@ class HomeScreenState extends State<HomeScreen>
           {
             // Cierra el overlay de carga
             if( Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
-            _subscription?.cancel(); // Cancela la suscripción al socket.
+            _subscription?.cancel(); // Cancela la suscripción al socket en esta pantalla.
             setState(() {
               _searching = false; // Cambia el estado a no buscando.
               _statusMessage = 'Partida iniciada'; // Actualiza el mensaje de estado. 
             });
 
-            Navigator.pushReplacementNamed(context, AppRoutes.game, arguments: data);
+            // Navega a la pantalla de juego y pasamos los datos del juego y socket
+            Navigator.pushReplacementNamed(
+              context, 
+              AppRoutes.game, 
+              arguments: {
+                'data': data, // Datos del juego
+                'socket': _websocketService, // Socket del juego
+              });
           }
         }
       );

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/widgets/game/game_card.dart';
 import 'package:sota_caballo_rey/src/widgets/game/card_in_fan.dart';
+import 'package:sota_caballo_rey/src/services/websocket_service.dart';
 import 'dart:math' as math;
 
 const String deckSelected = 'base'; // Baraja seleccionada por el jugador.
@@ -40,15 +42,17 @@ class _GameScreenState extends State<GameScreen> {
 
 
   // Separa los datos de los jugadores
+  String nombreJugador = '';
+  String nombreRival = '';
   String? jugador1Nombre;
   int? jugador1Equipo;
   int? jugador1NumCartas;
-  String jugador1Icon = 'assets/images/app_logo_white.png';
+  String imagenJugadorUrl = '';
 
   String? jugador2Nombre;
   int? jugador2Equipo;
   int? jugador2NumCartas;
-  String jugador2Icon = 'assets/images/app_logo_white.png';
+  String imagenRivalUrl = 'https://picsum.photos/seed/picsum/200/300';
 
 
   void onCardTap(String card) {
@@ -75,7 +79,39 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  void fillArguments(){
+  // Método para escuchar mensajes del WebSocket
+  void _listenToWebSocket(WebsocketService websocketService) {
+    websocketService.incomingMessages.listen((message) {
+      final type = message['type'] as String?;
+      final data = message['data'] as Map<String, dynamic>?;
+
+      print(type);
+      print(data);
+      /*
+      if (type == 'player_action' && data != null) {
+        // Maneja las acciones del jugador
+        print('Acción del jugador: $data');
+        // Aquí puedes actualizar el estado o realizar alguna acción
+        setState(() {
+          // Ejemplo: Actualizar puntos del jugador
+          puntosJugador += data['puntos'] ?? 0;
+        });
+      }
+
+      if (type == 'game_update' && data != null) {
+        // Maneja las actualizaciones del juego
+        print('Actualización del juego: $data');
+        // Aquí puedes actualizar el estado o realizar alguna acción
+        setState(() {
+          // Ejemplo: Actualizar el turno
+          turnos = data['turno'] ?? turnos;
+        });
+      }*/
+    });
+  }
+
+
+  Future<void> fillArguments() async {
     /*
     "data": {
       "mazo_restante": 27,                                       cartas que quedan en mazo central
@@ -102,11 +138,13 @@ class _GameScreenState extends State<GameScreen> {
 
     // Obtén los argumentos pasados desde la pantalla anterior
     final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final data = arguments?['data'] as Map<String, dynamic>?;
+    final websocketService = arguments?['socket'] as WebsocketService?;
 
     // Extrae los campos del mapa "data"
-    mazoRestante = arguments?['mazo_restante'];
+    mazoRestante = data?['mazo_restante'];
     turnos = mazoRestante!; // Asigna el valor de mazoRestante a turnos
-    misCartas = arguments?['mis_cartas'];
+    misCartas = data?['mis_cartas'];
     if (misCartas != null) {
       for (var carta in misCartas!) {
         if (carta.length >= 2) {
@@ -119,10 +157,10 @@ class _GameScreenState extends State<GameScreen> {
     }
   
 
-    faseArrastre = arguments?['fase_arrastre'];
-    cartaTriunfo = arguments?['carta_triunfo'];
-    chatId = arguments?['chat_id'];
-    jugadores = arguments?['jugadores'];
+    faseArrastre = data?['fase_arrastre'];
+    cartaTriunfo = data?['carta_triunfo'];
+    chatId = data?['chat_id'];
+    jugadores = data?['jugadores'];
 
     // Extrae detalles de la carta triunfo
     
@@ -140,6 +178,28 @@ class _GameScreenState extends State<GameScreen> {
       jugador2Equipo = jugador2['equipo'];
       jugador2NumCartas = jugador2['num_cartas'];
     }
+
+  
+
+    try {
+      final stats = await getUserStatistics(); // Llama al método para obtener los datos
+      if (stats != null) {
+        setState(() {
+          nombreJugador = stats['nombre'] ?? 'null';
+          imagenJugadorUrl = stats["imagen"].toString();
+        });
+      }
+    } catch (error) {
+      print("Error al obtener estadísticas del usuario: $error");
+    }
+
+    if(nombreJugador == jugador1Nombre) {
+      nombreRival = jugador2Nombre.toString();
+    } else {
+      nombreRival = jugador1Nombre.toString();
+    }
+
+    _listenToWebSocket(websocketService!); // Escucha los mensajes del WebSocket
   }
 
 
@@ -250,11 +310,11 @@ class _GameScreenState extends State<GameScreen> {
           // Iconos de los jugadores
           Align(
             alignment: const Alignment(-0.9, 0.38),
-            child: buildPlayerIcon(context, jugador1Nombre.toString(), jugador1Icon),
+            child: buildPlayerIcon(context, nombreJugador.toString(), imagenJugadorUrl),
           ),
           Align(
             alignment: const Alignment(-0.9, -0.68),
-            child: buildPlayerIcon(context, jugador2Nombre.toString(), jugador2Icon),
+            child: buildPlayerIcon(context, nombreRival.toString(), imagenRivalUrl),
           ),
         ],
       ),
@@ -500,9 +560,9 @@ class _GameScreenState extends State<GameScreen> {
             shape: BoxShape.circle,
             border: Border.all(color: Colors.black, width: 2),
           ),
-          child: CircleAvatar(
+            child: CircleAvatar(
             radius: 40,
-            backgroundImage: AssetImage(imagePath),
+            backgroundImage: NetworkImage(imagePath),
           ),
         ),
         const SizedBox(height: 8),
