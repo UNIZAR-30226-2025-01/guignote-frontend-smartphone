@@ -13,6 +13,7 @@ import 'package:sota_caballo_rey/src/screens/settings/security_screen.dart';
 import 'package:sota_caballo_rey/src/screens/settings/change_password_screen.dart';
 import 'package:sota_caballo_rey/src/screens/settings/data_policy_screen.dart';
 import 'package:sota_caballo_rey/src/screens/settings/privacity_screen.dart';
+import 'package:sota_caballo_rey/src/screens/auth/password_recover_screen.dart';
 /// Clase que define las rutas de la aplicación.
 /// Contine las constantes de las rutas y un diccionario que asocia cada ruta a su respectiva pantalla.
 /// 
@@ -24,6 +25,7 @@ class AppRoutes
   static const String loading = '/loading'; // Pantalla de carga
   static const String welcome = '/welcome'; // Pantalla de bienvenida
   static const String login = '/login'; // Pantalla de inicio de sesión
+  static const String passwordRecover = '/passwordRecover'; // Pantalla de recuperación de contraseña
   static const String register = '/register'; // Pantalla de registro
   static const String game = '/game'; // Pantalla de juego
   static const String amigos = '/amigos'; // Pantalla de amigos
@@ -44,6 +46,7 @@ class AppRoutes
     loading: (context) => const LoadingScreen(), // Pantalla de carga
     welcome: (context) => const WelcomeScreen(), // Pantalla de bienvenida
     login: (context) => const LoginScreen(), // Pantalla de inicio de sesión
+    passwordRecover: (context) => const PasswordRecoverScreen(), // Pantalla de recuperación de contraseña
     register: (context) => const RegisterScreen(), // Pantalla de registro
     game: (context) => const GameScreen(partidaID: 1), // Pantalla de juego
     amigos: (context) => const FriendsScreen(), // Pantalla de amigos
