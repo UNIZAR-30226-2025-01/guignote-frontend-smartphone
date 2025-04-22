@@ -21,15 +21,15 @@ class _GameScreenState extends State<GameScreen> {
 
   String? selectedCard; // null o la carta elegida.
 
-  String triunfo = '1Espadas';
+  String triunfo = '';
 
-  String rivalPlayedCard = '3Copas';
-  String playerPlayedCard = '2Espadas';
+  String rivalPlayedCard = '';
+  String playerPlayedCard = '';
   List<String> playerHand = ['1Oros', '2Oros', '3Oros', '4Oros', '5Oros', '6Oros'];
   List<String> rivalHand = ['Back', 'Back', 'Back', 'Back', 'Back', 'Back'];
   int puntosJugador = 0;
   int puntosRival = 0;
-  int turnos = 10;
+  int turnos = 0;
 
   int? mazoRestante;
   List<dynamic>? misCartas;
@@ -38,9 +38,6 @@ class _GameScreenState extends State<GameScreen> {
   int? chatId;
   List<dynamic>? jugadores;
 
-  // Extrae detalles de la carta triunfo
-  String? paloTriunfo;
-  int? valorTriunfo;
 
   // Separa los datos de los jugadores
   String? jugador1Nombre;
@@ -108,6 +105,7 @@ class _GameScreenState extends State<GameScreen> {
 
     // Extrae los campos del mapa "data"
     mazoRestante = arguments?['mazo_restante'];
+    turnos = mazoRestante!; // Asigna el valor de mazoRestante a turnos
     misCartas = arguments?['mis_cartas'];
     if (misCartas != null) {
       for (var carta in misCartas!) {
@@ -127,9 +125,8 @@ class _GameScreenState extends State<GameScreen> {
     jugadores = arguments?['jugadores'];
 
     // Extrae detalles de la carta triunfo
-    paloTriunfo = cartaTriunfo?['palo'];
-    valorTriunfo = cartaTriunfo?['valor'];
-
+    
+    triunfo = (cartaTriunfo?['valor']?.toString() ?? '') + (cartaTriunfo?['palo']?.toString() ?? '');
     
 
     if (jugadores?.length != null && jugadores!.length >= 2) {
@@ -195,16 +192,23 @@ class _GameScreenState extends State<GameScreen> {
             child: GameCard(card: 'Back', deck: deckSelected, width: 75),
           ),
 
+          
           // Carta jugada por el jugador
-          Align(
-            alignment: const Alignment(0.0, 0.25),
-            child: GameCard(card: playerPlayedCard, deck: deckSelected, width: 75),
-          ),
+          playerPlayedCard.isNotEmpty
+              ? Align(
+                  alignment: const Alignment(0.0, 0.25),
+                  child: GameCard(card: playerPlayedCard, deck: deckSelected, width: 75),
+                )
+              : const SizedBox.shrink(),
+
+          
           // Carta jugada por el rival
-          Align(
-            alignment: const Alignment(0.0, -0.55),
-            child: GameCard(card: rivalPlayedCard, deck: deckSelected, width: 75),
-          ),
+          rivalPlayedCard.isNotEmpty
+              ? Align(
+                  alignment: const Alignment(0.0, -0.55),
+                  child: GameCard(card: rivalPlayedCard, deck: deckSelected, width: 75),
+                )
+              : const SizedBox.shrink(),
 
           // Añadimos mano del jugador
           Align(
@@ -267,7 +271,7 @@ class _GameScreenState extends State<GameScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Turnos:', style: const TextStyle(color: Colors.white)),
+          Text('Cartas:', style: const TextStyle(color: Colors.white)),
           Text('$turnos', style: const TextStyle(color: Colors.white)),
           Text('Puntos:', style: const TextStyle(color: Colors.white)),
           Text('$puntosJugador', style: const TextStyle(color: Colors.white)),
