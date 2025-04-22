@@ -5,6 +5,8 @@ import 'package:sota_caballo_rey/src/widgets/game/game_card.dart';
 import 'package:sota_caballo_rey/src/widgets/game/card_in_fan.dart';
 import 'dart:math' as math;
 
+const String deckSelected = 'base'; // Baraja seleccionada por el jugador.
+
 class GameScreen extends StatefulWidget {
 
   const GameScreen({super.key});
@@ -14,41 +16,42 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
+  bool _isInitialized = false; // Bandera para evitar múltiples ejecuciones
   double _volume = 0.5;
 
   String? selectedCard; // null o la carta elegida.
 
-  String triunfo = '1E';
+  String triunfo = '1Espadas';
 
-  String rivalPlayedCard = '3C';
-  String playerPlayedCard = '2E';
-  List<String> playerHand = ['1O', '2O', '3O', '4O', '5O', '6O'];
+  String rivalPlayedCard = '3Copas';
+  String playerPlayedCard = '2Espadas';
+  List<String> playerHand = ['1Oros', '2Oros', '3Oros', '4Oros', '5Oros', '6Oros'];
   List<String> rivalHand = ['Back', 'Back', 'Back', 'Back', 'Back', 'Back'];
   int puntosJugador = 0;
   int puntosRival = 0;
   int turnos = 10;
 
   int? mazoRestante;
-    List<dynamic>? misCartas;
-    bool? faseArrastre;
-    Map<String, dynamic>? cartaTriunfo;
-    int? chatId;
-    List<dynamic>? jugadores;
+  List<dynamic>? misCartas;
+  bool? faseArrastre;
+  Map<String, dynamic>? cartaTriunfo;
+  int? chatId;
+  List<dynamic>? jugadores;
 
-    // Extrae detalles de la carta triunfo
-    String? paloTriunfo;
-    int? valorTriunfo;
+  // Extrae detalles de la carta triunfo
+  String? paloTriunfo;
+  int? valorTriunfo;
 
-    // Separa los datos de los jugadores
-    String? jugador1Nombre;
-    int? jugador1Equipo;
-    int? jugador1NumCartas;
-    String jugador1Icon = 'assets/images/app_logo_white.png';
+  // Separa los datos de los jugadores
+  String? jugador1Nombre;
+  int? jugador1Equipo;
+  int? jugador1NumCartas;
+  String jugador1Icon = 'assets/images/app_logo_white.png';
 
-    String? jugador2Nombre;
-    int? jugador2Equipo;
-    int? jugador2NumCartas;
-    String jugador2Icon = 'assets/images/app_logo_white.png';
+  String? jugador2Nombre;
+  int? jugador2Equipo;
+  int? jugador2NumCartas;
+  String jugador2Icon = 'assets/images/app_logo_white.png';
 
 
   void onCardTap(String card) {
@@ -71,13 +74,11 @@ class _GameScreenState extends State<GameScreen> {
 
   void cambiarTriunfo() {
     setState(() {
-      triunfo = '1C';
+      triunfo = '1Copas';
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    
+  void fillArguments(){
     /*
     "data": {
       "mazo_restante": 27,                                       cartas que quedan en mazo central
@@ -102,15 +103,24 @@ class _GameScreenState extends State<GameScreen> {
     }
     */
 
-
-
-
     // Obtén los argumentos pasados desde la pantalla anterior
     final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     // Extrae los campos del mapa "data"
     mazoRestante = arguments?['mazo_restante'];
     misCartas = arguments?['mis_cartas'];
+    if (misCartas != null) {
+      for (var carta in misCartas!) {
+        if (carta.length >= 2) {
+          String palo = carta['palo'].toString(); // Extrae el valor asociado a la clave 'palo'
+          String valor = carta['valor'].toString(); // Segundo elemento de la sublista
+
+          playerHand[misCartas!.indexOf(carta)] = valor + palo; // Asigna el primer elemento a la mano del jugador
+        }
+      }
+    }
+  
+
     faseArrastre = arguments?['fase_arrastre'];
     cartaTriunfo = arguments?['carta_triunfo'];
     chatId = arguments?['chat_id'];
@@ -133,6 +143,21 @@ class _GameScreenState extends State<GameScreen> {
       jugador2Equipo = jugador2['equipo'];
       jugador2NumCartas = jugador2['num_cartas'];
     }
+  }
+
+
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      fillArguments(); // Llama a la función solo la primera vez
+      _isInitialized = true; // Marca como inicializado
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
 
 
     return Scaffold(
@@ -161,24 +186,24 @@ class _GameScreenState extends State<GameScreen> {
             alignment: const Alignment(0.3, -0.11),
             child: RotatedBox(
               quarterTurns: 45,
-              child: GameCard(card: triunfo, width: 75),
+              child: GameCard(card: triunfo, deck: deckSelected, width: 75),
             ),
           ),
           // Carta del mazo
           Align(
             alignment: const Alignment(0.0, -0.15),
-            child: GameCard(card: 'Back', width: 75),
+            child: GameCard(card: 'Back', deck: deckSelected, width: 75),
           ),
 
           // Carta jugada por el jugador
           Align(
             alignment: const Alignment(0.0, 0.25),
-            child: GameCard(card: playerPlayedCard, width: 75),
+            child: GameCard(card: playerPlayedCard, deck: deckSelected, width: 75),
           ),
           // Carta jugada por el rival
           Align(
             alignment: const Alignment(0.0, -0.55),
-            child: GameCard(card: rivalPlayedCard, width: 75),
+            child: GameCard(card: rivalPlayedCard, deck: deckSelected, width: 75),
           ),
 
           // Añadimos mano del jugador
@@ -268,6 +293,7 @@ class _GameScreenState extends State<GameScreen> {
         child: Center(
           child: CardInFan(
             card: listCards[0],
+            deck: deckSelected,
             width: cardWidth,
             angle: 0.0,
             dx: 0.0,
@@ -292,6 +318,7 @@ class _GameScreenState extends State<GameScreen> {
           for (var i = 0; i < cardCount; i++)
             CardInFan(
               card: listCards[i],
+              deck: deckSelected,
               width: cardWidth,
               angle: (startAngle + angleStep * i) * (math.pi / 180),
               dx: separation * (i - (cardCount - 1) / 2),
@@ -333,7 +360,7 @@ class _GameScreenState extends State<GameScreen> {
                   Matrix4.identity()
                     ..rotateZ(startAngle + angleStep * i)
                     ..translate(overlapDistance * i),
-              child: GameCard(card: cardImages[i], width: cardWidth),
+              child: GameCard(card: cardImages[i], deck: deckSelected, width: cardWidth),
             ),
         ],
       ),

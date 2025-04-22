@@ -62,7 +62,8 @@ flutter:
   # Ruta a la carpeta con las imagenes a usar
   assets:
     - assets/images/
-    - assets/images/cards/
+    - assets/images/decks/base/
+    - assets/images/decks/poker/
     - assets/json/config.json
     - assets/sounds/
     
