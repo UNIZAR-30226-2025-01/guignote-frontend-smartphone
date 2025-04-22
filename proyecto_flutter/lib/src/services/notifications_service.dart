@@ -31,7 +31,7 @@ class NotificationsService
   {
     // Configuración de la inicialización de las notificaciones
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('app_logo_white');
+        AndroidInitializationSettings('ic_notification'); 
 
     const InitializationSettings initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
