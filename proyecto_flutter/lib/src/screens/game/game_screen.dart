@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/widgets/game/game_card.dart';
+import 'package:sota_caballo_rey/src/widgets/game/card_in_fan.dart';
+import 'dart:math' as math;
 
 class GameScreen extends StatefulWidget {
 
@@ -12,10 +14,9 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-
   double _volume = 0.5;
 
-  
+  String? selectedCard; // null o la carta elegida.
 
   String triunfo = '1E';
 
@@ -49,6 +50,17 @@ class _GameScreenState extends State<GameScreen> {
     int? jugador2NumCartas;
     String jugador2Icon = 'assets/images/app_logo_white.png';
 
+
+  void onCardTap(String card) {
+    setState(() {
+      if (selectedCard == card) {
+        jugarCarta(card);
+        selectedCard = null;
+      } else {
+        selectedCard = card;
+      }
+    });
+  }
 
   void jugarCarta(String card) {
     setState(() {
@@ -129,7 +141,9 @@ class _GameScreenState extends State<GameScreen> {
         children: [
           // Fondo principal:
           const Background(),
-          const CornerDecoration(imageAsset: 'assets/images/gold_ornaments.png'),
+          const CornerDecoration(
+            imageAsset: 'assets/images/gold_ornaments.png',
+          ),
           // Logo de la aplicación al fondo
           Align(
             alignment: const Alignment(0.0, -0.15),
@@ -141,8 +155,6 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
           ),
-
-
 
           // Carta triunfo
           Align(
@@ -158,7 +170,6 @@ class _GameScreenState extends State<GameScreen> {
             child: GameCard(card: 'Back', width: 75),
           ),
 
-
           // Carta jugada por el jugador
           Align(
             alignment: const Alignment(0.0, 0.25),
@@ -169,7 +180,6 @@ class _GameScreenState extends State<GameScreen> {
             alignment: const Alignment(0.0, -0.55),
             child: GameCard(card: rivalPlayedCard, width: 75),
           ),
-
 
           // Añadimos mano del jugador
           Align(
@@ -186,37 +196,35 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
 
-
           // Botones del juego
           Align(
-            alignment: const Alignment(-0.95, -0.8),
+            alignment: const Alignment(0.95, -0.55),
             child: buildSettingsButton(context),
           ),
 
           Align(
-            alignment: const Alignment(0.95, -0.8),
+            alignment: const Alignment(0.95, -0.7),
             child: buildChatButton(context),
           ),
 
           Align(
-            alignment: const Alignment(0.95, 0.48),
+            alignment: const Alignment(0.95, 0.38),
             child: buildGameButtons(context),
           ),
 
           // Información de la partida
           Align(
-            alignment: const Alignment(-0.95, -0.60),
+            alignment: const Alignment(-0.9, -0.15),
             child: buildInfoPartida(context),
           ),
 
-
           // Iconos de los jugadores
           Align(
-            alignment: const Alignment(-0.9, 0.48),
+            alignment: const Alignment(-0.9, 0.38),
             child: buildPlayerIcon(context, jugador1Nombre.toString(), jugador1Icon),
           ),
           Align(
-            alignment: const Alignment(0.5, -0.75),
+            alignment: const Alignment(-0.9, -0.68),
             child: buildPlayerIcon(context, jugador2Nombre.toString(), jugador2Icon),
           ),
         ],
@@ -228,58 +236,70 @@ class _GameScreenState extends State<GameScreen> {
     return Container(
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
-      color: Colors.black.withOpacity(0.5),
-      borderRadius: BorderRadius.circular(8.0),
+        color: Colors.black.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-        'Turnos:',
-        style: const TextStyle(color: Colors.white),
-        ),
-        Text(
-        '$turnos',
-        style: const TextStyle(color: Colors.white),
-        ),
-        Text(
-        'Puntos:',
-        style: const TextStyle(color: Colors.white),
-        ),
-        Text(
-        '$puntosJugador',
-        style: const TextStyle(color: Colors.white),
-        ),
-        Text(
-        'Pts. rival:',
-        style: const TextStyle(color: Colors.white),
-        ),
-        Text(
-        '$puntosRival',
-        style: const TextStyle(color: Colors.white),
-        ),
-      ],
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Turnos:', style: const TextStyle(color: Colors.white)),
+          Text('$turnos', style: const TextStyle(color: Colors.white)),
+          Text('Puntos:', style: const TextStyle(color: Colors.white)),
+          Text('$puntosJugador', style: const TextStyle(color: Colors.white)),
+          Text('Pts. rival:', style: const TextStyle(color: Colors.white)),
+          Text('$puntosRival', style: const TextStyle(color: Colors.white)),
+        ],
       ),
     );
   }
 
-  Row buildPlayerHand(BuildContext context, List<String> listCards) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: listCards.map((card) {
-        final screenWidth = MediaQuery.of(context).size.width;
-        final cardPadding = 1 * 2; // Total horizontal padding para cada carta
-        final cardWidth = (screenWidth / 6) - cardPadding;
-        return GestureDetector(
-          onTap: () {
-            jugarCarta(card);
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 1),
-            child: GameCard(card: card, width: cardWidth),
+  Widget buildPlayerHand(BuildContext context, List<String> listCards) {
+    const cardWidth = 75.0;
+    const cardHeight = 105.0;
+    const fanAngleDeg = 45.0; // Ángulo del abanico.
+    const overlapCorner = 20.0;
+    final cardCount = listCards.length;
+
+    // Abanico para una sola carta.
+    if (cardCount == 1) {
+      return SizedBox(
+        width: cardWidth + 40,
+        height: cardHeight + 40,
+        child: Center(
+          child: CardInFan(
+            card: listCards[0],
+            width: cardWidth,
+            angle: 0.0,
+            dx: 0.0,
+            selected: selectedCard == listCards[0],
+            onTap: () => onCardTap(listCards[0]),
           ),
-        );
-      }).toList(),
+        ),
+      );
+    }
+
+    // Abanico normal para 2 o mas cartas.
+    final angleStep = cardCount > 1 ? fanAngleDeg / (cardCount - 1) : 0.0;
+    final startAngle = -fanAngleDeg / 2;
+    final separation = cardWidth - overlapCorner;
+
+    return SizedBox(
+      width: cardWidth + separation * (cardCount - 1) + 40,
+      height: cardHeight + 40,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          for (var i = 0; i < cardCount; i++)
+            CardInFan(
+              card: listCards[i],
+              width: cardWidth,
+              angle: (startAngle + angleStep * i) * (math.pi / 180),
+              dx: separation * (i - (cardCount - 1) / 2),
+              selected: selectedCard == listCards[i],
+              onTap: () => onCardTap(listCards[i]),
+            ),
+        ],
+      ),
     );
   }
 
@@ -309,9 +329,10 @@ class _GameScreenState extends State<GameScreen> {
           for (int i = 0; i < cardCount; i++)
             Transform(
               alignment: Alignment.center,
-              transform: Matrix4.identity()
-                ..rotateZ(startAngle + angleStep * i)
-                ..translate(overlapDistance * i),
+              transform:
+                  Matrix4.identity()
+                    ..rotateZ(startAngle + angleStep * i)
+                    ..translate(overlapDistance * i),
               child: GameCard(card: cardImages[i], width: cardWidth),
             ),
         ],
@@ -319,7 +340,7 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  ElevatedButton buildSettingsButton(BuildContext context){
+  ElevatedButton buildSettingsButton(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
         showDialog(
@@ -332,36 +353,41 @@ class _GameScreenState extends State<GameScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                  const Text(
-                    'Ajustes',
-                    style: TextStyle(color: Colors.white, fontSize: 24),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Volumen',
-                    style: TextStyle(color: Colors.white, fontSize: 18),
-                  ),
-                  Slider(
-                    value: _volume,
-                    min: 0,
-                    max: 1,
-                    divisions: 10,
-                    onChanged: (value) {
-                    setState(() {
-                      _volume = value;
-                    });
-                    },
-                    activeColor: Colors.white,
-                    inactiveColor: Colors.grey,
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
-                    onPressed: () {
-                    Navigator.of(context).pop();
-                    },
-                    child: const Text('Cerrar', style: TextStyle(color: Colors.black)),
-                  ),
+                    const Text(
+                      'Ajustes',
+                      style: TextStyle(color: Colors.white, fontSize: 24),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Volumen',
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                    Slider(
+                      value: _volume,
+                      min: 0,
+                      max: 1,
+                      divisions: 10,
+                      onChanged: (value) {
+                        setState(() {
+                          _volume = value;
+                        });
+                      },
+                      activeColor: Colors.white,
+                      inactiveColor: Colors.grey,
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text(
+                        'Cerrar',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -370,34 +396,34 @@ class _GameScreenState extends State<GameScreen> {
         );
       },
       style: ElevatedButton.styleFrom(
-      shape: CircleBorder(),           // Forma circular
-      padding: EdgeInsets.all(15),     // Espaciado interno aumentado
-      backgroundColor: Colors.black,   // Color de fondo del botón
+        shape: CircleBorder(), // Forma circular
+        padding: EdgeInsets.all(15), // Espaciado interno aumentado
+        backgroundColor: Colors.black, // Color de fondo del botón
       ),
       child: Icon(
-      Icons.settings,                  // Icono de ajustes
-      color: Colors.white,             // Color del ícono
-      size: 30,                        // Tamaño del ícono aumentado
+        Icons.settings, // Icono de ajustes
+        color: Colors.white, // Color del ícono
+        size: 30, // Tamaño del ícono aumentado
       ),
-    );  
+    );
   }
 
-  ElevatedButton buildChatButton(BuildContext context){
+  ElevatedButton buildChatButton(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
         // Acción cuando se presiona el botón
       },
       style: ElevatedButton.styleFrom(
-      shape: CircleBorder(),           // Forma circular
-      padding: EdgeInsets.all(15),     // Espaciado interno aumentado
-      backgroundColor: Colors.black,   // Color de fondo del botón
+        shape: CircleBorder(), // Forma circular
+        padding: EdgeInsets.all(15), // Espaciado interno aumentado
+        backgroundColor: Colors.black, // Color de fondo del botón
       ),
       child: Icon(
-      Icons.chat,                  // Icono de ajustes
-      color: Colors.white,             // Color del ícono
-      size: 30,                        // Tamaño del ícono aumentado
+        Icons.chat, // Icono de ajustes
+        color: Colors.white, // Color del ícono
+        size: 30, // Tamaño del ícono aumentado
       ),
-    );  
+    );
   }
 
   Column buildGameButtons(BuildContext context) {
@@ -422,17 +448,18 @@ class _GameScreenState extends State<GameScreen> {
             onPressed: () {
               // Acción para el segundo botón
             },
-            child: const Text(
-              'Cantar',
-              style: TextStyle(color: Colors.white),
-            ),
+            child: const Text('Cantar', style: TextStyle(color: Colors.white)),
           ),
         ),
       ],
     );
   }
 
-  Column buildPlayerIcon(BuildContext context, String playerName, String imagePath) {
+  Column buildPlayerIcon(
+    BuildContext context,
+    String playerName,
+    String imagePath,
+  ) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
