@@ -16,5 +16,5 @@
     "obtener_mensajes_endpoint": "/mensajes/obtener/",
     "top_elo_endpoint": "/usuarios/usuarios/top_elo/",
     "top_elo_parejas_endpoint": "/usuarios/usuarios/top_elo_parejas/",
-    "conexion_partida_endpoint": "/ws/partida"
+    "conexion_partida_endpoint": "/ws/partida/"
 }

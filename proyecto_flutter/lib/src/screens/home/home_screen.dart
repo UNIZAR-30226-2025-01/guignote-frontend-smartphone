@@ -7,10 +7,10 @@ import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
 import 'package:sota_caballo_rey/src/widgets/display_settings.dart';
 import 'package:sota_caballo_rey/src/widgets/gamemode_card.dart';
 import 'package:sota_caballo_rey/src/services/audio_service.dart';
-import 'package:sota_caballo_rey/src/services/notifications_service.dart';
 import 'package:sota_caballo_rey/routes.dart';
 import 'dart:async';
 import 'package:sota_caballo_rey/src/services/websocket_service.dart';
+import 'package:sota_caballo_rey/src/services/api_service.dart';
 
 
 /// HomeScreen
@@ -50,15 +50,14 @@ class HomeScreen extends StatefulWidget
 /// 
 class HomeScreenState extends State<HomeScreen> 
 {
-  final WebsocketService websocketService = WebsocketService(); // instancia del servicio de WebSocket
-  final NotificationsService notificacion = NotificationsService(); // instancia del servicio de notificaciones
+  final WebsocketService _websocketService = WebsocketService(); // instancia del servicio de WebSocket
   final PageController _pageController = PageController(); // controlador de página
 
   bool _searching = false; // variable para controlar si se está buscando una partida
   String _statusMessage = 'Pulsa "Buscar Partida" para comenzar'; // mensaje de estado
-  List <Map<String, dynamic>> _players = []; // lista de jugadores
-  late StreamSubscription<Map<String,dynamic>> _subscription; // suscripción al stream de mensajes entrantes
-  String? profileImageUrl; // URL de la imagen de perfil del usuario
+  final List <Map<String, dynamic>> _players = []; // lista de jugadores
+  late StreamSubscription<Map<String,dynamic>>? _subscription; // suscripción al stream de mensajes entrantes
+  String? _profileImageUrl; // URL de la imagen de perfil del usuario
   final int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
 
 
@@ -67,19 +66,34 @@ class HomeScreenState extends State<HomeScreen>
   {
     super.initState(); // Inicializa el estado del widget.
     AudioService().playMenuMusic(); // Reproduce la música del menú.
-
+    _loadProfileImage(); // Carga la imagen de perfil del usuario.
   }
 
   Future<void> _loadProfileImage() async 
   {
+    try
+    {
+      final url = await getProfileImage();
 
+      if(!mounted) return; // Verifica si el widget está montado antes de actualizar el estado.
+      setState(() 
+      {
+        _profileImageUrl = url; // Actualiza la URL de la imagen de perfil.
+      });
+    }
+    catch(e)
+    {
+      debugPrint('Error al cargar la imagen de perfil: $e'); // Maneja el error de carga de la imagen.
+    }
   }
 
   Future<void> _searchGame() async
   {
     setState(() 
     {
-       _searching = true; // Cambia el estado a buscando.  
+       _searching = true; // Cambia el estado a buscando.
+       _statusMessage = 'Buscando partida...'; // Actualiza el mensaje de estado.
+       _players.clear(); // Limpia la lista de jugadores.  
     });
 
     // Muestra un overlay de carga
@@ -93,37 +107,70 @@ class HomeScreenState extends State<HomeScreen>
     try
     {
       // Conecta al socket pidiendo 2 jugadores
-      await websocketService.connect(capacidad: 2, soloAmigos: false);
+      await _websocketService.connect(capacidad: 2, soloAmigos: false);
 
       // Escucha los mensajes entrantes del socket
-      _subscription = websocketService.incomingMessages.listen
+      _subscription = _websocketService.incomingMessages.listen
       (
         (message) 
         {
-          // Si el mensaje es de tipo "partida_encontrada", navega a la pantalla de juego
-          if (message['tipo'] == 'partida_encontrada') 
+          final type = message['type'] as String?;
+          final data = message['data'] as Map<String, dynamic>?;
+
+          if (type == 'player_joined' && data != null)
           {
-            Navigator.pushNamed(context, AppRoutes.game, arguments: message['partida_id']);
+            setState(() {
+              _players.add(data['usuario'] as Map<String, dynamic>); // Agrega el jugador a la lista de jugadores.
+              _statusMessage = 'Esperando jugadores: ${_players.length}/2'; // Actualiza el mensaje de estado.
+            });
+
+            if(Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
           }
-        },
-        onError: (error) 
-        {
-          // Maneja el error
-          ScaffoldMessenger.of(context).showSnackBar
-          (
-            const SnackBar(content: Text('Error al buscar partida')),
-          );
-        },
-        onDone: () 
-        {
-          // Cierra la suscripción cuando se complete
-          _subscription.cancel();
-        },
+
+          if (type == 'start_game' && data != null) 
+          {
+            // Cierra el overlay de carga
+            if( Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
+            _subscription?.cancel(); // Cancela la suscripción al socket.
+            setState(() {
+              _searching = false; // Cambia el estado a no buscando.
+              _statusMessage = 'Partida iniciada'; // Actualiza el mensaje de estado. 
+            });
+
+            Navigator.pushReplacementNamed(context, AppRoutes.game, arguments: data);
+          }
+        }
       );
     } catch (e)
     {
+      if(Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
+      setState(() {
+        _searching = false; // Cambia el estado a no buscando.
+        _statusMessage = 'Error al buscar partida'; // Actualiza el mensaje de estado.
+      });
 
+      ScaffoldMessenger.of(context).showSnackBar
+      (
+        const SnackBar
+        (
+          content: Text('Error al buscar partida'),
+          backgroundColor: Colors.redAccent,
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
+  }
+
+  @override
+  void dispose()
+  {
+    if(_searching)
+    {
+      _websocketService.disconnect(); // Desconecta el socket si se está buscando una partida.
+      _subscription?.cancel(); // Cancela la suscripción al socket.
+    }
+    _pageController.dispose(); // Libera el controlador de página.
+    super.dispose(); // Libera los recursos del estado.
   }
 
   @override
@@ -204,8 +251,24 @@ class HomeScreenState extends State<HomeScreen>
 
                     const SizedBox(height: 20),
                     
-                    _buildPlayButton(),
+                    if(_players.isNotEmpty)...
+                    [
+                      Text(_statusMessage, style: const TextStyle(color: Colors.white, fontSize: 16)),
+                      const SizedBox(height: 8),
+                      for (var player in _players)...
+                      {
+                        Text(player['nombre'] as String, style: const TextStyle(color: Colors.white, fontSize: 16)),
+                      },
 
+                      const SizedBox(height: 16),
+                    ],
+
+                    CustomButton
+                    (
+                      buttonText: _searching ? 'Buscando...' : 'Buscar Partida',
+                      color: Colors.amber,
+                      onPressedAction: _searching ? null : () { _searchGame();}, // Llama a la función de búsqueda de partida
+                    ),
                     
                   ],
                 ),
@@ -225,57 +288,17 @@ class HomeScreenState extends State<HomeScreen>
       padding: const EdgeInsets.only(left: 10.0),
       child: GestureDetector
       (
-        onTap: () 
-        {
-          notificacion.showNotification
-          (
-            '¡Hola!',
-            'Bienvenido a la pantalla de inicio.',
-          );
-        },
+        onTap: () => Navigator.pushNamed(context, AppRoutes.profile), // Navega a la pantalla de perfil
         child: CircleAvatar
         (
           radius: 20,
           backgroundColor: Colors.transparent,
-          backgroundImage: profileImageUrl != null
-              ? NetworkImage(profileImageUrl!)
-              : const AssetImage('assets/images/default_profile.png') as ImageProvider,
-          child: profileImageUrl == null
-              ? const Icon(Icons.person, color: Colors.white)
-              : null,
+          backgroundImage: _profileImageUrl != null
+              ? NetworkImage(_profileImageUrl!)
+              : const AssetImage('assets/images/default_profile.png') as ImageProvider, // Imagen de perfil por defecto
         ),
       ),
     );
   }
 
-  Widget _buildPlayButton()
-  {
-    return GestureDetector
-    (
-      key: const Key('play_button'),
-      onTap: ()
-      {
-        ScaffoldMessenger.of(context).showSnackBar
-        (
-          const SnackBar
-          (
-            content: Text('¡A jugar!'),
-            backgroundColor: Colors.black,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      },
-
-      child: AnimatedContainer
-      (
-        duration: const Duration(milliseconds: 100),
-        curve: Curves.easeInOut,
-        transform: Matrix4.translationValues(1.05, 1.05, 1),
-        child: CustomButton(buttonText: 'Buscar Partida', onPressedAction: ()
-        {
-          Navigator.pushNamed(context, AppRoutes.game);
-        }, color: Colors.amber),
-      ),
-    );
-  }
 }

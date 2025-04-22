@@ -904,3 +904,42 @@ Future<bool> deleteUser() async
 }
 
 
+Future<String?> getProfileImage() async
+{
+  // Primero se obtiene el token de autenticación del almacenamiento seguro.
+  final token = await StorageService.getToken();
+  if (token == null || token.isEmpty) 
+  {
+    // En caso de no encontrar el token, se lanza una excepción.
+    throw Exception("No hay un token de autentificación disponible.");
+  }
+
+  // Obtenemos la URL del endpoint para buscar estadísticas de usuario.
+  final url = Uri.parse('${Config.apiBaseURL}${Config.buscarEstadisticasUsuario}');
+
+  // Petición GET a la API para obtener la imagen de perfil.
+  final response = await http.get(url, headers: {"Auth": token, 'Accept': 'application/json'});
+
+  if(response.statusCode == 200)
+  {
+    final Map<String, dynamic> data = jsonDecode(response.body);
+
+    return data['imagen'] as String;
+  }
+  else if(response.statusCode == 401)
+  {
+    // El token no es válido o ha expirado.
+    throw Exception("Token inválido o no proporcionado.");
+  }
+  else if(response.statusCode == 405)
+  {
+    // El método no está permitido.
+    throw Exception("Método no permitido.");
+  }
+  else
+  {
+    // Se produjo un error desconocido.
+    throw Exception("Error desconocido. Código: ${response.statusCode} - ${response.body}");
+  }
+}
+
