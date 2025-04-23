@@ -85,4 +85,7 @@ class Config {
   static String get topEloEndpoint => _config['top_elo_endpoint'];
   static String get topEloParejasEndpoint =>
       _config['top_elo_parejas_endpoint'];
+  static String get topEloFriendsEndpoint => _config['top_elo_amigos_endpoint'];
+  static String get topEloParejasFriendsEndpoint =>
+      _config['top_elo_parejas_amigos_endpoint'];
 }

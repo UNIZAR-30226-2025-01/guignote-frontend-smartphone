@@ -31,6 +31,7 @@ import 'package:sota_caballo_rey/config.dart';
 import 'package:sota_caballo_rey/src/services/storage_service.dart';
 import 'package:sota_caballo_rey/src/services/exceptions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 /// Función para iniciar sesión en la API.
 ///
 /// Recibe un identificador que puede ser un nombre de usuario o un correo electrónico.
@@ -784,6 +785,52 @@ Future<List<Map<String, String>>> get1vs1GlobalRanking() async {
 }
 
 //
+// Obtiene los rankings globales de 1vs1.
+//
+Future<List<Map<String, String>>> get1vs1FriendsRanking() async {
+  // Obtenemos el token.
+  final token = await StorageService.getToken();
+  if (token == null || token.isEmpty) {
+    throw Exception("No hay token de autenticación disponible.");
+  }
+
+  // Construye la URL del endpoint para ranking global individual.
+  final url = Uri.parse('${Config.apiBaseURL}${Config.topEloFriendsEndpoint}');
+
+  // Intenta conectarse al endpoint.
+  try {
+    final response = await http.get(
+      url,
+      headers: {"Accept": "application/json", "Auth": token},
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      List<Map<String, String>> ranking = List<Map<String, String>>.from(
+        data["top_elo_players"].map(
+          (player) => {
+            "nombre": player["nombre"].toString(),
+            "elo": player["elo"].toString(),
+          },
+        ),
+      );
+      return ranking;
+    } else if (response.statusCode == 405) {
+      throw Exception("método no permitido.");
+    } else {
+      throw Exception(
+        "Error desconocido. Código: ${response.statusCode} - ${response.body}",
+      );
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print("Error en get1vs1FriendsRanking: $e");
+    }
+    rethrow;
+  }
+}
+
+//
 // Obtiene los rankings globales de 2vs2.
 //
 Future<List<Map<String, String>>> get2vs2GlobalRanking() async {
@@ -823,27 +870,75 @@ Future<List<Map<String, String>>> get2vs2GlobalRanking() async {
   }
 }
 
+//
+// Obtiene los rankings globales de 2vs2.
+//
+Future<List<Map<String, String>>> get2vs2FriendsRanking() async {
+  // Obtenemos el token.
+  final token = await StorageService.getToken();
+  if (token == null || token.isEmpty) {
+    throw Exception("No hay token de autenticación disponible.");
+  }
+
+  // Construye la URL del endpoint para ranking global individual.
+  final url = Uri.parse(
+    '${Config.apiBaseURL}${Config.topEloParejasFriendsEndpoint}',
+  );
+
+  // Intenta conectarse al endpoint.
+  try {
+    final response = await http.get(
+      url,
+      headers: {"Accept": "application/json", "Auth": token},
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      List<Map<String, String>> ranking = List<Map<String, String>>.from(
+        data["top_elo_parejas_players"].map(
+          (player) => {
+            "nombre": player["nombre"].toString(),
+            "elo": player["elo_parejas"].toString(),
+          },
+        ),
+      );
+      return ranking;
+    } else if (response.statusCode == 405) {
+      throw Exception("método no permitido.");
+    } else {
+      throw Exception(
+        "Error desconocido. Código: ${response.statusCode} - ${response.body}",
+      );
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print("Error en get2vs2FriendsRanking: $e");
+    }
+    rethrow;
+  }
+}
+
 /// Elimina la cuenta del usuario actual.
-/// 
+///
 /// Esta función realiza una petición POST al endpoint correspondiente para eliminar
 /// la cuenta del usuario. Antes de realizar la petición, verifica si existe un token
 /// de autenticación válido. Si el token no es válido o está vacío, lanza una excepción.
-/// 
+///
 /// Si la petición es exitosa (código 200), se eliminan las preferencias de usuario
 /// almacenadas localmente y se devuelve `true`. En caso de errores, lanza excepciones
 /// específicas dependiendo del código de estado de la respuesta:
-/// 
+///
 /// - 401: Token inválido o no proporcionado.
 /// - 405: Método no permitido.
 /// - Otros códigos: Lanza una excepción con el código de estado y el cuerpo de la respuesta.
-/// 
+///
 /// ### Excepciones:
 /// - `Exception`: Si no hay un token de autenticación disponible.
 /// - `Exception`: Si ocurre un error en la petición.
-/// 
+///
 /// ### Retorno:
 /// - `Future<bool>`: Devuelve `true` si la cuenta se eliminó correctamente.
-/// 
+///
 /// ### Ejemplo de uso:
 /// ```dart
 /// try {
@@ -855,52 +950,40 @@ Future<List<Map<String, String>>> get2vs2GlobalRanking() async {
 ///   print("Error al eliminar la cuenta: $e");
 /// }
 /// ```
-Future<bool> deleteUser() async
-{
+Future<bool> deleteUser() async {
   // Se obtienen las preferencias de usuario y el token de autenticación.
   final prefs = await SharedPreferences.getInstance();
   final token = await StorageService.getToken();
 
   // Se comprueba la validez del token.
-  if (token == null || token.isEmpty) 
-  {
+  if (token == null || token.isEmpty) {
     // El token no es válido, se lanza una excepción.
     throw Exception("No hay token de autenticación disponible.");
   }
 
-  final response = await http.delete
-  (
+  final response = await http.delete(
     Uri.parse('${Config.apiBaseURL}${Config.deleteUserEndPoint}'),
-    headers: 
-    {
+    headers: {
       "Auth": token,
       "Content-Type": "application/json",
       "Accept": "application/json",
     },
   );
 
-  if (response.statusCode == 200) 
-  {
+  if (response.statusCode == 200) {
     // Se eliminó la cuenta correctamente, se eliminan las preferencias de usuario.
     await prefs.clear();
     return true;
-  } 
-  else if (response.statusCode == 401) 
-  {
+  } else if (response.statusCode == 401) {
     // El token no es válido o ha expirado.
     throw Exception("Token inválido o no proporcionado.");
-  } 
-  else if (response.statusCode == 405) 
-  {
+  } else if (response.statusCode == 405) {
     // El método no está permitido.
     throw Exception("Método no permitido.");
-  } 
-  else 
-  {
+  } else {
     // Se produjo un error desconocido.
-    throw Exception("Error desconocido. Código: ${response.statusCode} - ${response.body}");
+    throw Exception(
+      "Error desconocido. Código: ${response.statusCode} - ${response.body}",
+    );
   }
-
 }
-
-

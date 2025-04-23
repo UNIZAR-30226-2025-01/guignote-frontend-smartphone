@@ -14,5 +14,7 @@
     "enviar_mensaje_amigo_endpoint": "/mensajes/enviar/",
     "obtener_mensajes_endpoint": "/mensajes/obtener/",
     "top_elo_endpoint": "/usuarios/top_elo/",
-    "top_elo_parejas_endpoint": "/usuarios/top_elo_parejas/"
+    "top_elo_parejas_endpoint": "/usuarios/top_elo_parejas/",
+    "top_elo_amigos_endpoint": "/usuarios/top_elo_amigos/",
+    "top_elo_parejas_amigos_endpoint": "/usuarios/top_elo_parejas_amigos/"
 }

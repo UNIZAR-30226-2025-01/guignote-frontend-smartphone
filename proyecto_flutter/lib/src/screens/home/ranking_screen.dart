@@ -234,7 +234,7 @@ class RankingScreenState extends State<RankingScreen> {
       if (selectedRankingType == 0) {
         return get1vs1GlobalRanking();
       } else {
-        return [];
+        return get1vs1FriendsRanking();
       }
     }
     // 2 vs 2
@@ -242,7 +242,7 @@ class RankingScreenState extends State<RankingScreen> {
       if (selectedRankingType == 0) {
         return get2vs2GlobalRanking();
       } else {
-        return [];
+        return get2vs2FriendsRanking();
       }
     }
   }
