@@ -1,36 +1,90 @@
 import 'package:flutter/material.dart';
+import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/widgets/game/game_card.dart';
 import 'package:sota_caballo_rey/src/widgets/game/card_in_fan.dart';
+import 'package:sota_caballo_rey/src/services/websocket_service.dart';
 import 'dart:math' as math;
+import 'dart:async';
+
+const int SEGUNDOS_POR_TURNO = 60; // Segundos por turno
+const int CARTAS_POR_RONDA = 2; // Cartas que se juegan en cada ronda entre todos los jugadores
+const String deckSelected = 'base'; // Baraja seleccionada por el jugador.
 
 class GameScreen extends StatefulWidget {
-  final int partidaID;
 
-  const GameScreen({super.key, required this.partidaID});
+  const GameScreen({super.key});
 
   @override
   State<GameScreen> createState() => _GameScreenState();
 }
 
 class _GameScreenState extends State<GameScreen> {
+  bool _isInitialized = false; // Bandera para evitar múltiples ejecuciones
   double _volume = 0.5;
+  late Timer cuentaAtrasTurnoTimer;
 
-  String playerName = 'Jugador 1';
-  String playerIcon = 'assets/images/app_logo_white.png';
-  String rivalName = 'Jugador 2';
-  String rivalIcon = 'assets/images/app_logo_white.png';
+  WebsocketService? _websocketService; // Servicio WebSocket para la conexión
+
   String? selectedCard; // null o la carta elegida.
 
-  String triunfo = '1E';
-  String rivalPlayedCard = '3C';
-  String playerPlayedCard = '2E';
-  List<String> playerHand = ['1O', '2O', '3O', '4O', '5O', '6O'];
+  String triunfo = '';
+
+  String rivalPlayedCard = '';
+  String playerPlayedCard = '';
+  List<String> playerHand = ['1Oros', '2Oros', '3Oros', '4Oros', '5Oros', '6Oros'];
   List<String> rivalHand = ['Back', 'Back', 'Back', 'Back', 'Back', 'Back'];
-  int puntosJugador = 0;
-  int puntosRival = 0;
-  int turnos = 10;
+  int cartasRestantes = 0;
+  int segundosRestantesTurno = SEGUNDOS_POR_TURNO;
+  bool mostrarSegundosRestantesTurno = false;
+
+  int? mazoRestante;
+  List<dynamic>? misCartas;
+  bool? faseArrastre;
+  Map<String, dynamic>? cartaTriunfo;
+  int? chatId;
+  List<dynamic>? jugadores;
+
+  // id del jugador que le toca jugar
+  String turnoJugador = '';
+
+
+
+
+  // Datos de jugadores
+  // el jugador 1 es el jugador propio
+  String? jugador1Nombre;
+  int? jugador1Id;
+  int? jugador1Equipo;
+  int? jugador1NumCartas;
+  int jugador1Puntos = 0;
+  String jugador1FotoUrl = '';
+
+  String? jugador2Nombre;
+  int? jugador2Id;
+  int? jugador2Equipo;
+  int? jugador2NumCartas;
+  int jugador2Puntos = 0;
+  String jugador2FotoUrl = 'https://picsum.photos/seed/picsum/200/300';
+
+  Map<String, String>? parseCard(String card) {
+    // Usa una expresión regular para separar el número y el palo
+    final match = RegExp(r'^(\d+)([A-Za-z]+)$').firstMatch(card);
+
+    if (match != null) {
+      final numero = match.group(1)!; // Captura el número
+      final palo = match.group(2)!;   // Captura el palo
+
+      return {
+        'palo': palo,
+        'valor': numero,
+      };
+    } else {
+      print('Formato de carta inválido: $card');
+      return null; // Devuelve null si el formato es inválido
+    }
+  }
 
   void onCardTap(String card) {
     setState(() {
@@ -45,19 +99,339 @@ class _GameScreenState extends State<GameScreen> {
 
   void jugarCarta(String card) {
     setState(() {
-      playerPlayedCard = card;
-      playerHand.remove(card);
+      if(turnoJugador == jugador1Nombre) {
+
+        final mapCard = parseCard(card);
+        
+        int valorCarta = int.parse(mapCard!['valor']!);
+
+        final data = {
+          'accion': 'jugar_carta',
+            'carta': {
+            'palo': mapCard['palo'],
+            'valor': valorCarta,
+          },
+        };
+
+        _websocketService?.send(data); // Envía la carta jugada al servidor
+
+        playerPlayedCard = card;
+        playerHand.remove(card);
+        //print('jugar_carta: $data');
+      } else {
+        print('No es tu turno para jugar la carta: $card');
+      }
+      
     });
   }
 
   void cambiarTriunfo() {
     setState(() {
-      triunfo = '1C';
+      //triunfo = '1Copas';
     });
+  }
+  
+  void cuentaAtrasTurno(){
+    cuentaAtrasTurnoTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      
+  
+      // Ejemplo: Verifica si el turno ha cambiado
+      if (turnoJugador != jugador1Nombre) {
+        //print('Es el turno de $turnoJugador');
+        setState(() {
+          mostrarSegundosRestantesTurno = false;
+          segundosRestantesTurno = SEGUNDOS_POR_TURNO;
+        });
+      } else {
+        //print('Es tu turno');
+        //print('Segundos restantes: $segundosRestantesTurno');
+        setState(() {
+          mostrarSegundosRestantesTurno = true;
+          if(segundosRestantesTurno > 0) {
+            segundosRestantesTurno--;
+          }
+        });
+      }
+
+  
+    });
+  }
+
+  // Método para escuchar mensajes del WebSocket
+  void _listenToWebSocket() {
+    _websocketService?.incomingMessages.listen((message) {
+      final type = message['type'] as String?;
+      final data = message['data'] as Map<String, dynamic>?;
+
+      print(type);
+      print(data);
+      
+      if (type == 'turn_update' && data != null) {
+        setState(() {
+          turnoJugador = data['jugador']?['nombre'] ?? 'null'; // Nombre del jugador que le toca jugar
+        });
+      }
+
+      /*
+      {
+        "type": "card_played",
+        "data": {
+          "jugador": {
+            "nombre": "Usuario 1",
+            "id": 1
+          },
+          "automatica": false,
+          "carta": { "palo": "oros", "valor": 1 }
+        }
+      }
+      */
+
+      if (type == 'card_played' && data != null) {
+
+        final jugadorid = data['jugador']?['id']; // id del jugador que ha jugado la carta
+        final carta = data['carta']; // carta jugada por el jugador
+        String cartaString = carta['valor'].toString() + carta['palo'].toString(); // carta jugada en formato string
+        setState(() {
+          if(jugadorid != jugador1Id){
+            rivalPlayedCard = cartaString; // carta jugada por el rival
+            rivalHand.remove('Back'); // elimina la carta del mazo del rival
+          }
+        });
+      }
+
+      /*
+      {
+        "type": "round_result",
+        "data": {
+          "ganador": {
+            "nombre": "Usuario 1",
+            "id": 1,
+            "equipo": 1
+          },
+          "puntos_baza": 15,
+          "puntos_equipo_1": 15,
+          "puntos_equipo_2": 0
+        }
+      }
+      */
+
+      if (type == 'round_result' && data != null) {
+
+        final ganadorId = data['ganador']?['id']; // id del jugador que ha jugado la carta
+        int puntosGanados = (data['puntos_baza'] as num).toInt(); // Convierte puntosGanados a int
+        
+        setState(() {
+          if (cartasRestantes > 0) {
+            cartasRestantes -= CARTAS_POR_RONDA; // Actualiza el número de cartas restantes
+          }
+          playerPlayedCard = ''; // Reinicia la carta jugada por el jugador
+          rivalPlayedCard = ''; // Reinicia la carta jugada por el rival
+          // Actualiza los puntos de los jugadores
+          if(ganadorId == jugador1Id){
+            jugador1Puntos += puntosGanados; // suma los puntos ganados al jugador 1
+          }
+          if(ganadorId == jugador2Id){
+            jugador2Puntos += puntosGanados; // suma los puntos ganados al jugador 2
+          }
+        });
+      }
+
+      /*
+      {
+        "type": "card_drawn",
+        "data": {
+          "carta": { "palo": "copas", "valor": 3 }
+        }
+      }
+      */
+      if (type == 'card_drawn' && data != null) {
+
+        final carta = data['carta']; // carta jugada por el jugador
+        String cartaString = carta['valor'].toString() + carta['palo'].toString(); // carta jugada en formato string
+        
+        setState(() {
+          playerHand.add(cartaString); // añade la carta al mazo del jugador
+          rivalHand.add('Back'); // añade la carta al mazo del rival
+        });
+      }
+
+      /*
+      {
+        "type": "phase_update",
+        "data": {
+          "message": "La partida entra en fase de arrastre."
+        }
+      }
+      */
+
+
+      /*
+      {
+        "type": "player_left",
+        "data": {
+          "message": "Usuario 1 se ha desconectado.",
+          "usuario": {
+            "nombre": "Usuario 1",
+            "id": 1
+          },
+          "capacidad": 4,
+          "jugadores": 3
+        }
+      }
+      */
+
+
+      /*
+      {
+        "type": "end_game",
+        "data": {
+          "message": "Fin de la partida.",
+          "ganador_equipo": 1,                           *0 si empate
+          "puntos_equipo_1": 101,
+          "puntos_equipo_2": 85
+        }
+      }
+      */
+    });
+  }
+
+
+  Future<void> fillArguments() async {
+    /*
+    "data": {
+      "mazo_restante": 27,                                       cartas que quedan en mazo central
+      "mis_cartas": [ /* cartas asignadas al jugador */ ],       tu mano
+      "fase_arrastre": false,                                    estás en arrastre?
+      "carta_triunfo": { "palo": "oros", "valor": 7 },           carta triunfo
+      "chat_id": <CHAT_ID>,                                      id del chat de la partida
+      "jugadores": [                                             información jugadores
+        {
+          "id": 1,
+          "nombre": "Usuario 1",
+          "equipo": 1,
+          "num_cartas": 6
+        },
+        {
+          "id": 2,
+          "nombre": "Usuario 2",
+          "equipo": 2,
+          "num_cartas": 6
+        }
+      ]
+    }
+    */
+
+    // Obtén los argumentos pasados desde la pantalla anterior
+    final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final data = arguments?['gameData'] as Map<String, dynamic>?;
+    final firstTurn = arguments?['firstTurn'] as Map<String, dynamic>?;
+    _websocketService = arguments?['socket'] as WebsocketService?;
+
+    print(data);
+    print(firstTurn);
+
+    // extraer los datos del primer turno
+    turnoJugador = firstTurn?['jugador']?['nombre'] ?? 'null'; // Nombre del jugador que le toca jugar
+    print(turnoJugador);
+    cuentaAtrasTurno(); // Llama a la función para iniciar el temporizador de cuenta atrás
+
+    // Extrae los campos del mapa "data"
+    mazoRestante = data?['mazo_restante'];
+    cartasRestantes = mazoRestante!; // Asigna el valor de mazoRestante a cartasRestantes
+    misCartas = data?['mis_cartas'];
+    if (misCartas != null) {
+      for (var carta in misCartas!) {
+        if (carta.length >= 2) {
+          String palo = carta['palo'].toString(); // Extrae el valor asociado a la clave 'palo'
+          String valor = carta['valor'].toString(); // Segundo elemento de la sublista
+
+          playerHand[misCartas!.indexOf(carta)] = valor + palo; // Asigna el primer elemento a la mano del jugador
+        }
+      }
+    }
+  
+
+    faseArrastre = data?['fase_arrastre'];
+
+    // Extrae detalles de la carta triunfo
+    cartaTriunfo = data?['carta_triunfo'];
+    triunfo = (cartaTriunfo?['valor']?.toString() ?? '') + (cartaTriunfo?['palo']?.toString() ?? '');
+    
+    
+    chatId = data?['chat_id'];
+
+
+    String miNombre = '';
+    String miFoto = '';
+    // extrae mis datos
+    try {
+      final stats = await getUserStatistics(); // Llama al método para obtener los datos
+      miNombre = stats['nombre'] ?? 'null'; // Nombre del jugador
+      miFoto = stats['imagen'] ?? 'null'; // URL de la foto del jugador
+    } catch (error) {
+      print("Error al obtener estadísticas del usuario: $error");
+    }
+
+    jugadores = data?['jugadores'];
+    final jugador1 = jugadores?[0] as Map<String, dynamic>;
+    final jugador2 = jugadores?[1] as Map<String, dynamic>;
+
+    if (jugadores?.length != null && jugadores!.length >= 2) {
+      if (jugador1['nombre'] == miNombre) {
+        
+        jugador1Nombre = jugador1['nombre'];
+        jugador1Id = jugador1['id'];
+        jugador1Equipo = jugador1['equipo'];
+        jugador1NumCartas = jugador1['num_cartas'];
+
+        jugador2Nombre = jugador2['nombre'];
+        jugador2Id = jugador2['id'];
+        jugador2Equipo = jugador2['equipo'];
+        jugador2NumCartas = jugador2['num_cartas'];
+
+      }else{
+
+        jugador1Nombre = jugador2['nombre'];
+        jugador1Id = jugador2['id'];
+        jugador1Equipo = jugador2['equipo'];
+        jugador1NumCartas = jugador2['num_cartas'];
+
+        jugador2Nombre = jugador1['nombre'];
+        jugador2Id = jugador1['id'];
+        jugador2Equipo = jugador1['equipo'];
+        jugador2NumCartas = jugador1['num_cartas'];
+
+      }
+    }
+
+
+    jugador1FotoUrl = miFoto; // Asigna la foto del jugador a jugador1
+    jugador2FotoUrl = '';
+
+  
+
+    
+
+    
+
+    _listenToWebSocket(); // Escucha los mensajes del WebSocket
+  }
+
+
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      fillArguments(); // Llama a la función solo la primera vez
+      _isInitialized = true; // Marca como inicializado
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -84,25 +458,32 @@ class _GameScreenState extends State<GameScreen> {
             alignment: const Alignment(0.3, -0.11),
             child: RotatedBox(
               quarterTurns: 45,
-              child: GameCard(card: triunfo, width: 75),
+              child: GameCard(card: triunfo, deck: deckSelected, width: 75),
             ),
           ),
           // Carta del mazo
           Align(
             alignment: const Alignment(0.0, -0.15),
-            child: GameCard(card: 'Back', width: 75),
+            child: GameCard(card: 'Back', deck: deckSelected, width: 75),
           ),
 
+          
           // Carta jugada por el jugador
-          Align(
-            alignment: const Alignment(0.0, 0.25),
-            child: GameCard(card: playerPlayedCard, width: 75),
-          ),
+          playerPlayedCard.isNotEmpty
+              ? Align(
+                  alignment: const Alignment(0.0, 0.25),
+                  child: GameCard(card: playerPlayedCard, deck: deckSelected, width: 75),
+                )
+              : const SizedBox.shrink(),
+
+          
           // Carta jugada por el rival
-          Align(
-            alignment: const Alignment(0.0, -0.55),
-            child: GameCard(card: rivalPlayedCard, width: 75),
-          ),
+          rivalPlayedCard.isNotEmpty
+              ? Align(
+                  alignment: const Alignment(0.0, -0.55),
+                  child: GameCard(card: rivalPlayedCard, deck: deckSelected, width: 75),
+                )
+              : const SizedBox.shrink(),
 
           // Añadimos mano del jugador
           Align(
@@ -144,12 +525,27 @@ class _GameScreenState extends State<GameScreen> {
           // Iconos de los jugadores
           Align(
             alignment: const Alignment(-0.9, 0.38),
-            child: buildPlayerIcon(context, playerName, playerIcon),
+            child: buildPlayerIcon(context, jugador1Nombre.toString(), jugador1FotoUrl),
           ),
           Align(
             alignment: const Alignment(-0.9, -0.68),
-            child: buildPlayerIcon(context, rivalName, rivalIcon),
+            child: buildPlayerIcon(context, jugador2Nombre.toString(), jugador2FotoUrl),
           ),
+
+          // Mostrar segundos restantes del turno
+          if (mostrarSegundosRestantesTurno)
+            Align(
+              alignment: const Alignment(0.0, 0.45),
+              child: Text(
+              '$segundosRestantesTurno',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                
+              ),
+              ),
+            ),
         ],
       ),
     );
@@ -165,12 +561,12 @@ class _GameScreenState extends State<GameScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Turnos:', style: const TextStyle(color: Colors.white)),
-          Text('$turnos', style: const TextStyle(color: Colors.white)),
+          Text('Cartas:', style: const TextStyle(color: Colors.white)),
+          Text('$cartasRestantes', style: const TextStyle(color: Colors.white)),
           Text('Puntos:', style: const TextStyle(color: Colors.white)),
-          Text('$puntosJugador', style: const TextStyle(color: Colors.white)),
+          Text('$jugador1Puntos', style: const TextStyle(color: Colors.white)),
           Text('Pts. rival:', style: const TextStyle(color: Colors.white)),
-          Text('$puntosRival', style: const TextStyle(color: Colors.white)),
+          Text('$jugador2Puntos', style: const TextStyle(color: Colors.white)),
         ],
       ),
     );
@@ -191,6 +587,7 @@ class _GameScreenState extends State<GameScreen> {
         child: Center(
           child: CardInFan(
             card: listCards[0],
+            deck: deckSelected,
             width: cardWidth,
             angle: 0.0,
             dx: 0.0,
@@ -215,6 +612,7 @@ class _GameScreenState extends State<GameScreen> {
           for (var i = 0; i < cardCount; i++)
             CardInFan(
               card: listCards[i],
+              deck: deckSelected,
               width: cardWidth,
               angle: (startAngle + angleStep * i) * (math.pi / 180),
               dx: separation * (i - (cardCount - 1) / 2),
@@ -256,7 +654,7 @@ class _GameScreenState extends State<GameScreen> {
                   Matrix4.identity()
                     ..rotateZ(startAngle + angleStep * i)
                     ..translate(overlapDistance * i),
-              child: GameCard(card: cardImages[i], width: cardWidth),
+              child: GameCard(card: cardImages[i], deck: deckSelected, width: cardWidth),
             ),
         ],
       ),
@@ -392,9 +790,9 @@ class _GameScreenState extends State<GameScreen> {
             shape: BoxShape.circle,
             border: Border.all(color: Colors.black, width: 2),
           ),
-          child: CircleAvatar(
+            child: CircleAvatar(
             radius: 40,
-            backgroundImage: AssetImage(imagePath),
+            backgroundImage: NetworkImage(imagePath),
           ),
         ),
         const SizedBox(height: 8),

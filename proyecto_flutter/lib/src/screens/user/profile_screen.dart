@@ -155,7 +155,7 @@ Widget buildProfileBox(BuildContext context, Function setState) {
         String imagenUrl = stats["imagen"].toString();
         double winLoss = stats["porcentaje_victorias"];
         int elo = stats["elo"];
-        int elo_parejas = stats["elo_parejas"];
+        int eloParejas = stats["elo_parejas"];
 
         return Center(
           child: Container(
@@ -311,7 +311,7 @@ Widget buildProfileBox(BuildContext context, Function setState) {
                     ),
                     buildStatItem(
                       "ELO 2vs2",
-                      elo_parejas.toString(),
+                      eloParejas.toString(),
                       "assets/images/trophy.png",
                     ),
                   ],

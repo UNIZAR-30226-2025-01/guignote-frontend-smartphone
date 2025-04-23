@@ -26,9 +26,10 @@ class GameCard extends StatelessWidget
       {
         super.key,
         required String card,
+        required String deck,
         required this.width,
       }
-    ) : imageAsset = 'assets/images/cards/$card.png';
+    ) : imageAsset = 'assets/images/decks/$deck/$card.png';
 
   @override
   Widget build(BuildContext context)

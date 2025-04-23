@@ -48,7 +48,7 @@ class AppRoutes
     login: (context) => const LoginScreen(), // Pantalla de inicio de sesión
     passwordRecover: (context) => const PasswordRecoverScreen(), // Pantalla de recuperación de contraseña
     register: (context) => const RegisterScreen(), // Pantalla de registro
-    game: (context) => const GameScreen(partidaID: 1), // Pantalla de juego
+    game: (context) => const GameScreen(), // Pantalla de juego
     amigos: (context) => const FriendsScreen(), // Pantalla de amigos
     profile: (context) => const ProfileScreen(), // Pantalla de perfil
     home: (context) => const HomeScreen(), // Pantalla de inicio

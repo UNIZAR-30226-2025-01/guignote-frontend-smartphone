@@ -34,4 +34,35 @@ class AppTheme
     fontWeight: FontWeight.w600,
     fontFamily: 'poppins',
   );
+
+  /// Estilo para títulos de dialogos
+  static const TextStyle dialogTitleStyle = TextStyle
+  (
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+    decoration: TextDecoration.none,
+    fontFamily: 'poppins',
+  );
+
+  /// Estilo para texto normal de dialogos
+  static const TextStyle dialogBodyStyle = TextStyle
+  (
+    fontSize: 16,
+    color: Colors.white,
+    fontWeight: FontWeight.normal,
+    decoration: TextDecoration.none,
+    fontFamily: 'poppins',
+  );
+
+  /// Estilo para el texto de los nombres de jugador en el diálogo
+  static const TextStyle dialogPlayerStyle = TextStyle
+  (
+    fontSize: 16,
+    color: Colors.white,
+    fontWeight: FontWeight.normal,
+    decoration: TextDecoration.none,
+    fontFamily: 'poppins',
+
+  );
 }
