@@ -8,10 +8,16 @@ import 'package:sota_caballo_rey/src/services/storage_service.dart';
 class WebsocketService 
 {
   WebSocketChannel? _channel;
-  final _incomingController = StreamController<Map<String, dynamic>>.broadcast();
+  StreamController<Map<String, dynamic>>? _incomingController;
 
-  // Emite todos los mensajes entrantes en forma de mapa JSON.
-  Stream<Map<String, dynamic>> get incomingMessages => _incomingController.stream;
+  Stream<Map<String, dynamic>> get incomingMessages
+  {
+    if(_incomingController == null || _incomingController!.isClosed)
+    {
+      _incomingController = StreamController<Map<String, dynamic>>.broadcast();
+    }
+    return _incomingController!.stream;
+  }
 
   /// Conecta al servidor para crear o unirse a una partida.
   /// 
@@ -46,6 +52,12 @@ class WebsocketService
     final url = Uri.parse('${Config.wsBaseURL}${Config.conexionPartida}?$params');
     _channel = WebSocketChannel.connect(url);
 
+    // Nos aseguramos de que el controlador esté inicializado y abierto
+    if(_incomingController == null || _incomingController!.isClosed) 
+    {
+      _incomingController = StreamController<Map<String, dynamic>>.broadcast();
+    }
+
     // Escuchamos los mensajes entrantes y los emitimos en el StreamController
     _channel!.stream.listen
     (
@@ -54,14 +66,14 @@ class WebsocketService
         try
         {
           final data = jsonDecode(raw as String) as Map<String, dynamic>;
-          _incomingController.add(data);
+          _incomingController!.add(data);
         } catch (e)
         {
-          _incomingController.addError(e);
+          _incomingController!.addError(e);
         }
       },
-      onError: (error) => _incomingController.addError(error),
-      onDone: () => _incomingController.close(),
+      onError: (error) => _incomingController!.addError(error),
+      onDone: () => _incomingController!.close(),
     );
   }
 
@@ -81,7 +93,7 @@ class WebsocketService
   Future<void> disconnect() async 
   {
     await _channel?.sink.close();
-    await _incomingController.close();
+    await _incomingController?.close();
 
     _channel = null;
   }

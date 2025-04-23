@@ -11,6 +11,7 @@ import 'package:sota_caballo_rey/routes.dart';
 import 'dart:async';
 import 'package:sota_caballo_rey/src/services/websocket_service.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
+import 'package:sota_caballo_rey/src/widgets/search_lobby.dart';
 
 
 /// HomeScreen
@@ -56,7 +57,7 @@ class HomeScreenState extends State<HomeScreen>
   bool _searching = false; // variable para controlar si se está buscando una partida
   String _statusMessage = 'Pulsa "Buscar Partida" para comenzar'; // mensaje de estado
   final List <Map<String, dynamic>> _players = []; // lista de jugadores
-  late StreamSubscription<Map<String,dynamic>>? _subscription; // suscripción al stream de mensajes entrantes
+  StreamSubscription<Map<String,dynamic>>? _subscription; // suscripción al stream de mensajes entrantes
   String? _profileImageUrl; // URL de la imagen de perfil del usuario
   final int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
 
@@ -108,6 +109,9 @@ class HomeScreenState extends State<HomeScreen>
     {
       // Conecta al socket pidiendo 2 jugadores
       await _websocketService.connect(capacidad: 2, soloAmigos: false);
+
+      _subscription?.cancel(); // Cancela la suscripción anterior si existe.
+      _subscription = null; // Restablece la suscripción.
 
       // Escucha los mensajes entrantes del socket
       _subscription = _websocketService.incomingMessages.listen
@@ -161,6 +165,22 @@ class HomeScreenState extends State<HomeScreen>
     }
   }
 
+  void _cancelSearch()
+  {
+    setState(() 
+    {
+      _searching = false; // Cambia el estado a no buscando.
+      _statusMessage = 'Pulsa "Buscar Partida" para comenzar'; // Restablece el mensaje de estado.
+      _players.clear(); // Limpia la lista de jugadores.
+    });
+
+    _websocketService.disconnect(); // Desconecta el socket.
+    _subscription?.cancel(); // Cancela la suscripción al socket.
+    _subscription = null; // Restablece la suscripción.
+    
+
+  }
+
   @override
   void dispose()
   {
@@ -176,108 +196,118 @@ class HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) 
   {
-    return Scaffold
+    return Stack
     (
-      extendBodyBehindAppBar: true, // extender el fondo detrás de la barra de aplicaciones
-      backgroundColor: Colors.transparent, // fondo transparente
-      appBar:AppBar // barra de aplicaciones
-      (
-        backgroundColor: Colors.transparent, 
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: Row
+      children: 
+      [
+        AbsorbPointer
         (
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: 
-          [
-            profileButton(context),
-            Image.asset('assets/images/app_logo_white.png', width: 60, height: 60),
-           DisplaySettings
-           (
-              onVolumeChanged: (value) => AudioService().setGeneralVolume(value),
-              onMusicVolumeChanged: (value) => AudioService().setMusicVolume(value),
-              onEffectsVolumeChanged: (value) => AudioService().setEffectsVolume(value),
-            ),
-          ],
-        ),
-      ),
-      body: Stack
-      (
-        children:
-        [
-          const Background(),
-          const CornerDecoration(imageAsset: 'assets/images/gold_ornaments.png'),
-          
-          Column
-          (
-            children: 
-            [
-              const SizedBox(height: 20),
-              Expanded
-              (
-                child: Column
-                (
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children:
-                   [
+          absorbing: _searching, // Bloquea interacciones si se está buscando una partida.
 
-                    SizedBox
+          child: Scaffold
+          (
+            extendBodyBehindAppBar: true, // extender el fondo detrás de la barra de aplicaciones
+            backgroundColor: Colors.transparent, // fondo transparente
+            appBar:AppBar // barra de aplicaciones
+            (
+              backgroundColor: Colors.transparent, 
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              title: Row
+              (
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: 
+                [
+                  profileButton(context),
+                  Image.asset('assets/images/app_logo_white.png', width: 60, height: 60),
+                DisplaySettings
+                (
+                    onVolumeChanged: (value) => AudioService().setGeneralVolume(value),
+                    onMusicVolumeChanged: (value) => AudioService().setMusicVolume(value),
+                    onEffectsVolumeChanged: (value) => AudioService().setEffectsVolume(value),
+                  ),
+                ],
+              ),
+            ),
+            body: Stack
+            (
+              children:
+              [
+                const Background(),
+                const CornerDecoration(imageAsset: 'assets/images/gold_ornaments.png'),
+          
+                Column
+                (
+                  children: 
+                  [
+                    const SizedBox(height: 20),
+                    Expanded
                     (
-                      height: 500,
-                      child:  PageView
+                      child: Column
                       (
-                        controller: _pageController,
-                        children: 
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children:
                         [
-                          BuildGameModeCard(title: 'Modo 2vs2', assetPath: 'assets/images/cartasBoton.png', description: 'Juega en equipos de dos.'),
-                          BuildGameModeCard(title: 'Modo 1vs1', assetPath: 'assets/images/cartaBoton.png', description: 'Desafía a un solo oponente.'),
+          
+                          SizedBox
+                          (
+                            height: 500,
+                            child:  PageView
+                            (
+                              controller: _pageController,
+                              children: 
+                              [
+                                BuildGameModeCard(title: 'Modo 2vs2', assetPath: 'assets/images/cartasBoton.png', description: 'Juega en equipos de dos.'),
+                                BuildGameModeCard(title: 'Modo 1vs1', assetPath: 'assets/images/cartaBoton.png', description: 'Desafía a un solo oponente.'),
+                              ],
+                            ),
+                          ),
+          
+                          const SizedBox(height: 10),
+          
+                          SmoothPageIndicator
+                          (
+                            controller: _pageController,
+                            count: 2,
+                            effect: WormEffect
+                            (
+                              dotHeight: 10,
+                              dotWidth: 10,
+                              activeDotColor: Colors.white,
+                            ),
+                          ),
+          
+                          const SizedBox(height: 20),
+                          
+                          CustomButton
+                          (
+                            buttonText: _searching ? 'Buscando...' : 'Buscar Partida',
+                            color: Colors.amber,
+                            onPressedAction: _searching ? null : () { _searchGame();}, // Llama a la función de búsqueda de partida
+                          ),
+                          
                         ],
                       ),
                     ),
-
-                    const SizedBox(height: 10),
-
-                    SmoothPageIndicator
-                    (
-                      controller: _pageController,
-                      count: 2,
-                      effect: WormEffect
-                      (
-                        dotHeight: 10,
-                        dotWidth: 10,
-                        activeDotColor: Colors.white,
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-                    
-                    if(_players.isNotEmpty)...
-                    [
-                      Text(_statusMessage, style: const TextStyle(color: Colors.white, fontSize: 16)),
-                      const SizedBox(height: 8),
-                      for (var player in _players)...
-                      {
-                        Text(player['nombre'] as String, style: const TextStyle(color: Colors.white, fontSize: 16)),
-                      },
-
-                      const SizedBox(height: 16),
-                    ],
-
-                    CustomButton
-                    (
-                      buttonText: _searching ? 'Buscando...' : 'Buscar Partida',
-                      color: Colors.amber,
-                      onPressedAction: _searching ? null : () { _searchGame();}, // Llama a la función de búsqueda de partida
-                    ),
-                    
                   ],
-                ),
-              ),
-            ],
+                ),            
+              ],
+            ),
+            bottomNavigationBar: CustomNavBar(selectedIndex: _selectedIndex),
+          ),
+        ),
+        
+        // Mostramos el prelobby si se está buscando una partida
+        if(_searching)...
+        [
+          SearchLobby
+          (
+            statusMessage: _statusMessage,
+            players: _players,
+            onCancel: _cancelSearch, // Llama a la función de cancelar búsqueda
           ),
         ],
-      ),
-      bottomNavigationBar: CustomNavBar(selectedIndex: _selectedIndex),
+      ],
     );
   }
 
