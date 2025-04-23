@@ -59,7 +59,7 @@ class HomeScreenState extends State<HomeScreen>
   late StreamSubscription<Map<String,dynamic>>? _subscription; // suscripción al stream de mensajes entrantes
   String? _profileImageUrl; // URL de la imagen de perfil del usuario
   final int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
-
+  Map<String, dynamic>? _gameData; // datos del juego
 
   @override
   void initState() 
@@ -129,20 +129,28 @@ class HomeScreenState extends State<HomeScreen>
 
           if (type == 'start_game' && data != null) 
           {
-            // Cierra el overlay de carga
             if( Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
-            _subscription?.cancel(); // Cancela la suscripción al socket en esta pantalla.
+
             setState(() {
+              _gameData = data; // Guarda los datos del juego.
               _searching = false; // Cambia el estado a no buscando.
               _statusMessage = 'Partida iniciada'; // Actualiza el mensaje de estado. 
             });
+          }
 
-            // Navega a la pantalla de juego y pasamos los datos del juego y socket
+          if (type == 'turn_update' && data != null) 
+          {
+            // Cierra el overlay de carga
+            if( Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
+            _subscription?.cancel(); // Cancela la suscripción al socket en esta pantalla.
+
+            // Navega a la pantalla de juego y pasamos los datos del juego , primer turno y socket
             Navigator.pushReplacementNamed(
               context, 
               AppRoutes.game, 
               arguments: {
-                'data': data, // Datos del juego
+                'gameData': _gameData, // Datos del juego
+                'firstTurn': data, // Primer turno del juego
                 'socket': _websocketService, // Socket del juego
               });
           }
