@@ -91,4 +91,7 @@ class Config {
   static String get topEloFriendsEndpoint => _config['top_elo_amigos_endpoint'];
   static String get topEloParejasFriendsEndpoint =>
       _config['top_elo_parejas_amigos_endpoint'];
+
+  static String get obtenerListadoPartidasDisponibles => _config['obtener_listado_partidas_endpoint'];
+  static String get obtenerListadoPartidasReconectables => _config['obtener_listado_partidas_reconectables_endpoint'];
 }

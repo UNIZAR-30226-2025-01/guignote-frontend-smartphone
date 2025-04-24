@@ -18,5 +18,7 @@
     "top_elo_parejas_endpoint": "/usuarios/top_elo_parejas/",
     "conexion_partida_endpoint": "/ws/partida/",
     "top_elo_amigos_endpoint": "/usuarios/top_elo_amigos/",
-    "top_elo_parejas_amigos_endpoint": "/usuarios/top_elo_parejas_amigos/"
+    "top_elo_parejas_amigos_endpoint": "/usuarios/top_elo_parejas_amigos/",
+    "obtener_listado_partidas_endpoint": "/salas/disponibles/",
+    "obtener_listado_partidas_reconectables_endpoint": "/salas/reconectables/"
 }

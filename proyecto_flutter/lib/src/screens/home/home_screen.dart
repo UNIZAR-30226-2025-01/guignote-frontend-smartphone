@@ -9,9 +9,10 @@ import 'package:sota_caballo_rey/src/widgets/gamemode_card.dart';
 import 'package:sota_caballo_rey/src/services/audio_service.dart';
 import 'package:sota_caballo_rey/routes.dart';
 import 'dart:async';
-import 'package:sota_caballo_rey/src/services/websocket_service.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/widgets/search_lobby.dart';
+import 'package:sota_caballo_rey/src/services/search_game_service.dart';
+import 'package:sota_caballo_rey/src/utils/show_error.dart';
 
 
 /// HomeScreen
@@ -51,15 +52,15 @@ class HomeScreen extends StatefulWidget
 /// 
 class HomeScreenState extends State<HomeScreen> 
 {
-  final WebsocketService _websocketService = WebsocketService(); // instancia del servicio de WebSocket
+  final SearchGameService _searchGameService = SearchGameService(); // servicio para buscar partidas
   final PageController _pageController = PageController(); // controlador de página
-
   bool _searching = false; // variable para controlar si se está buscando una partida
   String _statusMessage = 'Pulsa "Buscar Partida" para comenzar'; // mensaje de estado
   final List <Map<String, dynamic>> _players = []; // lista de jugadores
   StreamSubscription<Map<String,dynamic>>? _subscription; // suscripción al stream de mensajes entrantes
   String? _profileImageUrl; // URL de la imagen de perfil del usuario
   final int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
+  int _currentModeIndex = 0; // índice del modo de juego seleccionado
   Map<String, dynamic>? _gameData; // datos del juego
 
   @override
@@ -97,24 +98,45 @@ class HomeScreenState extends State<HomeScreen>
        _players.clear(); // Limpia la lista de jugadores.  
     });
 
-    // Muestra un overlay de carga
-    showDialog
-    (
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
+    final capacidad = (_currentModeIndex == 0) ? 4 : 2; // Establece la capacidad según el modo de juego seleccionado.
+    
     try
     {
-      // Conecta al socket pidiendo 2 jugadores
-      await _websocketService.connect(capacidad: 2, soloAmigos: false);
+      // Conecta al servidor usando el servicio de búsqueda de partidas
+      await _searchGameService.connectToGame(capacidad: capacidad, soloAmigos: false); // Conecta al servidor para buscar una partida.
 
       _subscription?.cancel(); // Cancela la suscripción anterior si existe.
       _subscription = null; // Restablece la suscripción.
 
       // Escucha los mensajes entrantes del socket
-      _subscription = _websocketService.incomingMessages.listen
+      _subscription = _searchGameService.listenIncomingMessages().listen
+      (
+        (message) 
+        {
+          final type = message['type'] as String?; // Obtiene el tipo de mensaje.
+          final data = message['data'] as Map<String, dynamic>?; // Obtiene los datos del mensaje.
+
+          if (type == 'player_joined' && data != null) 
+          {
+            setState(() 
+            {
+              _players.add(data['usuario'] as Map<String, dynamic>); // Agrega el jugador a la lista de jugadores.
+              _statusMessage = 'Esperando jugadores: ${_players.length}/$capacidad'; // Actualiza el mensaje de estado.
+            });
+          }
+
+          if (type == 'start_game' && data != null) 
+          {
+            setState(() 
+            {
+              _gameData = data; // Guarda los datos del juego.
+              _searching = false; // Cambia el estado a no buscando.
+              _statusMessage = 'Partida iniciada'; // Actualiza el mensaje de estado. 
+            });
+          }
+        },
+        onError: (error) => debugPrint('Error en la conexión: $error'), // Maneja errores de conexión.
+      );
       (
         (message) 
         {
@@ -142,41 +164,27 @@ class HomeScreenState extends State<HomeScreen>
             });
           }
 
-          if (type == 'turn_update' && data != null) 
+          if(type == 'player_left' && data != null) 
           {
-            // Cierra el overlay de carga
-            if( Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
-            _subscription?.cancel(); // Cancela la suscripción al socket en esta pantalla.
-
-            // Navega a la pantalla de juego y pasamos los datos del juego , primer turno y socket
-            Navigator.pushReplacementNamed(
-              context, 
-              AppRoutes.game, 
-              arguments: {
-                'gameData': _gameData, // Datos del juego
-                'firstTurn': data, // Primer turno del juego
-                'socket': _websocketService, // Socket del juego
-              });
+            setState(() 
+            {
+              _players.removeWhere((player) => player['id'] == data['usuario']['id']); // Elimina el jugador de la lista.
+              _statusMessage = 'Esperando jugadores: ${_players.length}/$capacidad'; // Actualiza el mensaje de estado.
+            });
           }
         }
       );
     } catch (e)
     {
-      if(Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
       setState(() {
         _searching = false; // Cambia el estado a no buscando.
         _statusMessage = 'Error al buscar partida'; // Actualiza el mensaje de estado.
       });
 
-      ScaffoldMessenger.of(context).showSnackBar
-      (
-        const SnackBar
-        (
-          content: Text('Error al buscar partida'),
-          backgroundColor: Colors.redAccent,
-          duration: Duration(seconds: 3),
-        ),
-      );
+      if(!mounted) return; // Verifica si el widget está montado antes de continuar.
+
+      showError(context, 'Error al buscar partida'); // Muestra un mensaje de error.
+
     }
   }
 
@@ -189,11 +197,102 @@ class HomeScreenState extends State<HomeScreen>
       _players.clear(); // Limpia la lista de jugadores.
     });
 
-    _websocketService.disconnect(); // Desconecta el socket.
+    // Notifica al servidor que se ha cancelado la búsqueda de partida.
+    _searchGameService.sendMessage
+    (
+      {
+        'type': 'cancel_search', // Tipo de mensaje: cancelar búsqueda.
+        'data': {}, // Datos vacíos.
+      },
+    );
+
+    _searchGameService.disconnectFromMatch(); // Desconecta el socket.
     _subscription?.cancel(); // Cancela la suscripción al socket.
     _subscription = null; // Restablece la suscripción.
-    
+  }
 
+  Future<void> _showAvailableGames() async
+  {
+    try
+    {
+      final games = await _searchGameService.getAvailableGames(); // Obtiene las partidas disponibles.  
+
+      if(!mounted) return; // Verifica si el widget está montado antes de continuar.
+
+      showDialog
+      (
+        context: context,
+        builder: (context) => AlertDialog
+        (
+          title: const Text('Partidas disponibles'),
+          content: ListView.builder
+          (
+            itemCount: games.length,
+            itemBuilder: (context, index) 
+            {
+              final game = games[index]; // Obtiene la partida actual.
+              return ListTile
+              (
+                title: Text(game['nombre']), // Muestra el nombre de la partida.
+                subtitle: Text('Jugadores: ${game['num_jugadores']}/${game['capacidad']}'), // Muestra la cantidad de jugadores.
+                onTap: () 
+                {
+                  _searchGameService.connectToGame(idPartida: int.parse(game['id']), capacidad: game['capacidad']); // Conecta a la partida seleccionada.
+                  Navigator.of(context).pop(); // Cierra el diálogo.
+                },
+              );
+            },
+          ),
+        ),
+      );
+    }
+    catch(e)
+    {
+      if(!mounted) return; // Verifica si el widget está montado antes de continuar.
+      showError(context, 'Error al obtener partidas disponibles'); // Muestra un mensaje de error.
+    }
+  }
+
+  Future<void> _showReconnectableGames() async
+  {
+    try
+    {
+      final games = await _searchGameService.getReconnectableGames(); // Obtiene las partidas reconectables.
+      if(!mounted) return; // Verifica si el widget está montado antes de continuar.
+
+      showDialog
+      (
+        context: context,
+        builder: (context) => AlertDialog
+        (
+          title: const Text('Mis partidas'),
+          content: ListView.builder
+          (
+            itemCount: games.length,
+            itemBuilder: (context, index) 
+            {
+              final game = games[index]; // Obtiene la partida actual.
+              return ListTile
+              (
+                title: Text(game['nombre']), // Muestra el nombre de la partida.
+                subtitle: Text('Jugadores: ${game['num_jugadores']}/${game['capacidad']}'), // Muestra la cantidad de jugadores.
+                onTap: () 
+                {
+                  _searchGameService.connectToGame(idPartida: int.parse(game['id']), capacidad: game['capacidad']); // Conecta a la partida seleccionada.
+                  Navigator.of(context).pop(); // Cierra el diálogo.
+                },
+              );
+            },
+          ),
+        ),
+
+      );
+    }
+    catch(e)
+    {
+      if(!mounted) return; // Verifica si el widget está montado antes de continuar.
+      showError(context, 'Error al obtener partidas reconectables'); // Muestra un mensaje de error.
+    }
   }
 
   @override
@@ -201,7 +300,8 @@ class HomeScreenState extends State<HomeScreen>
   {
     if(_searching)
     {
-      _websocketService.disconnect(); // Desconecta el socket si se está buscando una partida.
+      _searchGameService.disconnectFromMatch(); // Desconecta el socket si se está buscando una partida.
+      _searching = false; // Cambia el estado a no buscando.
       _subscription?.cancel(); // Cancela la suscripción al socket.
     }
     _pageController.dispose(); // Libera el controlador de página.
@@ -269,6 +369,13 @@ class HomeScreenState extends State<HomeScreen>
                             height: 500,
                             child:  PageView
                             (
+                              onPageChanged: (index)
+                              {
+                                setState(() 
+                                {
+                                  _currentModeIndex = index; // Actualiza el índice del modo de juego seleccionado.
+                                });
+                              },
                               controller: _pageController,
                               children: 
                               [
@@ -288,19 +395,58 @@ class HomeScreenState extends State<HomeScreen>
                             (
                               dotHeight: 10,
                               dotWidth: 10,
-                              activeDotColor: Colors.white,
+                              activeDotColor: Colors.amber,
                             ),
                           ),
           
                           const SizedBox(height: 20),
-                          
-                          CustomButton
+
+                          Column
                           (
-                            buttonText: _searching ? 'Buscando...' : 'Buscar Partida',
-                            color: Colors.amber,
-                            onPressedAction: _searching ? null : () { _searchGame();}, // Llama a la función de búsqueda de partida
+                            children: 
+                            [
+                              CustomButton
+                              (
+                                buttonText: _searching ? 'Buscando...' :  'Partida rápida',
+                                color: Colors.amber,
+                                onPressedAction: _searching ? null : _searchGame, // Llama a la función de buscar partida.
+                              ),
+
+                              const SizedBox(height: 20),
+                              Row
+                              (
+                                mainAxisSize: MainAxisSize.max,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: 
+                                [
+                                  Expanded
+                                  (
+                                    child: CustomButton
+                                    (
+                                      buttonText: 'Partidas disponibles',
+                                      color: Colors.amber,
+                                      onPressedAction: _showAvailableGames, // Llama a la función de mostrar partidas disponibles.
+                                    ),
+                                  ),
+                                  
+                                  const SizedBox(width: 10),
+
+                                  Expanded
+                                  (
+                                    child: CustomButton
+                                    (
+                                      buttonText: 'Mis partidas',
+                                      color: Colors.amber,
+                                      onPressedAction: _showReconnectableGames, // Llama a la función de mostrar partidas reconectables.
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                           
+
+
                         ],
                       ),
                     ),

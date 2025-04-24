@@ -47,7 +47,7 @@ Widget _buildGameModeCard(String title, String assetPath, String description)
               (
                 image: AssetImage(assetPath),
                 opacity: 0.95,
-                scale: 0.75,
+                scale: 0.95,
               ),
             ),
           ),
