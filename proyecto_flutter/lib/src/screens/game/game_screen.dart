@@ -9,7 +9,7 @@ import 'package:sota_caballo_rey/routes.dart';
 import 'dart:math' as math;
 import 'dart:async';
 
-const int SEGUNDOS_POR_TURNO = 60; // Segundos por turno
+const int SEGUNDOS_POR_TURNO = 15; // Segundos por turno
 const int CARTAS_POR_RONDA = 2; // Cartas que se juegan en cada ronda entre todos los jugadores
 const String deckSelected = 'base'; // Baraja seleccionada por el jugador.
 
@@ -123,8 +123,6 @@ class _GameScreenState extends State<GameScreen> {
 
         _websocketService?.send(data); // Envía la carta jugada al servidor
 
-        playerPlayedCard = card;
-        playerHand.remove(card);
         //print('jugar_carta: $data');
       } else {
         print('No es tu turno para jugar la carta: $card');
@@ -203,7 +201,11 @@ class _GameScreenState extends State<GameScreen> {
           if(jugadorid != jugador1Id){
             rivalPlayedCard = cartaString; // carta jugada por el rival
             rivalHand.remove('Back'); // elimina la carta del mazo del rival
+          }else{
+            playerPlayedCard = cartaString;
+            playerHand.remove(cartaString);
           }
+
         });
       }
 
