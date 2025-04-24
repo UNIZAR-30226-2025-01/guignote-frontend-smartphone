@@ -61,7 +61,6 @@ class CustomTextForm extends StatelessWidget
   {
     return TextFormField
     (
-      key: key,
       controller: controller,
       obscureText: obscureText,
       validator: validator,

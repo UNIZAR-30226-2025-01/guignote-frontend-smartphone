@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:sota_caballo_rey/routes.dart';
+import 'package:sota_caballo_rey/tests_config.dart' as tests_config;
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -11,12 +12,21 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
-  late VideoPlayerController _controller;
+  VideoPlayerController? _controller;
   bool _isVideoInitialized = false;
 
   @override
   void initState() {
     super.initState();
+
+    // Verificamos si estamos en modo de prueba.
+    if (tests_config.isTestEnvironment) {
+      // Si estamos en modo de prueba, redirigimos a la pantalla de bienvenida inmediatamente.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacementNamed(context, AppRoutes.welcome);
+      });
+      return;
+    }    
 
     // Cargamos el video desde assets.
     _controller = VideoPlayerController.asset(
@@ -29,23 +39,23 @@ class _LoadingScreenState extends State<LoadingScreen> {
             });
 
             // Inicia la reproducción.
-            _controller.play();
+            _controller!.play();
             
-            debugPrint("Video inicializado: ${_controller.value.isInitialized}");
-            debugPrint("Video en reproducción: ${_controller.value.isPlaying}");
+            debugPrint("Video inicializado: ${_controller!.value.isInitialized}");
+            debugPrint("Video en reproducción: ${_controller!.value.isPlaying}");
 
             // Fallback, si el video no termina en 5 segundos, redirige a la pantalla de bienvenida.
             Timer(const Duration(seconds: 5), () {
-              if (_controller.value.isInitialized &&
-                  !_controller.value.isPlaying) {
+              if (_controller!.value.isInitialized &&
+                  !_controller!.value.isPlaying) {
                 Navigator.pushReplacementNamed(context, AppRoutes.welcome);
               }
             });
 
-            _controller.addListener(() {
-              if (_controller.value.isInitialized &&
-                  !_controller.value.isPlaying &&
-                  _controller.value.position >= _controller.value.duration) {
+            _controller!.addListener(() {
+              if (_controller!.value.isInitialized &&
+                  !_controller!.value.isPlaying &&
+                  _controller!.value.position >= _controller!.value.duration) {
                 Navigator.pushReplacementNamed(context, AppRoutes.welcome);
               }
             });
@@ -58,7 +68,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   void dispose() {
     // Liberamos el controlador cuando termina.
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -70,8 +80,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
         child:
             _isVideoInitialized
                 ? AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: VideoPlayer(_controller),
+                  aspectRatio: _controller!.value.aspectRatio,
+                  child: VideoPlayer(_controller!),
                 )
                 : const CircularProgressIndicator(),
       ),

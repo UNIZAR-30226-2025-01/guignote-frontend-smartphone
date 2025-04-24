@@ -282,7 +282,7 @@ class LoginScreenState extends State<LoginScreen>
       width: 300, // Ancho del campo de texto.
 
       child: CustomTextForm(
-        key: const Key('passwordField'), // Clave del campo de texto.
+        key: const Key('_passwordField'), // Clave del campo de texto.
         hintText: 'Contraseña', // Texto de ayuda.
         prefixIcon: Icons.lock, // Icono del prefijo.
         controller: _passwdController, // Controlador del campo de texto.
@@ -317,7 +317,7 @@ class LoginScreenState extends State<LoginScreen>
     return SizedBox(
       width: 300, // Ancho del campo de texto.
       child: CustomTextForm(
-        key: const Key('usernameField'), // Clave del campo de texto.
+        key: const Key('_usernameField'), // Clave del campo de texto.
         hintText: 'Usuario', // Texto de ayuda.
         prefixIcon: Icons.person, // Icono del prefijo.
         controller: _usrController, // Controlador del campo de texto.

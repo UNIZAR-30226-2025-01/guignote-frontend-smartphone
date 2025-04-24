@@ -3,12 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sota_caballo_rey/main.dart';
 import 'package:sota_caballo_rey/src/screens/auth/login_screen.dart';
 import 'package:sota_caballo_rey/src/screens/auth/register_screen.dart';
+import 'package:sota_caballo_rey/tests_config.dart' as tests_config;
 
 // Tests reutilizables
 import 'tests_reutilizables.dart';
 
 void main()
 {
+  tests_config.isTestEnvironment = true; // Establece el entorno de prueba para evitar la carga del video.
 
   group('WelcomePage Widgets Tests', ()
   {
@@ -16,6 +18,7 @@ void main()
     {
       // Carga la app completa 
       await tester.pumpWidget(const MyApp());
+      await tester.pumpAndSettle();
 
       // Verifica que el título de la app esté visible.
       await checkVisibility(tester, 'Sota, Caballo y Rey');
@@ -33,18 +36,20 @@ void main()
     {
       // Carga la app completa
       await tester.pumpWidget(const MyApp());
+      await tester.pumpAndSettle();
 
       // Verifica la navegación a la pantalla de inicio de sesión
-      await checkNavigation(tester, 'Iniciar Sesión', LoginScreen);
+      await checkNavigation(tester, const Key('login-button') , LoginScreen);
     });
 
     testWidgets('El botón Registrarse navega a la pantalla de registro', (WidgetTester tester) async
     {
       // Carga la app completa
       await tester.pumpWidget(const MyApp());
+      await tester.pumpAndSettle();
 
       // Verifica la navegación a la pantalla de inicio de sesión
-      await checkNavigation(tester, 'Crear Cuenta', RegisterScreen);
+      await checkNavigation(tester, const Key('register-button'), RegisterScreen);
     });
     
   });  

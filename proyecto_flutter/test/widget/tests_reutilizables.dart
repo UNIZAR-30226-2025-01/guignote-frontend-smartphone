@@ -8,9 +8,9 @@ Future<void> checkVisibility(WidgetTester tester, String text) async
 }
 
 /// Este test verifica la navegación de un botón
-Future<void> checkNavigation(WidgetTester tester, String buttonText, Type expectedPageType) async
+Future<void> checkNavigation(WidgetTester tester, Key buttonKey, Type expectedPageType) async
 {
-  final button = find.text(buttonText);
+  final button = find.byKey(buttonKey);
   
   // Verificación de que el botón exista.
   expect(button,findsOneWidget);
@@ -89,8 +89,5 @@ Future<void> checkDialogVisible(WidgetTester tester, String dialogText) async
   expect(find.byType(AlertDialog), findsOneWidget);
   expect(find.text(dialogText), findsOneWidget);
 }
-
-
-
 
 
