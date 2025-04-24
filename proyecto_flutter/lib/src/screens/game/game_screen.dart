@@ -5,6 +5,7 @@ import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/widgets/game/game_card.dart';
 import 'package:sota_caballo_rey/src/widgets/game/card_in_fan.dart';
 import 'package:sota_caballo_rey/src/services/websocket_service.dart';
+import 'package:sota_caballo_rey/routes.dart';
 import 'dart:math' as math;
 import 'dart:async';
 
@@ -84,6 +85,13 @@ class _GameScreenState extends State<GameScreen> {
       print('Formato de carta inválido: $card');
       return null; // Devuelve null si el formato es inválido
     }
+  }
+
+  void salirDeLaPartida() {
+    cuentaAtrasTurnoTimer.cancel(); // Cancela el temporizador de cuenta atrás
+    _websocketService?.disconnect(); // Cierra el WebSocket
+    Navigator.pushReplacementNamed(context, AppRoutes.home); // Redirige a la pantalla de inicio
+                      
   }
 
   void onCardTap(String card) {
@@ -224,8 +232,14 @@ class _GameScreenState extends State<GameScreen> {
           if (cartasRestantes > 0) {
             cartasRestantes -= CARTAS_POR_RONDA; // Actualiza el número de cartas restantes
           }
+
+          if (cartasRestantes <= 0) {
+            faseArrastre = true; // Asegúrate de que no sea negativo
+          }
           playerPlayedCard = ''; // Reinicia la carta jugada por el jugador
           rivalPlayedCard = ''; // Reinicia la carta jugada por el rival
+          segundosRestantesTurno = SEGUNDOS_POR_TURNO; // Reinicia el temporizador de cuenta atrás
+          mostrarSegundosRestantesTurno = false; // Oculta el temporizador de cuenta atrás
           // Actualiza los puntos de los jugadores
           if(ganadorId == jugador1Id){
             jugador1Puntos += puntosGanados; // suma los puntos ganados al jugador 1
@@ -292,6 +306,53 @@ class _GameScreenState extends State<GameScreen> {
         }
       }
       */
+
+      if (type == 'end_game' && data != null) {
+
+        setState(() {
+          cuentaAtrasTurnoTimer.cancel(); // Cancela el temporizador de cuenta atrás
+          mostrarSegundosRestantesTurno = false;
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('FIN DE LA PARTIDA'),
+                content: Text('Tus puntos: $jugador1Puntos\nPuntos rival: $jugador2Puntos\nGanador: ${data['ganador_equipo']}'),
+                actions: [
+                    Align(
+                    alignment: Alignment.bottomCenter,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.9, // Ocupa el 90% del ancho
+                      child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red, // Color rojo
+                        padding: const EdgeInsets.symmetric(vertical: 15), // Altura del botón
+                        shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10), // Bordes redondeados
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Cierra el diálogo
+                        _websocketService?.disconnect(); // Cierra el WebSocket
+                        Navigator.pushReplacementNamed(context, AppRoutes.home); // Redirige a la pantalla de inicio
+                      },
+                      child: const Text(
+                        'SALIR',
+                        style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18, // Tamaño de fuente más grande
+                        fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        });
+      }
     });
   }
 
@@ -362,12 +423,11 @@ class _GameScreenState extends State<GameScreen> {
 
 
     String miNombre = '';
-    String miFoto = '';
+
     // extrae mis datos
     try {
       final stats = await getUserStatistics(); // Llama al método para obtener los datos
       miNombre = stats['nombre'] ?? 'null'; // Nombre del jugador
-      miFoto = stats['imagen'] ?? 'null'; // URL de la foto del jugador
     } catch (error) {
       print("Error al obtener estadísticas del usuario: $error");
     }
@@ -404,15 +464,12 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
 
+    final dataJugador1 = await getUserStatisticsWithID(jugador1Id!); // Llama al método para obtener los datos del jugador 1
+    final dataJugador2 = await getUserStatisticsWithID(jugador2Id!); // Llama al método para obtener los datos del jugador 2
 
-    jugador1FotoUrl = miFoto; // Asigna la foto del jugador a jugador1
-    jugador2FotoUrl = '';
+    jugador1FotoUrl = dataJugador1['imagen'] ?? ''; // Asigna la foto del jugador a jugador1
+    jugador2FotoUrl = dataJugador2['imagen'] ?? ''; // Asigna la foto del jugador a jugador2
 
-  
-
-    
-
-    
 
     _listenToWebSocket(); // Escucha los mensajes del WebSocket
   }
@@ -453,19 +510,21 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
 
-          // Carta triunfo
-          Align(
-            alignment: const Alignment(0.3, -0.11),
-            child: RotatedBox(
+          if (faseArrastre == false) ...[
+            // Carta triunfo
+            Align(
+              alignment: const Alignment(0.3, -0.11),
+              child: RotatedBox(
               quarterTurns: 45,
               child: GameCard(card: triunfo, deck: deckSelected, width: 75),
+              ),
             ),
-          ),
-          // Carta del mazo
-          Align(
-            alignment: const Alignment(0.0, -0.15),
-            child: GameCard(card: 'Back', deck: deckSelected, width: 75),
-          ),
+            // Carta del mazo
+            Align(
+              alignment: const Alignment(0.0, -0.15),
+              child: GameCard(card: 'Back', deck: deckSelected, width: 75),
+            ),
+          ],
 
           
           // Carta jugada por el jugador
@@ -668,51 +727,38 @@ class _GameScreenState extends State<GameScreen> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              backgroundColor: Colors.black,
-              content: SizedBox(
-                height: 200,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Ajustes',
-                      style: TextStyle(color: Colors.white, fontSize: 24),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Volumen',
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                    Slider(
-                      value: _volume,
-                      min: 0,
-                      max: 1,
-                      divisions: 10,
-                      onChanged: (value) {
-                        setState(() {
-                          _volume = value;
-                        });
-                      },
-                      activeColor: Colors.white,
-                      inactiveColor: Colors.grey,
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
+                title: const Text('AJUSTES'),
+                content: Text(''),
+                actions: [
+                    Align(
+                    alignment: Alignment.bottomCenter,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.9, // Ocupa el 90% del ancho
+                      child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
+                        backgroundColor: Colors.red, // Color rojo
+                        padding: const EdgeInsets.symmetric(vertical: 15), // Altura del botón
+                        shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10), // Bordes redondeados
+                        ),
                       ),
                       onPressed: () {
-                        Navigator.of(context).pop();
-                      },
+                        Navigator.of(context).pop(); // Cierra el diálogo
+                        salirDeLaPartida(); // Cierra el WebSocket y redirige a la pantalla de inicio
+                        },
                       child: const Text(
-                        'Cerrar',
-                        style: TextStyle(color: Colors.black),
+                        'SALIR',
+                        style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18, // Tamaño de fuente más grande
+                        fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            );
+                  ),
+                ],
+              );
           },
         );
       },

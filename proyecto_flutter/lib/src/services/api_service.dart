@@ -719,7 +719,7 @@ Future<String> cambiarImagenPerfil(File imagen) async {
   }
 }
 
-// La siguiente función busca extraer de la BD la información del usuario y de sus estadísticas.
+// La siguiente función busca extraer de la BD la información de cualquier usuario solo con su id.
 Future<Map<String, dynamic>> getUserStatistics() async {
   // Obtenemos el token de autenticación.
   String? token = await StorageService.getToken();
@@ -732,6 +732,28 @@ Future<Map<String, dynamic>> getUserStatistics() async {
   );
 
   final response = await http.get(url, headers: {"Auth": token});
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else if (response.statusCode == 401) {
+    throw Exception("Token inválido o no proporcionado.");
+  } else if (response.statusCode == 405) {
+    throw Exception("Método no permitido.");
+  } else {
+    throw Exception("Error desconocido. Codigo ${response.statusCode}");
+  }
+}
+
+
+// La siguiente función busca extraer de la BD la información del usuario y de sus estadísticas.
+Future<Map<String, dynamic>> getUserStatisticsWithID(int userId) async{
+  // Obtenemos el token de autenticación.
+
+  final url = Uri.parse(
+    '${Config.apiBaseURL}${Config.buscarEstadisticasUsuario}$userId/',
+  );
+
+  final response = await http.get(url);
 
   if (response.statusCode == 200) {
     return jsonDecode(response.body);
