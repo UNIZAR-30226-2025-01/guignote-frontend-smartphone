@@ -21,6 +21,7 @@ class User
 
   static const String defaultProfileImageUrl = 'assets/images/default_profile.png';
 
+  final int id;
   final String username;
   final String email;
   final String password;
@@ -29,6 +30,7 @@ class User
 
   User
   ({
+    required this.id,
     required this.username,
     required this.email,
     required this.password,
@@ -39,6 +41,7 @@ class User
   // Conversión de JSON a modelo utilizable por la aplicación.
   factory User.fromJson(Map<String, dynamic> json) => User
   (
+    id: json['id'],
     username: json['nombre'],
     email: json['correo'],
     password: json['contrasegna'],
@@ -49,6 +52,7 @@ class User
   // Conversión de modelo a JSON para enviar a la API.
   Map<String, dynamic> toJson() => 
   {
+    'id': id,
     'nombre': username,
     'correo': email,
     'contrasegna': password,

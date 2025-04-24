@@ -7,6 +7,7 @@ import 'package:sota_caballo_rey/src/widgets/game/card_in_fan.dart';
 import 'package:sota_caballo_rey/src/services/websocket_service.dart';
 import 'dart:math' as math;
 import 'dart:async';
+import 'package:sota_caballo_rey/src/screens/game/gamechat_modal.dart';
 
 const int SEGUNDOS_POR_TURNO = 60; // Segundos por turno
 const int CARTAS_POR_RONDA = 2; // Cartas que se juegan en cada ronda entre todos los jugadores
@@ -81,7 +82,7 @@ class _GameScreenState extends State<GameScreen> {
         'valor': numero,
       };
     } else {
-      print('Formato de carta inválido: $card');
+      debugPrint('Formato de carta inválido: $card');
       return null; // Devuelve null si el formato es inválido
     }
   }
@@ -731,8 +732,15 @@ class _GameScreenState extends State<GameScreen> {
 
   ElevatedButton buildChatButton(BuildContext context) {
     return ElevatedButton(
-      onPressed: () {
-        // Acción cuando se presiona el botón
+      onPressed: () 
+      {
+        showModalBottomSheet
+        (
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder:(_) => GamechatModal(chatId: chatId!),
+        );
       },
       style: ElevatedButton.styleFrom(
         shape: CircleBorder(), // Forma circular
@@ -741,7 +749,7 @@ class _GameScreenState extends State<GameScreen> {
       ),
       child: Icon(
         Icons.chat, // Icono de ajustes
-        color: Colors.white, // Color del ícono
+        color: Colors.white, // Color del icono
         size: 30, // Tamaño del ícono aumentado
       ),
     );

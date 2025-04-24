@@ -18,5 +18,7 @@
     "top_elo_parejas_endpoint": "/usuarios/top_elo_parejas/",
     "conexion_partida_endpoint": "/ws/partida/",
     "top_elo_amigos_endpoint": "/usuarios/top_elo_amigos/",
-    "top_elo_parejas_amigos_endpoint": "/usuarios/top_elo_parejas_amigos/"
+    "top_elo_parejas_amigos_endpoint": "/usuarios/top_elo_parejas_amigos/",
+    "obtener_mensajes_chat_partida_endpoint": "/chat_partida/obtener/",
+    "websocket_chat_partida_endpoint": "/ws/chat_partida/"
 }
