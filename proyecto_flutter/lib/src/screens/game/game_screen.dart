@@ -69,6 +69,38 @@ class _GameScreenState extends State<GameScreen> {
   int jugador2Puntos = 0;
   String jugador2FotoUrl = 'https://picsum.photos/seed/picsum/200/300';
 
+  void ordenarCartas(List<String> hand) {
+    const valorPrioridad = {
+      '1': 10,
+      '3': 9,
+      '12': 8,
+      '10': 7,
+      '11': 6,
+      '7': 5,
+      '6': 4,
+      '5': 3,
+      '4': 2,
+      '2': 1,
+    };
+
+    hand.sort((a, b) {
+      // Divide las cartas en valor y palo
+      final cardA = parseCard(a)!; // Usa parseCard para obtener el valor y el palo
+      final cardB = parseCard(b)!;
+
+      // Compara primero por palo
+      int paloComparison = cardA['palo']!.compareTo(cardB['palo']!);
+      if (paloComparison != 0) {
+        return paloComparison; // Si los palos son diferentes, ordena por palo
+      }
+
+      // Si los palos son iguales, compara por prioridad de valor
+      int prioridadA = valorPrioridad[cardA['valor']!]!;
+      int prioridadB = valorPrioridad[cardB['valor']!]!;
+      return prioridadB.compareTo(prioridadA); // Ordena de mayor a menor prioridad
+    });
+  }
+
   Map<String, String>? parseCard(String card) {
     // Usa una expresión regular para separar el número y el palo
     final match = RegExp(r'^(\d+)([A-Za-z]+)$').firstMatch(card);
@@ -267,6 +299,7 @@ class _GameScreenState extends State<GameScreen> {
         
         setState(() {
           playerHand.add(cartaString); // añade la carta al mazo del jugador
+          ordenarCartas(playerHand); // ordena las cartas de la mano del jugador
           rivalHand.add('Back'); // añade la carta al mazo del rival
         });
       }
@@ -412,7 +445,8 @@ class _GameScreenState extends State<GameScreen> {
         }
       }
     }
-  
+
+    ordenarCartas(playerHand); // Ordena las cartas de la mano del jugador
 
     faseArrastre = data?['fase_arrastre'];
 
