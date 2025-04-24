@@ -45,7 +45,7 @@ class _GamechatModalState extends State<GamechatModal>
     try
     {
       // En primer lugar obtenemos los mensajes mediante el servicio
-      final mensajes = await gamechatService.getMessages(widget.chatId.toString());
+      final mensajes = await gamechatService.getMessages(widget.chatId);
 
       setState(() 
       {
@@ -58,7 +58,7 @@ class _GamechatModalState extends State<GamechatModal>
       _scrollAlFinal();
 
       // Conexión al WebSocket
-      await gamechatService.conectarWebSocket(widget.chatId.toString());
+      await gamechatService.conectarWebSocket(widget.chatId);
 
       // Escuchamos los mensajes del WebSocket y los añadimos a la lista
       _webSocketSubscription = gamechatService.messagesStream.listen((newMessage) 

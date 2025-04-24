@@ -21,14 +21,20 @@ class GamechatService
   }
 
   // Obtiene  mensajes por petición HTTP, en orden descendente de fecha
-  Future<List<GameChatMessage>> getMessages(String chatId) async
+  Future<List<GameChatMessage>> getMessages(int chatId) async
   {
     final token = await StorageService.getToken();
-    final url = Uri.parse("${Config.apiBaseURL}${Config.obtenerMensajesChatPartida}?chatId=$chatId");
+
+    if(token == null)
+    {
+      throw Exception("No se ha encontrado el token de autenticación"); // Si no se encuentra el token, lanza una excepción
+    }
+
+    final url = Uri.parse("${Config.apiBaseURL}${Config.obtenerMensajesChatPartida}?chat_id=$chatId");
 
     final response = await http.get(url, headers:
     {
-      'Auth' : token ?? '',
+      'Auth' : token,
       'Accept': 'application/json',
     });
 
@@ -47,7 +53,7 @@ class GamechatService
   }
 
   /// Conecta al WebSocket de un chat de partida
-  Future<void> conectarWebSocket(String chatId) async
+  Future<void> conectarWebSocket(int chatId) async
   {
     final token = await StorageService.getToken();
 
