@@ -407,6 +407,62 @@ class _GameScreenState extends State<GameScreen> {
       }
       */
 
+      
+      /*
+      { "type": "start_game",
+        "data": {
+          "mazo_restante": 27,                                       cartas que quedan en mazo central
+          "mis_cartas": [ /* cartas asignadas al jugador */ ],       tu mano
+          "fase_arrastre": false,                                    estás en arrastre?
+          "carta_triunfo": { "palo": "oros", "valor": 7 },           carta triunfo
+          "chat_id": <CHAT_ID>,                                      id del chat de la partida
+          "jugadores": [                                             información jugadores
+            {
+              "id": 1,
+              "nombre": "Usuario 1",
+              "equipo": 1,
+              "num_cartas": 6
+            },
+            {
+              "id": 2,
+              "nombre": "Usuario 2",
+              "equipo": 2,
+              "num_cartas": 6
+            }
+          ]
+        }
+      */
+      
+      if (type == 'start_game' && data != null) {
+        setState(() {
+          mazoRestante = data['mazo_restante'];
+
+          misCartas = data['mis_cartas'];
+          if (misCartas != null) {
+            for (var carta in misCartas!) {
+              if (carta.length >= 2) {
+                String palo = carta['palo'].toString(); // Extrae el valor asociado a la clave 'palo'
+                String valor = carta['valor'].toString(); // Segundo elemento de la sublista
+
+                playerHand[misCartas!.indexOf(carta)] = valor + palo; // Asigna el primer elemento a la mano del jugador
+              }
+            }
+          }
+
+          ordenarCartas(playerHand); // Ordena las cartas de la mano del jugador
+
+          if(numJugadores == 2) {
+            rivalHand = ['Back', 'Back', 'Back', 'Back', 'Back', 'Back']; // Inicializa la mano del rival
+          }
+          
+          faseArrastre = data['fase_arrastre'];
+
+          // Extrae detalles de la carta triunfo
+          cartaTriunfo = data['carta_triunfo'];
+          triunfo = (cartaTriunfo?['valor']?.toString() ?? '') + (cartaTriunfo?['palo']?.toString() ?? '');
+          
+        });
+      }
 
       /*
       {
