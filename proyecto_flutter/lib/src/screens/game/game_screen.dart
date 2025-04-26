@@ -158,7 +158,27 @@ class _GameScreenState extends State<GameScreen> {
         jugarCarta(card);
         selectedCard = null;
       } else {
-        selectedCard = card;
+        String card1 = selectedCard ?? '';
+        String card2 = card;
+        if (card1.isNotEmpty && card2.isNotEmpty) {
+          // Intercambia las cartas seleccionadas
+          int index1 = playerHand.indexOf(card1);
+          int index2 = playerHand.indexOf(card2);
+
+          // Verifica que ambos valores existan en la lista
+          if (index1 != -1 && index2 != -1) {
+            // Intercambia los elementos
+            final temp = playerHand[index1];
+            playerHand[index1] = playerHand[index2];
+            playerHand[index2] = temp;
+          }
+          selectedCard = null; // Reinicia la selección de cartas
+        }else{
+          // Selecciona la carta
+          selectedCard = card;
+        } 
+        
+
       }
     });
   }
@@ -356,7 +376,6 @@ class _GameScreenState extends State<GameScreen> {
         
         setState(() {
           playerHand.add(cartaString); // añade la carta al mazo del jugador
-          ordenarCartas(playerHand); // ordena las cartas de la mano del jugador
           if(numJugadores == 2) {
             rivalHand.add('Back'); // elimina la carta del mazo del jugador
           }
