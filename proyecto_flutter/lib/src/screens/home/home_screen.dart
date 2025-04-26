@@ -225,6 +225,7 @@ class HomeScreenState extends State<HomeScreen>
 
           child: Scaffold
           (
+            resizeToAvoidBottomInset: false,
             extendBodyBehindAppBar: true, // extender el fondo detrás de la barra de aplicaciones
             backgroundColor: Colors.transparent, // fondo transparente
             appBar:AppBar // barra de aplicaciones

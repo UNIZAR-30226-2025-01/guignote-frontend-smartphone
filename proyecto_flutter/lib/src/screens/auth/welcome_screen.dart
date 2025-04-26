@@ -36,6 +36,7 @@ class WelcomeScreen extends StatelessWidget
   {
     return Scaffold
     (
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent, // Fondo transparente
       body:Stack // Apilamos los widgets uno encima del otro
       (

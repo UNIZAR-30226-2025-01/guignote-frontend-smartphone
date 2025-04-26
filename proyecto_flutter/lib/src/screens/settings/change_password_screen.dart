@@ -91,6 +91,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
   {
     return Scaffold
     (
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent,
 
       body: Stack

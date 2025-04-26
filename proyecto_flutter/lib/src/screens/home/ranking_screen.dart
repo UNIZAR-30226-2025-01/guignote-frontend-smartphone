@@ -24,6 +24,7 @@ class RankingScreenState extends State<RankingScreen> {
     final containerHeight = size.height * 0.76;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -32,30 +33,31 @@ class RankingScreenState extends State<RankingScreen> {
           const Background(),
 
           // Caja negra central.
-          SingleChildScrollView(
-            child: Center(
-              child: Column(
-                children: [
-                  const SizedBox(height: 100),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: 300,
-                      maxHeight: containerHeight,
-                    ),
-
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF171718),
-                        borderRadius: BorderRadius.circular(15),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 25,
+            left: 50,
+            right: 50,
+            bottom: kBottomNavigationBarHeight,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: Container(
+                color: const Color(0xff171718),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: buildRankingContent(context),
+                        ),
                       ),
-
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(20),
-                        child: buildRankingContent(context),
-                      ),
-                    ),
-                  ),
-                ],
+                    );
+                  },
+                ),
               ),
             ),
           ),

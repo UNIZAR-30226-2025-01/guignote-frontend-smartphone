@@ -233,6 +233,7 @@ class FriendChatState extends State<FriendChat> {
     double barraAltura = MediaQuery.of(context).padding.top + 52.0;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: Stack(

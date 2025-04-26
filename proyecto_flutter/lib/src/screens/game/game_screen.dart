@@ -725,6 +725,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Scaffold build1vs1(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
@@ -847,6 +848,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Scaffold build2vs2(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [

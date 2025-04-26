@@ -23,10 +23,8 @@ class ProfileScreen extends StatefulWidget {
 class ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final containerHeight = size.height * 0.76;
-
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -35,30 +33,19 @@ class ProfileScreenState extends State<ProfileScreen> {
           const Background(),
 
           //Cuadro negro con el perfil y estadisticas dentro.
-          SingleChildScrollView(
-            child: Center(
-              child: Column(
-                children: [
-                  const SizedBox(height: 100),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: 300,
-                      maxHeight: containerHeight,
-                    ),
-
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF171718),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(20),
-                        child: buildProfileBox(context, setState),
-                      ),
-                    ),
-                  ),
-                ],
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 60,
+            left: 50,
+            right: 50,
+            bottom: kBottomNavigationBarHeight,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: Container(
+                color: const Color(0xff171718),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: buildProfileBox(context, setState),
+                ),
               ),
             ),
           ),
@@ -70,7 +57,7 @@ class ProfileScreenState extends State<ProfileScreen> {
 
           // Boton de cierre de sesión
           Positioned(
-            top: 40,
+            top: MediaQuery.of(context).padding.top,
             right: 40,
             child: IconButton(
               icon: const Icon(Icons.logout, color: Color(0xFF171718)),

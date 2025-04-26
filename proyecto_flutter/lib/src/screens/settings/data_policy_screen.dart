@@ -9,6 +9,7 @@ class DataPolicyScreen extends StatelessWidget
   {
     return Scaffold
     (
+      resizeToAvoidBottomInset: false,
       appBar: AppBar
       (
         title: const Text('Política de datos'),
