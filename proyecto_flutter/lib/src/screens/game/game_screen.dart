@@ -166,22 +166,23 @@ class _GameScreenState extends State<GameScreen> {
   void jugarCarta(String card) {
     setState(() {
       if(turnoJugador == jugador1Nombre) {
+        if(jugador1PlayedCard.isEmpty) {
+          final mapCard = parseCard(card);
+          
+          int valorCarta = int.parse(mapCard!['valor']!);
 
-        final mapCard = parseCard(card);
-        
-        int valorCarta = int.parse(mapCard!['valor']!);
+          final data = {
+            'accion': 'jugar_carta',
+              'carta': {
+              'palo': mapCard['palo'],
+              'valor': valorCarta,
+            },
+          };
 
-        final data = {
-          'accion': 'jugar_carta',
-            'carta': {
-            'palo': mapCard['palo'],
-            'valor': valorCarta,
-          },
-        };
+          _websocketService?.send(data); // Envía la carta jugada al servidor
 
-        _websocketService?.send(data); // Envía la carta jugada al servidor
-
-        //print('jugar_carta: $data');
+          //print('jugar_carta: $data');
+        }
       } else {
         print('No es tu turno para jugar la carta: $card');
       }
@@ -291,8 +292,8 @@ class _GameScreenState extends State<GameScreen> {
 
       if (type == 'round_result' && data != null) {
 
-        int puntos_equipo_1 = (data['puntos_equipo_1'] as num).toInt(); // Convierte puntosGanados a int
-        int puntos_equipo_2 = (data['puntos_equipo_2'] as num).toInt(); // Convierte puntosGanados a int
+        int puntosEquipo1 = (data['puntos_equipo_1'] as num).toInt(); // Convierte puntosGanados a int
+        int puntosEquipo2 = (data['puntos_equipo_2'] as num).toInt(); // Convierte puntosGanados a int
         
         setState(() {
           if (cartasRestantes > 0) {
@@ -302,35 +303,39 @@ class _GameScreenState extends State<GameScreen> {
           if (cartasRestantes <= 0) {
             faseArrastre = true; // Asegúrate de que no sea negativo
           }
-          jugador1PlayedCard = ''; // Reinicia la carta jugada por el jugador
-          jugador2PlayedCard = ''; // Reinicia la carta jugada por el rival
-          jugador3PlayedCard = ''; // Reinicia la carta jugada por el rival
-          jugador4PlayedCard = ''; // Reinicia la carta jugada por el rival
+          Future.delayed(const Duration(seconds: 1), () {
+            setState(() {
+              jugador1PlayedCard = ''; // Reinicia la carta jugada por el jugador
+              jugador2PlayedCard = ''; // Reinicia la carta jugada por el rival
+              jugador3PlayedCard = ''; // Reinicia la carta jugada por el rival
+              jugador4PlayedCard = ''; // Reinicia la carta jugada por el rival
+            });
+          });
           segundosRestantesTurno = SEGUNDOS_POR_TURNO; // Reinicia el temporizador de cuenta atrás
           mostrarSegundosRestantesTurno = false; // Oculta el temporizador de cuenta atrás
           // Actualiza los puntos de los jugadores
           if(jugador1Equipo == 1){
-            jugador1Puntos = puntos_equipo_1;
+            jugador1Puntos = puntosEquipo1;
           }else{
-            jugador1Puntos = puntos_equipo_2;
+            jugador1Puntos = puntosEquipo2;
           }
 
           if(jugador2Equipo == 1){
-            jugador2Puntos = puntos_equipo_1;
+            jugador2Puntos = puntosEquipo1;
           }else{
-            jugador2Puntos = puntos_equipo_2;
+            jugador2Puntos = puntosEquipo2;
           }
 
           if(jugador3Equipo == 1){
-            jugador3Puntos = puntos_equipo_1;
+            jugador3Puntos = puntosEquipo1;
           }else{
-            jugador3Puntos = puntos_equipo_2;
+            jugador3Puntos = puntosEquipo2;
           }
 
           if(jugador4Equipo == 1){
-            jugador4Puntos = puntos_equipo_1;
+            jugador4Puntos = puntosEquipo1;
           }else{
-            jugador4Puntos = puntos_equipo_2;
+            jugador4Puntos = puntosEquipo2;
           }
           
         });
@@ -352,7 +357,9 @@ class _GameScreenState extends State<GameScreen> {
         setState(() {
           playerHand.add(cartaString); // añade la carta al mazo del jugador
           ordenarCartas(playerHand); // ordena las cartas de la mano del jugador
-          rivalHand.add('Back'); // añade la carta al mazo del rival
+          if(numJugadores == 2) {
+            rivalHand.add('Back'); // elimina la carta del mazo del jugador
+          }
         });
       }
 
@@ -404,7 +411,7 @@ class _GameScreenState extends State<GameScreen> {
             builder: (BuildContext context) {
               return AlertDialog(
                 title: const Text('FIN DE LA PARTIDA'),
-                content: Text('Tus puntos: $jugador1Puntos\nPuntos rival: $jugador3Puntos\nGanador: ${data['ganador_equipo']}'),
+                content: Text('Tus puntos: $jugador1Puntos\nPuntos rival: ${numJugadores == 4 ? jugador3Puntos : jugador2Puntos}\nGanador: ${data['ganador_equipo'] == jugador1Equipo ? 'TU EQUIPO' : 'EQUIPO RIVAL'}'),
                 actions: [
                     Align(
                     alignment: Alignment.bottomCenter,
@@ -457,214 +464,89 @@ class _GameScreenState extends State<GameScreen> {
       jugador1Equipo = jugador1['equipo'];
       jugador1NumCartas = jugador1['num_cartas'];
 
-      if(jugador2['equipo'] == jugador1Equipo) {
-        jugador2Nombre = jugador2['nombre'];
-        jugador2Id = jugador2['id'];
-        jugador2Equipo = jugador2['equipo'];
-        jugador2NumCartas = jugador2['num_cartas'];
+      jugador2Nombre = jugador3['nombre'];
+      jugador2Id = jugador3['id'];
+      jugador2Equipo = jugador3['equipo'];
+      jugador2NumCartas = jugador3['num_cartas'];
 
-        jugador3Nombre = jugador3['nombre'];
-        jugador3Id = jugador3['id'];
-        jugador3Equipo = jugador3['equipo'];
-        jugador3NumCartas = jugador3['num_cartas'];
+      jugador3Nombre = jugador4['nombre'];
+      jugador3Id = jugador4['id'];
+      jugador3Equipo = jugador4['equipo'];
+      jugador3NumCartas = jugador4['num_cartas'];
 
-        jugador4Nombre = jugador4['nombre'];
-        jugador4Id = jugador4['id'];
-        jugador4Equipo = jugador4['equipo'];
-        jugador4NumCartas = jugador4['num_cartas'];
-      }else if(jugador3['equipo'] == jugador1Equipo) {
-        jugador2Nombre = jugador3['nombre'];
-        jugador2Id = jugador3['id'];
-        jugador2Equipo = jugador3['equipo'];
-        jugador2NumCartas = jugador3['num_cartas'];
+      jugador4Nombre = jugador2['nombre'];
+      jugador4Id = jugador2['id'];
+      jugador4Equipo = jugador2['equipo'];
+      jugador4NumCartas = jugador2['num_cartas'];
 
-        jugador3Nombre = jugador2['nombre'];
-        jugador3Id = jugador2['id'];
-        jugador3Equipo = jugador2['equipo'];
-        jugador3NumCartas = jugador2['num_cartas'];
-
-        jugador4Nombre = jugador4['nombre'];
-        jugador4Id = jugador4['id'];
-        jugador4Equipo = jugador4['equipo'];
-        jugador4NumCartas = jugador4['num_cartas'];
-      }else if(jugador4['equipo'] == jugador1Equipo) {
-        jugador2Nombre = jugador4['nombre'];
-        jugador2Id = jugador4['id'];
-        jugador2Equipo = jugador4['equipo'];
-        jugador2NumCartas = jugador4['num_cartas'];
-
-        jugador3Nombre = jugador2['nombre'];
-        jugador3Id = jugador2['id'];
-        jugador3Equipo = jugador2['equipo'];
-        jugador3NumCartas = jugador2['num_cartas'];
-
-        jugador4Nombre = jugador3['nombre'];
-        jugador4Id = jugador3['id'];
-        jugador4Equipo = jugador3['equipo'];
-        jugador4NumCartas = jugador3['num_cartas'];
-      }
     } else if(jugador2['nombre'] == miNombre) {
+
       jugador1Nombre = jugador2['nombre'];
       jugador1Id = jugador2['id'];
       jugador1Equipo = jugador2['equipo'];
       jugador1NumCartas = jugador2['num_cartas'];
 
-      if(jugador3['equipo'] == jugador1Equipo) {
-        jugador2Nombre = jugador3['nombre'];
-        jugador2Id = jugador3['id'];
-        jugador2Equipo = jugador3['equipo'];
-        jugador2NumCartas = jugador3['num_cartas'];
+      jugador2Nombre = jugador4['nombre'];
+      jugador2Id = jugador4['id'];
+      jugador2Equipo = jugador4['equipo'];
+      jugador2NumCartas = jugador4['num_cartas'];
 
-        jugador3Nombre = jugador4['nombre'];
-        jugador3Id = jugador4['id'];
-        jugador3Equipo = jugador4['equipo'];
-        jugador3NumCartas = jugador4['num_cartas'];
+      jugador3Nombre = jugador1['nombre'];
+      jugador3Id = jugador1['id'];
+      jugador3Equipo = jugador1['equipo'];
+      jugador3NumCartas = jugador1['num_cartas'];
 
-        jugador4Nombre = jugador1['nombre'];
-        jugador4Id = jugador1['id'];
-        jugador4Equipo = jugador1['equipo'];
-        jugador4NumCartas = jugador1['num_cartas'];
-      }else if(jugador4['equipo'] == jugador1Equipo) {
-        jugador2Nombre = jugador4['nombre'];
-        jugador2Id = jugador4['id'];
-        jugador2Equipo = jugador4['equipo'];
-        jugador2NumCartas = jugador4['num_cartas'];
+      jugador4Nombre = jugador3['nombre'];
+      jugador4Id = jugador3['id'];
+      jugador4Equipo = jugador3['equipo'];
+      jugador4NumCartas = jugador3['num_cartas'];
 
-        jugador3Nombre = jugador1['nombre'];
-        jugador3Id = jugador1['id'];
-        jugador3Equipo = jugador1['equipo'];
-        jugador3NumCartas = jugador1['num_cartas'];
-
-        jugador4Nombre = jugador3['nombre'];
-        jugador4Id = jugador3['id'];
-        jugador4Equipo = jugador3['equipo'];
-        jugador4NumCartas = jugador3['num_cartas'];
-      }else if(jugador1['equipo'] == jugador1Equipo) {
-        jugador2Nombre = jugador1['nombre'];
-        jugador2Id = jugador1['id'];
-        jugador2Equipo = jugador1['equipo'];
-        jugador2NumCartas = jugador1['num_cartas'];
-
-        jugador3Nombre = jugador4['nombre'];
-        jugador3Id = jugador4['id'];
-        jugador3Equipo = jugador4['equipo'];
-        jugador3NumCartas = jugador4['num_cartas'];
-
-        jugador4Nombre = jugador3['nombre'];
-        jugador4Id = jugador3['id'];
-        jugador4Equipo = jugador3['equipo'];
-        jugador4NumCartas = jugador3['num_cartas'];
-      }
     } else if(jugador3['nombre'] == miNombre) {
+
       jugador1Nombre = jugador3['nombre'];
       jugador1Id = jugador3['id'];
       jugador1Equipo = jugador3['equipo'];
       jugador1NumCartas = jugador3['num_cartas'];
 
-      if(jugador2['equipo'] == jugador1Equipo) {
-        jugador2Nombre = jugador2['nombre'];
-        jugador2Id = jugador2['id'];
-        jugador2Equipo = jugador2['equipo'];
-        jugador2NumCartas = jugador2['num_cartas'];
+      jugador2Nombre = jugador1['nombre'];
+      jugador2Id = jugador1['id'];
+      jugador2Equipo = jugador1['equipo'];
+      jugador2NumCartas = jugador1['num_cartas'];
 
-        jugador3Nombre = jugador4['nombre'];
-        jugador3Id = jugador4['id'];
-        jugador3Equipo = jugador4['equipo'];
-        jugador3NumCartas = jugador4['num_cartas'];
+      jugador3Nombre = jugador2['nombre'];
+      jugador3Id = jugador2['id'];
+      jugador3Equipo = jugador2['equipo'];
+      jugador3NumCartas = jugador2['num_cartas'];
 
-        jugador4Nombre = jugador1['nombre'];
-        jugador4Id = jugador1['id'];
-        jugador4Equipo = jugador1['equipo'];
-        jugador4NumCartas = jugador1['num_cartas'];
-      }else if(jugador4['equipo'] == jugador1Equipo) {
-        jugador2Nombre = jugador4['nombre'];
-        jugador2Id = jugador4['id'];
-        jugador2Equipo = jugador4['equipo'];
-        jugador2NumCartas = jugador4['num_cartas'];
+      jugador4Nombre = jugador4['nombre'];
+      jugador4Id = jugador4['id'];
+      jugador4Equipo = jugador4['equipo'];
+      jugador4NumCartas = jugador4['num_cartas'];
 
-        jugador3Nombre = jugador1['nombre'];
-        jugador3Id = jugador1['id'];
-        jugador3Equipo = jugador1['equipo'];
-        jugador3NumCartas = jugador1['num_cartas'];
-
-        jugador4Nombre = jugador2['nombre'];
-        jugador4Id = jugador2['id'];
-        jugador4Equipo = jugador2['equipo'];
-        jugador4NumCartas = jugador2['num_cartas'];
-      } else if(jugador1['equipo'] == jugador1Equipo) {
-        jugador2Nombre = jugador1['nombre'];
-        jugador2Id = jugador1['id'];
-        jugador2Equipo = jugador1['equipo'];
-        jugador2NumCartas = jugador1['num_cartas'];
-
-        jugador3Nombre = jugador4['nombre'];
-        jugador3Id = jugador4['id'];
-        jugador3Equipo = jugador4['equipo'];
-        jugador3NumCartas = jugador4['num_cartas'];
-
-        jugador4Nombre = jugador2['nombre'];
-        jugador4Id = jugador2['id'];
-        jugador4Equipo = jugador2['equipo'];
-        jugador4NumCartas = jugador2['num_cartas'];
-      }
     } else if(jugador4['nombre'] == miNombre) {
+
       jugador1Nombre = jugador4['nombre'];
       jugador1Id = jugador4['id'];
       jugador1Equipo = jugador4['equipo'];
       jugador1NumCartas = jugador4['num_cartas'];
 
-      if(jugador2['equipo'] == jugador1Equipo) {
-        jugador2Nombre = jugador2['nombre'];
-        jugador2Id = jugador2['id'];
-        jugador2Equipo = jugador2['equipo'];
-        jugador2NumCartas = jugador2['num_cartas'];
+      jugador2Nombre = jugador2['nombre'];
+      jugador2Id = jugador2['id'];
+      jugador2Equipo = jugador2['equipo'];
+      jugador2NumCartas = jugador2['num_cartas'];
 
-        jugador3Nombre = jugador3['nombre'];
-        jugador3Id = jugador3['id'];
-        jugador3Equipo = jugador3['equipo'];
-        jugador3NumCartas = jugador3['num_cartas'];
+      jugador3Nombre = jugador3['nombre'];
+      jugador3Id = jugador3['id'];
+      jugador3Equipo = jugador3['equipo'];
+      jugador3NumCartas = jugador3['num_cartas'];
 
-        jugador4Nombre = jugador1['nombre'];
-        jugador4Id = jugador1['id'];
-        jugador4Equipo = jugador1['equipo'];
-        jugador4NumCartas = jugador1['num_cartas'];
-      }else if(jugador3['equipo'] == jugador1Equipo) {
-        jugador2Nombre = jugador3['nombre'];
-        jugador2Id = jugador3['id'];
-        jugador2Equipo = jugador3['equipo'];
-        jugador2NumCartas = jugador3['num_cartas'];
+      jugador4Nombre = jugador1['nombre'];
+      jugador4Id = jugador1['id'];
+      jugador4Equipo = jugador1['equipo'];
+      jugador4NumCartas = jugador1['num_cartas'];
 
-        jugador3Nombre = jugador2['nombre'];
-        jugador3Id = jugador2['id'];
-        jugador3Equipo = jugador2['equipo'];
-        jugador3NumCartas = jugador2['num_cartas'];
-
-        jugador4Nombre = jugador1['nombre'];
-        jugador4Id = jugador1['id'];
-        jugador4Equipo = jugador1['equipo'];
-        jugador4NumCartas = jugador1['num_cartas'];
-      }else if(jugador1['equipo'] == jugador1Equipo) {
-        jugador2Nombre = jugador1['nombre'];
-        jugador2Id = jugador1['id'];
-        jugador2Equipo = jugador1['equipo'];
-        jugador2NumCartas = jugador1['num_cartas'];
-
-        jugador3Nombre = jugador2['nombre'];
-        jugador3Id = jugador2['id'];
-        jugador3Equipo = jugador2['equipo'];
-        jugador3NumCartas = jugador2['num_cartas'];
-
-        jugador4Nombre = jugador3['nombre'];
-        jugador4Id = jugador3['id'];
-        jugador4Equipo = jugador3['equipo'];
-        jugador4NumCartas = jugador3['num_cartas'];
-      }
     }
         
-      
-
-    
-    
 
     final dataJugador1 = await getUserStatisticsWithID(jugador1Id!); // Llama al método para obtener los datos del jugador 1
     final dataJugador2 = await getUserStatisticsWithID(jugador2Id!); // Llama al método para obtener los datos del jugador 2

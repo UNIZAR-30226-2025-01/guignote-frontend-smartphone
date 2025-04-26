@@ -108,7 +108,7 @@ class HomeScreenState extends State<HomeScreen>
     try
     {
       // Conecta al socket pidiendo 2 jugadores
-      await _websocketService.connect(capacidad: 4, soloAmigos: false);
+      await _websocketService.connect(capacidad: 2, soloAmigos: false);
 
       _subscription?.cancel(); // Cancela la suscripción anterior si existe.
       _subscription = null; // Restablece la suscripción.
