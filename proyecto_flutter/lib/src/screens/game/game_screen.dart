@@ -10,7 +10,6 @@ import 'dart:math' as math;
 import 'dart:async';
 
 const int SEGUNDOS_POR_TURNO = 15; // Segundos por turno
-const int CARTAS_POR_RONDA = 2; // Cartas que se juegan en cada ronda entre todos los jugadores
 const String deckSelected = 'base'; // Baraja seleccionada por el jugador.
 
 class GameScreen extends StatefulWidget {
@@ -28,12 +27,16 @@ class _GameScreenState extends State<GameScreen> {
 
   WebsocketService? _websocketService; // Servicio WebSocket para la conexión
 
+  int numJugadores = 2; // Número de jugadores en la partida (2 o 4)
+
+  int cartasPorRonda = 2; // Número de cartas que se juegan en una ronda (2 o 4)
+
   String? selectedCard; // null o la carta elegida.
 
   String triunfo = '';
 
-  String rivalPlayedCard = '';
-  String playerPlayedCard = '';
+
+
   List<String> playerHand = ['1Oros', '2Oros', '3Oros', '4Oros', '5Oros', '6Oros'];
   List<String> rivalHand = ['Back', 'Back', 'Back', 'Back', 'Back', 'Back'];
   int cartasRestantes = 0;
@@ -61,13 +64,36 @@ class _GameScreenState extends State<GameScreen> {
   int? jugador1NumCartas;
   int jugador1Puntos = 0;
   String jugador1FotoUrl = '';
+  String jugador1PlayedCard = '';
 
+  // el jugador 2 es el compañero del jugador 1
+  // (solo en 2vs2, en 1vs1 es el rival)
   String? jugador2Nombre;
   int? jugador2Id;
   int? jugador2Equipo;
   int? jugador2NumCartas;
   int jugador2Puntos = 0;
-  String jugador2FotoUrl = 'https://picsum.photos/seed/picsum/200/300';
+  String jugador2FotoUrl = '';
+  String jugador2PlayedCard = '';
+
+  // el jugador 3 es un rival solo en 2vs2
+  String? jugador3Nombre;
+  int? jugador3Id;
+  int? jugador3Equipo;
+  int? jugador3NumCartas;
+  int jugador3Puntos = 0;
+  String jugador3FotoUrl = '';
+  String jugador3PlayedCard = '';
+
+  // el jugador 4 es un rival solo en 2vs2
+  String? jugador4Nombre;
+  int? jugador4Id;
+  int? jugador4Equipo;
+  int? jugador4NumCartas;
+  int jugador4Puntos = 0;
+  String jugador4FotoUrl = '';
+  String jugador4PlayedCard = '';
+
 
   void ordenarCartas(List<String> hand) {
     const valorPrioridad = {
@@ -230,12 +256,18 @@ class _GameScreenState extends State<GameScreen> {
         final carta = data['carta']; // carta jugada por el jugador
         String cartaString = carta['valor'].toString() + carta['palo'].toString(); // carta jugada en formato string
         setState(() {
-          if(jugadorid != jugador1Id){
-            rivalPlayedCard = cartaString; // carta jugada por el rival
-            rivalHand.remove('Back'); // elimina la carta del mazo del rival
-          }else{
-            playerPlayedCard = cartaString;
-            playerHand.remove(cartaString);
+          if(jugadorid == jugador1Id){
+            jugador1PlayedCard = cartaString; // carta jugada por el jugador
+            playerHand.remove(cartaString); // elimina la carta del mazo del jugador
+          }else if(jugadorid == jugador2Id){
+            jugador2PlayedCard = cartaString; // carta jugada por el compañero
+            if(numJugadores == 2) {
+              rivalHand.remove('Back'); // elimina la carta del mazo del jugador
+            }
+          }else if(jugadorid == jugador3Id){
+            jugador3PlayedCard = cartaString; // carta jugada por el rival
+          }else if(jugadorid == jugador4Id){
+            jugador4PlayedCard = cartaString; // carta jugada por el rival
           }
 
         });
@@ -259,28 +291,48 @@ class _GameScreenState extends State<GameScreen> {
 
       if (type == 'round_result' && data != null) {
 
-        final ganadorId = data['ganador']?['id']; // id del jugador que ha jugado la carta
-        int puntosGanados = (data['puntos_baza'] as num).toInt(); // Convierte puntosGanados a int
+        int puntos_equipo_1 = (data['puntos_equipo_1'] as num).toInt(); // Convierte puntosGanados a int
+        int puntos_equipo_2 = (data['puntos_equipo_2'] as num).toInt(); // Convierte puntosGanados a int
         
         setState(() {
           if (cartasRestantes > 0) {
-            cartasRestantes -= CARTAS_POR_RONDA; // Actualiza el número de cartas restantes
+            cartasRestantes -= numJugadores; // Actualiza el número de cartas restantes
           }
 
           if (cartasRestantes <= 0) {
             faseArrastre = true; // Asegúrate de que no sea negativo
           }
-          playerPlayedCard = ''; // Reinicia la carta jugada por el jugador
-          rivalPlayedCard = ''; // Reinicia la carta jugada por el rival
+          jugador1PlayedCard = ''; // Reinicia la carta jugada por el jugador
+          jugador2PlayedCard = ''; // Reinicia la carta jugada por el rival
+          jugador3PlayedCard = ''; // Reinicia la carta jugada por el rival
+          jugador4PlayedCard = ''; // Reinicia la carta jugada por el rival
           segundosRestantesTurno = SEGUNDOS_POR_TURNO; // Reinicia el temporizador de cuenta atrás
           mostrarSegundosRestantesTurno = false; // Oculta el temporizador de cuenta atrás
           // Actualiza los puntos de los jugadores
-          if(ganadorId == jugador1Id){
-            jugador1Puntos += puntosGanados; // suma los puntos ganados al jugador 1
+          if(jugador1Equipo == 1){
+            jugador1Puntos = puntos_equipo_1;
+          }else{
+            jugador1Puntos = puntos_equipo_2;
           }
-          if(ganadorId == jugador2Id){
-            jugador2Puntos += puntosGanados; // suma los puntos ganados al jugador 2
+
+          if(jugador2Equipo == 1){
+            jugador2Puntos = puntos_equipo_1;
+          }else{
+            jugador2Puntos = puntos_equipo_2;
           }
+
+          if(jugador3Equipo == 1){
+            jugador3Puntos = puntos_equipo_1;
+          }else{
+            jugador3Puntos = puntos_equipo_2;
+          }
+
+          if(jugador4Equipo == 1){
+            jugador4Puntos = puntos_equipo_1;
+          }else{
+            jugador4Puntos = puntos_equipo_2;
+          }
+          
         });
       }
 
@@ -352,7 +404,7 @@ class _GameScreenState extends State<GameScreen> {
             builder: (BuildContext context) {
               return AlertDialog(
                 title: const Text('FIN DE LA PARTIDA'),
-                content: Text('Tus puntos: $jugador1Puntos\nPuntos rival: $jugador2Puntos\nGanador: ${data['ganador_equipo']}'),
+                content: Text('Tus puntos: $jugador1Puntos\nPuntos rival: $jugador3Puntos\nGanador: ${data['ganador_equipo']}'),
                 actions: [
                     Align(
                     alignment: Alignment.bottomCenter,
@@ -389,6 +441,279 @@ class _GameScreenState extends State<GameScreen> {
         });
       }
     });
+  }
+
+  void fillPlayerData2vs2(String miNombre) async{
+    final jugador1 = jugadores?[0] as Map<String, dynamic>;
+    final jugador2 = jugadores?[1] as Map<String, dynamic>;
+    final jugador3 = jugadores?[2] as Map<String, dynamic>;
+    final jugador4 = jugadores?[3] as Map<String, dynamic>;
+
+
+    if (jugador1['nombre'] == miNombre) {
+      
+      jugador1Nombre = jugador1['nombre'];
+      jugador1Id = jugador1['id'];
+      jugador1Equipo = jugador1['equipo'];
+      jugador1NumCartas = jugador1['num_cartas'];
+
+      if(jugador2['equipo'] == jugador1Equipo) {
+        jugador2Nombre = jugador2['nombre'];
+        jugador2Id = jugador2['id'];
+        jugador2Equipo = jugador2['equipo'];
+        jugador2NumCartas = jugador2['num_cartas'];
+
+        jugador3Nombre = jugador3['nombre'];
+        jugador3Id = jugador3['id'];
+        jugador3Equipo = jugador3['equipo'];
+        jugador3NumCartas = jugador3['num_cartas'];
+
+        jugador4Nombre = jugador4['nombre'];
+        jugador4Id = jugador4['id'];
+        jugador4Equipo = jugador4['equipo'];
+        jugador4NumCartas = jugador4['num_cartas'];
+      }else if(jugador3['equipo'] == jugador1Equipo) {
+        jugador2Nombre = jugador3['nombre'];
+        jugador2Id = jugador3['id'];
+        jugador2Equipo = jugador3['equipo'];
+        jugador2NumCartas = jugador3['num_cartas'];
+
+        jugador3Nombre = jugador2['nombre'];
+        jugador3Id = jugador2['id'];
+        jugador3Equipo = jugador2['equipo'];
+        jugador3NumCartas = jugador2['num_cartas'];
+
+        jugador4Nombre = jugador4['nombre'];
+        jugador4Id = jugador4['id'];
+        jugador4Equipo = jugador4['equipo'];
+        jugador4NumCartas = jugador4['num_cartas'];
+      }else if(jugador4['equipo'] == jugador1Equipo) {
+        jugador2Nombre = jugador4['nombre'];
+        jugador2Id = jugador4['id'];
+        jugador2Equipo = jugador4['equipo'];
+        jugador2NumCartas = jugador4['num_cartas'];
+
+        jugador3Nombre = jugador2['nombre'];
+        jugador3Id = jugador2['id'];
+        jugador3Equipo = jugador2['equipo'];
+        jugador3NumCartas = jugador2['num_cartas'];
+
+        jugador4Nombre = jugador3['nombre'];
+        jugador4Id = jugador3['id'];
+        jugador4Equipo = jugador3['equipo'];
+        jugador4NumCartas = jugador3['num_cartas'];
+      }
+    } else if(jugador2['nombre'] == miNombre) {
+      jugador1Nombre = jugador2['nombre'];
+      jugador1Id = jugador2['id'];
+      jugador1Equipo = jugador2['equipo'];
+      jugador1NumCartas = jugador2['num_cartas'];
+
+      if(jugador3['equipo'] == jugador1Equipo) {
+        jugador2Nombre = jugador3['nombre'];
+        jugador2Id = jugador3['id'];
+        jugador2Equipo = jugador3['equipo'];
+        jugador2NumCartas = jugador3['num_cartas'];
+
+        jugador3Nombre = jugador4['nombre'];
+        jugador3Id = jugador4['id'];
+        jugador3Equipo = jugador4['equipo'];
+        jugador3NumCartas = jugador4['num_cartas'];
+
+        jugador4Nombre = jugador1['nombre'];
+        jugador4Id = jugador1['id'];
+        jugador4Equipo = jugador1['equipo'];
+        jugador4NumCartas = jugador1['num_cartas'];
+      }else if(jugador4['equipo'] == jugador1Equipo) {
+        jugador2Nombre = jugador4['nombre'];
+        jugador2Id = jugador4['id'];
+        jugador2Equipo = jugador4['equipo'];
+        jugador2NumCartas = jugador4['num_cartas'];
+
+        jugador3Nombre = jugador1['nombre'];
+        jugador3Id = jugador1['id'];
+        jugador3Equipo = jugador1['equipo'];
+        jugador3NumCartas = jugador1['num_cartas'];
+
+        jugador4Nombre = jugador3['nombre'];
+        jugador4Id = jugador3['id'];
+        jugador4Equipo = jugador3['equipo'];
+        jugador4NumCartas = jugador3['num_cartas'];
+      }else if(jugador1['equipo'] == jugador1Equipo) {
+        jugador2Nombre = jugador1['nombre'];
+        jugador2Id = jugador1['id'];
+        jugador2Equipo = jugador1['equipo'];
+        jugador2NumCartas = jugador1['num_cartas'];
+
+        jugador3Nombre = jugador4['nombre'];
+        jugador3Id = jugador4['id'];
+        jugador3Equipo = jugador4['equipo'];
+        jugador3NumCartas = jugador4['num_cartas'];
+
+        jugador4Nombre = jugador3['nombre'];
+        jugador4Id = jugador3['id'];
+        jugador4Equipo = jugador3['equipo'];
+        jugador4NumCartas = jugador3['num_cartas'];
+      }
+    } else if(jugador3['nombre'] == miNombre) {
+      jugador1Nombre = jugador3['nombre'];
+      jugador1Id = jugador3['id'];
+      jugador1Equipo = jugador3['equipo'];
+      jugador1NumCartas = jugador3['num_cartas'];
+
+      if(jugador2['equipo'] == jugador1Equipo) {
+        jugador2Nombre = jugador2['nombre'];
+        jugador2Id = jugador2['id'];
+        jugador2Equipo = jugador2['equipo'];
+        jugador2NumCartas = jugador2['num_cartas'];
+
+        jugador3Nombre = jugador4['nombre'];
+        jugador3Id = jugador4['id'];
+        jugador3Equipo = jugador4['equipo'];
+        jugador3NumCartas = jugador4['num_cartas'];
+
+        jugador4Nombre = jugador1['nombre'];
+        jugador4Id = jugador1['id'];
+        jugador4Equipo = jugador1['equipo'];
+        jugador4NumCartas = jugador1['num_cartas'];
+      }else if(jugador4['equipo'] == jugador1Equipo) {
+        jugador2Nombre = jugador4['nombre'];
+        jugador2Id = jugador4['id'];
+        jugador2Equipo = jugador4['equipo'];
+        jugador2NumCartas = jugador4['num_cartas'];
+
+        jugador3Nombre = jugador1['nombre'];
+        jugador3Id = jugador1['id'];
+        jugador3Equipo = jugador1['equipo'];
+        jugador3NumCartas = jugador1['num_cartas'];
+
+        jugador4Nombre = jugador2['nombre'];
+        jugador4Id = jugador2['id'];
+        jugador4Equipo = jugador2['equipo'];
+        jugador4NumCartas = jugador2['num_cartas'];
+      } else if(jugador1['equipo'] == jugador1Equipo) {
+        jugador2Nombre = jugador1['nombre'];
+        jugador2Id = jugador1['id'];
+        jugador2Equipo = jugador1['equipo'];
+        jugador2NumCartas = jugador1['num_cartas'];
+
+        jugador3Nombre = jugador4['nombre'];
+        jugador3Id = jugador4['id'];
+        jugador3Equipo = jugador4['equipo'];
+        jugador3NumCartas = jugador4['num_cartas'];
+
+        jugador4Nombre = jugador2['nombre'];
+        jugador4Id = jugador2['id'];
+        jugador4Equipo = jugador2['equipo'];
+        jugador4NumCartas = jugador2['num_cartas'];
+      }
+    } else if(jugador4['nombre'] == miNombre) {
+      jugador1Nombre = jugador4['nombre'];
+      jugador1Id = jugador4['id'];
+      jugador1Equipo = jugador4['equipo'];
+      jugador1NumCartas = jugador4['num_cartas'];
+
+      if(jugador2['equipo'] == jugador1Equipo) {
+        jugador2Nombre = jugador2['nombre'];
+        jugador2Id = jugador2['id'];
+        jugador2Equipo = jugador2['equipo'];
+        jugador2NumCartas = jugador2['num_cartas'];
+
+        jugador3Nombre = jugador3['nombre'];
+        jugador3Id = jugador3['id'];
+        jugador3Equipo = jugador3['equipo'];
+        jugador3NumCartas = jugador3['num_cartas'];
+
+        jugador4Nombre = jugador1['nombre'];
+        jugador4Id = jugador1['id'];
+        jugador4Equipo = jugador1['equipo'];
+        jugador4NumCartas = jugador1['num_cartas'];
+      }else if(jugador3['equipo'] == jugador1Equipo) {
+        jugador2Nombre = jugador3['nombre'];
+        jugador2Id = jugador3['id'];
+        jugador2Equipo = jugador3['equipo'];
+        jugador2NumCartas = jugador3['num_cartas'];
+
+        jugador3Nombre = jugador2['nombre'];
+        jugador3Id = jugador2['id'];
+        jugador3Equipo = jugador2['equipo'];
+        jugador3NumCartas = jugador2['num_cartas'];
+
+        jugador4Nombre = jugador1['nombre'];
+        jugador4Id = jugador1['id'];
+        jugador4Equipo = jugador1['equipo'];
+        jugador4NumCartas = jugador1['num_cartas'];
+      }else if(jugador1['equipo'] == jugador1Equipo) {
+        jugador2Nombre = jugador1['nombre'];
+        jugador2Id = jugador1['id'];
+        jugador2Equipo = jugador1['equipo'];
+        jugador2NumCartas = jugador1['num_cartas'];
+
+        jugador3Nombre = jugador2['nombre'];
+        jugador3Id = jugador2['id'];
+        jugador3Equipo = jugador2['equipo'];
+        jugador3NumCartas = jugador2['num_cartas'];
+
+        jugador4Nombre = jugador3['nombre'];
+        jugador4Id = jugador3['id'];
+        jugador4Equipo = jugador3['equipo'];
+        jugador4NumCartas = jugador3['num_cartas'];
+      }
+    }
+        
+      
+
+    
+    
+
+    final dataJugador1 = await getUserStatisticsWithID(jugador1Id!); // Llama al método para obtener los datos del jugador 1
+    final dataJugador2 = await getUserStatisticsWithID(jugador2Id!); // Llama al método para obtener los datos del jugador 2
+    final dataJugador3 = await getUserStatisticsWithID(jugador3Id!); // Llama al método para obtener los datos del jugador 3
+    final dataJugador4 = await getUserStatisticsWithID(jugador4Id!); // Llama al método para obtener los datos del jugador 4
+
+    jugador1FotoUrl = dataJugador1['imagen'] ?? ''; // Asigna la foto del jugador a jugador1
+    jugador2FotoUrl = dataJugador2['imagen'] ?? ''; // Asigna la foto del jugador a jugador2
+    jugador3FotoUrl = dataJugador3['imagen'] ?? ''; // Asigna la foto del jugador a jugador3
+    jugador4FotoUrl = dataJugador4['imagen'] ?? ''; // Asigna la foto del jugador a jugador4
+  }
+
+  void fillPlayerData1vs1(String miNombre) async{
+    final jugador1 = jugadores?[0] as Map<String, dynamic>;
+    final jugador2 = jugadores?[1] as Map<String, dynamic>;
+
+    if (jugadores?.length != null && jugadores!.length >= 2) {
+      if (jugador1['nombre'] == miNombre) {
+        
+        jugador1Nombre = jugador1['nombre'];
+        jugador1Id = jugador1['id'];
+        jugador1Equipo = jugador1['equipo'];
+        jugador1NumCartas = jugador1['num_cartas'];
+
+        jugador2Nombre = jugador2['nombre'];
+        jugador2Id = jugador2['id'];
+        jugador2Equipo = jugador2['equipo'];
+        jugador2NumCartas = jugador2['num_cartas'];
+
+      }else{
+
+        jugador1Nombre = jugador2['nombre'];
+        jugador1Id = jugador2['id'];
+        jugador1Equipo = jugador2['equipo'];
+        jugador1NumCartas = jugador2['num_cartas'];
+
+        jugador2Nombre = jugador1['nombre'];
+        jugador2Id = jugador1['id'];
+        jugador2Equipo = jugador1['equipo'];
+        jugador2NumCartas = jugador1['num_cartas'];
+
+      }
+    }
+
+    final dataJugador1 = await getUserStatisticsWithID(jugador1Id!); // Llama al método para obtener los datos del jugador 1
+    final dataJugador2 = await getUserStatisticsWithID(jugador2Id!); // Llama al método para obtener los datos del jugador 2
+
+    jugador1FotoUrl = dataJugador1['imagen'] ?? ''; // Asigna la foto del jugador a jugador1
+    jugador2FotoUrl = dataJugador2['imagen'] ?? ''; // Asigna la foto del jugador a jugador2
   }
 
 
@@ -469,43 +794,19 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     jugadores = data?['jugadores'];
-    final jugador1 = jugadores?[0] as Map<String, dynamic>;
-    final jugador2 = jugadores?[1] as Map<String, dynamic>;
-
-    if (jugadores?.length != null && jugadores!.length >= 2) {
-      if (jugador1['nombre'] == miNombre) {
-        
-        jugador1Nombre = jugador1['nombre'];
-        jugador1Id = jugador1['id'];
-        jugador1Equipo = jugador1['equipo'];
-        jugador1NumCartas = jugador1['num_cartas'];
-
-        jugador2Nombre = jugador2['nombre'];
-        jugador2Id = jugador2['id'];
-        jugador2Equipo = jugador2['equipo'];
-        jugador2NumCartas = jugador2['num_cartas'];
-
-      }else{
-
-        jugador1Nombre = jugador2['nombre'];
-        jugador1Id = jugador2['id'];
-        jugador1Equipo = jugador2['equipo'];
-        jugador1NumCartas = jugador2['num_cartas'];
-
-        jugador2Nombre = jugador1['nombre'];
-        jugador2Id = jugador1['id'];
-        jugador2Equipo = jugador1['equipo'];
-        jugador2NumCartas = jugador1['num_cartas'];
-
-      }
+    if (jugadores != null) {
+      numJugadores = jugadores!.length; // Número de jugadores en la partida
     }
 
-    final dataJugador1 = await getUserStatisticsWithID(jugador1Id!); // Llama al método para obtener los datos del jugador 1
-    final dataJugador2 = await getUserStatisticsWithID(jugador2Id!); // Llama al método para obtener los datos del jugador 2
+    
 
-    jugador1FotoUrl = dataJugador1['imagen'] ?? ''; // Asigna la foto del jugador a jugador1
-    jugador2FotoUrl = dataJugador2['imagen'] ?? ''; // Asigna la foto del jugador a jugador2
-
+    print('Número de jugadores: $numJugadores');
+    
+    if(numJugadores == 4) {
+      fillPlayerData2vs2(miNombre); // Llama a la función para llenar los datos del jugador 2vs2
+    }else{
+      fillPlayerData1vs1(miNombre); // Llama a la función para llenar los datos del jugador 1vs1
+    }
 
     _listenToWebSocket(); // Escucha los mensajes del WebSocket
   }
@@ -521,10 +822,7 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-
-
+  Scaffold build1vs1(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -564,19 +862,19 @@ class _GameScreenState extends State<GameScreen> {
 
           
           // Carta jugada por el jugador
-          playerPlayedCard.isNotEmpty
+          jugador1PlayedCard.isNotEmpty
               ? Align(
                   alignment: const Alignment(0.0, 0.25),
-                  child: GameCard(card: playerPlayedCard, deck: deckSelected, width: 75),
+                  child: GameCard(card: jugador1PlayedCard, deck: deckSelected, width: 75),
                 )
               : const SizedBox.shrink(),
 
           
           // Carta jugada por el rival
-          rivalPlayedCard.isNotEmpty
+          jugador2PlayedCard.isNotEmpty
               ? Align(
                   alignment: const Alignment(0.0, -0.55),
-                  child: GameCard(card: rivalPlayedCard, deck: deckSelected, width: 75),
+                  child: GameCard(card: jugador2PlayedCard, deck: deckSelected, width: 75),
                 )
               : const SizedBox.shrink(),
 
@@ -646,6 +944,146 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  Scaffold build2vs2(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          // Fondo principal:
+          const Background(),
+          const CornerDecoration(
+            imageAsset: 'assets/images/gold_ornaments.png',
+          ),
+          // Logo de la aplicación al fondo
+          Align(
+            alignment: const Alignment(0.0, -0.15),
+            child: Opacity(
+              opacity: 0.5,
+              child: Image.asset(
+                'assets/images/app_logo_white.png',
+                width: 100,
+              ),
+            ),
+          ),
+
+          if (faseArrastre == false) ...[
+            // Carta triunfo
+            Align(
+              alignment: const Alignment(0.0, -0.15),
+              child: GameCard(card: triunfo, deck: deckSelected, width: 75),
+            ),
+          ],
+
+          
+          // Carta jugada por el jugador
+          jugador1PlayedCard.isNotEmpty
+              ? Align(
+                  alignment: const Alignment(0.0, 0.25),
+                  child: GameCard(card: jugador1PlayedCard, deck: deckSelected, width: 75),
+                )
+              : const SizedBox.shrink(),
+
+          
+          // Carta jugada por el jugador
+          jugador2PlayedCard.isNotEmpty
+              ? Align(
+                  alignment: const Alignment(0.0, -0.55),
+                  child: GameCard(card: jugador2PlayedCard, deck: deckSelected, width: 75),
+                )
+              : const SizedBox.shrink(),
+
+          // Carta jugada por el rival 1
+          jugador3PlayedCard.isNotEmpty
+              ? Align(
+                  alignment: const Alignment(-0.55, -0.15),
+                  child: GameCard(card: jugador3PlayedCard, deck: deckSelected, width: 75),
+                )
+              : const SizedBox.shrink(),
+          
+          // Carta jugada por el rival 3
+          jugador4PlayedCard.isNotEmpty
+              ? Align(
+                  alignment: const Alignment(0.55, -0.15),
+                  child: GameCard(card: jugador4PlayedCard, deck: deckSelected, width: 75),
+                )
+              : const SizedBox.shrink(),
+
+          // Añadimos mano del jugador
+          Align(
+            alignment: const Alignment(0.0, 0.77),
+            child: buildPlayerHand(context, playerHand),
+          ),
+
+
+          // Botones del juego
+          Align(
+            alignment: const Alignment(0.80, -0.90),
+            child: buildSettingsButton(context),
+          ),
+
+          Align(
+            alignment: const Alignment(0.80, -0.75),
+            child: buildChatButton(context),
+          ),
+
+          Align(
+            alignment: const Alignment(0.95, 0.38),
+            child: buildGameButtons(context),
+          ),
+
+          // Información de la partida
+          Align(
+            alignment: const Alignment(-0.80, -0.90),
+            child: buildInfoPartida(context),
+          ),
+
+          // Iconos de los jugadores
+          Align(
+            alignment: const Alignment(-0.70, 0.38),
+            child: buildPlayerIcon(context, jugador1Nombre.toString(), jugador1FotoUrl),
+          ),
+          Align(
+            alignment: const Alignment(0.0, -0.90),
+            child: buildPlayerIcon(context, jugador2Nombre.toString(), jugador2FotoUrl),
+          ),
+          Align(
+            alignment: const Alignment(-0.9, -0.50),
+            child: buildPlayerIcon(context, jugador3Nombre.toString(), jugador3FotoUrl),
+          ),
+          Align(
+            alignment: const Alignment(0.9, -0.50),
+            child: buildPlayerIcon(context, jugador4Nombre.toString(), jugador4FotoUrl),
+          ),
+
+          // Mostrar segundos restantes del turno
+          if (mostrarSegundosRestantesTurno)
+            Align(
+              alignment: const Alignment(0.0, 0.45),
+              child: Text(
+              '$segundosRestantesTurno',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                
+              ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    if (numJugadores == 4) {
+      return build2vs2(context);
+    } else {
+      return build1vs1(context);
+    }
+  }
+
   buildInfoPartida(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(8.0),
@@ -661,7 +1099,11 @@ class _GameScreenState extends State<GameScreen> {
           Text('Puntos:', style: const TextStyle(color: Colors.white)),
           Text('$jugador1Puntos', style: const TextStyle(color: Colors.white)),
           Text('Pts. rival:', style: const TextStyle(color: Colors.white)),
-          Text('$jugador2Puntos', style: const TextStyle(color: Colors.white)),
+          if (numJugadores == 4) ...[
+            Text('$jugador3Puntos', style: const TextStyle(color: Colors.white)),
+          ] else ...[
+            Text('$jugador2Puntos', style: const TextStyle(color: Colors.white)),
+          ]
         ],
       ),
     );

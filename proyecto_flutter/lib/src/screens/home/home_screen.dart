@@ -108,7 +108,7 @@ class HomeScreenState extends State<HomeScreen>
     try
     {
       // Conecta al socket pidiendo 2 jugadores
-      await _websocketService.connect(capacidad: 2, soloAmigos: false);
+      await _websocketService.connect(capacidad: 4, soloAmigos: false);
 
       _subscription?.cancel(); // Cancela la suscripción anterior si existe.
       _subscription = null; // Restablece la suscripción.
@@ -120,6 +120,8 @@ class HomeScreenState extends State<HomeScreen>
         {
           final type = message['type'] as String?;
           final data = message['data'] as Map<String, dynamic>?;
+          print(type); // Imprime el tipo de mensaje recibido.
+          print(data); // Imprime los datos del mensaje recibido.
 
           if (type == 'player_joined' && data != null)
           {
@@ -128,7 +130,7 @@ class HomeScreenState extends State<HomeScreen>
               _statusMessage = 'Esperando jugadores: ${_players.length}/2'; // Actualiza el mensaje de estado.
             });
 
-            if(Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
+            //if(Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
           }
 
           if (type == 'start_game' && data != null) 
