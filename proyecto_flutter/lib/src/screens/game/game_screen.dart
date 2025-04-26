@@ -435,7 +435,9 @@ class _GameScreenState extends State<GameScreen> {
       
       if (type == 'start_game' && data != null) {
         setState(() {
-          mazoRestante = data['mazo_restante'];
+          cartasRestantes = data['mazo_restante'];
+
+          playerHand = ['1Oros', '2Oros', '3Oros', '4Oros', '5Oros', '6Oros']; // Inicializa la mano del jugador
 
           misCartas = data['mis_cartas'];
           if (misCartas != null) {
@@ -461,6 +463,7 @@ class _GameScreenState extends State<GameScreen> {
           cartaTriunfo = data['carta_triunfo'];
           triunfo = (cartaTriunfo?['valor']?.toString() ?? '') + (cartaTriunfo?['palo']?.toString() ?? '');
           
+          segundosRestantesTurno = SEGUNDOS_POR_TURNO; // Reinicia el temporizador de cuenta atrás
         });
       }
 
