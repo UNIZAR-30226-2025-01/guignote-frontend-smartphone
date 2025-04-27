@@ -20,9 +20,6 @@ class RankingScreenState extends State<RankingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final containerHeight = size.height * 0.76;
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
