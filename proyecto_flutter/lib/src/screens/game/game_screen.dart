@@ -199,7 +199,11 @@ class _GameScreenState extends State<GameScreen> {
             },
           };
 
-          _websocketService?.send(data); // Envía la carta jugada al servidor
+          if (_websocketService!.isConnected()) {
+            _websocketService?.send(data); // Envía la carta jugada al servidor
+          } else {
+            print('No hay conexión WebSocket activa');
+          }
 
           //print('jugar_carta: $data');
         }
@@ -210,9 +214,35 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  void accionCantar() {
+    setState(() {
+
+      final data = {
+        'accion': 'cantar',
+      };
+
+      if (_websocketService!.isConnected()) {
+        _websocketService?.send(data); // Envía la carta jugada al servidor
+      } else {
+        print('No hay conexión WebSocket activa');
+      }
+      
+    });
+  }
+
   void cambiarTriunfo() {
     setState(() {
-      //triunfo = '1Copas';
+      //Mandamos el mensaje al servidor para intentar cambiar el triunfo
+      final data = {
+        'accion': 'cambiar_siete',
+      };
+
+      if (_websocketService!.isConnected()) {
+        _websocketService?.send(data); // Envía la carta jugada al servidor
+      } else {
+        print('No hay conexión WebSocket activa');
+      }
+
     });
   }
   
@@ -245,11 +275,14 @@ class _GameScreenState extends State<GameScreen> {
   // Método para escuchar mensajes del WebSocket
   void _listenToWebSocket() {
     _websocketService?.incomingMessages.listen((message) {
+      
+      print(message); // Imprime el mensaje recibido para depuración
+
+
       final type = message['type'] as String?;
       final data = message['data'] as Map<String, dynamic>?;
 
-      print(type);
-      print(data);
+      
       
       if (type == 'turn_update' && data != null) {
         setState(() {
@@ -378,6 +411,37 @@ class _GameScreenState extends State<GameScreen> {
           playerHand.add(cartaString); // añade la carta al mazo del jugador
           if(numJugadores == 2) {
             rivalHand.add('Back'); // elimina la carta del mazo del jugador
+          }
+        });
+      }
+
+      /*
+      {
+        "type": "cambio_siete",
+        "data": {
+          "jugador": {
+            "nombre": "Usuario 1",
+            "id": 1,
+            "equipo": 1
+          },
+          "carta_robada": {"palo": "Oros", valor: 1} // Carta de triunfo. La que cambias por el 7
+        }
+      }
+      */
+
+      if (type == 'cambio_siete' && data != null) {
+
+        final jugadorid = data['jugador']?['id']; // id del jugador que ha jugado la carta
+        final carta = data['carta_robada']; // carta jugada por el jugador
+        String cartaString = carta['valor'].toString() + carta['palo'].toString(); // carta jugada en formato string
+        String sieteTriunfo = '7' + carta['palo'].toString(); // carta jugada en formato string
+
+        setState(() {
+          if(jugadorid == jugador1Id){
+            if(playerHand.contains(sieteTriunfo)) {
+              playerHand.remove(sieteTriunfo); // elimina el 7 del mazo del jugador
+              playerHand.add(cartaString); // añade la carta al mazo del jugador
+            }
           }
         });
       }
@@ -1254,6 +1318,7 @@ class _GameScreenState extends State<GameScreen> {
           child: ElevatedButton(
             onPressed: () {
               // Acción para el segundo botón
+              accionCantar();
             },
             child: const Text('Cantar', style: TextStyle(color: Colors.white)),
           ),
