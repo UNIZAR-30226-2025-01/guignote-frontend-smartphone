@@ -1,195 +1,239 @@
-import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:sota_caballo_rey/src/models/gamechat_model.dart';
-import 'package:sota_caballo_rey/src/services/gamechat_service.dart';
+import 'package:sota_caballo_rey/src/services/api_service.dart';
+import 'package:sota_caballo_rey/src/services/storage_service.dart';
+import 'package:sota_caballo_rey/src/widgets/background.dart';
+import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
-class GamechatModal extends StatefulWidget
-{
+
+
+class GameChatModal extends StatefulWidget {
   final int chatId;
+  final int jugadorId;
 
-  const GamechatModal({super.key, required this.chatId});
+  const GameChatModal({
+    super.key,
+    required this.chatId,
+    required this.jugadorId,
+  });
 
   @override
-  State<GamechatModal> createState() => _GamechatModalState();
+  GameChatState createState() => GameChatState();
 }
 
-class _GamechatModalState extends State<GamechatModal>
-{
-  // Controller para el campo de texto del mensaje
-  final TextEditingController _messageController = TextEditingController();
-  // Controlador para el scroll del chat
+class GameChatState extends State<GameChatModal> {
+  WebSocketChannel? channel;
+  List<Map<String, String>> mensajes = [];
+  final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  // Lista de mensajes del chat
-  final List<GameChatMessage> _messages = [];
-
-  // subscripción al stream de mensajes
-  late StreamSubscription _webSocketSubscription;
-  // Variable para el estado de conexión del WebSocket
-  bool _isloading = true;
-
-  // Instancia del servicio de chat
-  final gamechatService = GamechatService();
-
 
   @override
-  void initState()
-  {
+  void initState() {
     super.initState();
-
-    _initChat();    
-
+    _conectar();
+    _cargarMensajes();
   }
 
-  Future<void> _initChat() async
-  {
-    try
-    {
-      // En primer lugar obtenemos los mensajes mediante el servicio
-      final mensajes = await gamechatService.getMessages(widget.chatId);
-
-      setState(() 
-      {
-        // Asignamos los mensajes a la lista 
-        _messages.addAll(mensajes);
-        _isloading = false;  
-      });
-
-      // Desplazamos el scroll al final para mostrar los mensajes más recientes
-      _scrollAlFinal();
-
-      // Conexión al WebSocket
-      await gamechatService.conectarWebSocket(widget.chatId);
-
-      // Escuchamos los mensajes del WebSocket y los añadimos a la lista
-      _webSocketSubscription = gamechatService.messagesStream.listen((newMessage) 
-      {
-        setState(() 
-        {
-          _messages.insert(0, newMessage); // Añadimos el nuevo mensaje al principio de la lista
-        });
-      });
-
-      // Desplazamos el scroll al final para mostrar los mensajes más recientes
-      _scrollAlFinal();
-
-    }catch(e)
-    {
-      if(!mounted) return; // Si el widget no está montado, no hacemos nada
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error al cargar el chat: $e")));
-    }
-  }
-
-  @override
-  void dispose()
-  {
-    _messageController.dispose(); // Limpiamos el controlador del mensaje
-    _scrollController.dispose(); // Limpiamos el controlador del scroll
-    _webSocketSubscription.cancel(); // Cancelamos la subscripción al WebSocket
-    gamechatService.disconnect(); // Desconectamos el WebSocket
-    super.dispose();
-  }
-
-  void _sendMessage()
-  {
-    final message = _messageController.text.trim();
-    if(message.isNotEmpty)
-    {
-      gamechatService.sendMessage(message);
-      _messageController.clear(); // Limpiamos el campo de texto
-    }
-  }
-
-  void _scrollAlFinal()
-  {
-    WidgetsBinding.instance.addPostFrameCallback((_) 
-    {
-      if(_scrollController.hasClients)
-      {
-        _scrollController.animateTo
-        (
-          _scrollController.position.minScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut, // Animación suave al final del scroll
-        );
+  ///
+  /// Conectar al WebSocket del chat usando 'chatId'
+  ///
+  void _conectar() async {
+    try {
+      String? token = await StorageService.getToken();
+      if(token == null || token.isEmpty) {
+        if(kDebugMode) { print("Error: No se encontró token"); }
+        return;
       }
+      final wsUrl = Uri.parse("ws://188.165.76.134:8000/ws/chat_partida/${widget.chatId}/?token=$token");
+      channel = WebSocketChannel.connect(wsUrl);
+      channel!.stream.listen(
+          (message) {
+            final data = json.decode(message);
+            setState(() {
+              mensajes.insert(0, {
+                "emisor": data["emisor"]["id"].toString(),
+                "contenido": data["contenido"],
+                "fecha_envio": data["fecha_envio"]
+              });
+            });
+            _scrollMensajeMasReciente();
+          },
+          onError: (error) {
+            if(kDebugMode) { print("Error en Websocket: $error"); }
+          },
+          onDone: () {
+            if(kDebugMode) { print("WebSocket cerrado"); }
+          }
+      );
+    } catch(e) {
+      if(kDebugMode) {
+        print("Error al conectar WebSocket: $e");
+      }
+    }
+  }
+
+  ///
+  /// Cargar mensajes previos
+  ///
+  Future<void> _cargarMensajes() async {
+    try {
+      List<Map<String, String>> mensajesCargados = await obtenerMensajesChatPartida(widget.chatId);
+      setState(() {
+        mensajes = mensajesCargados;
+      });
+      _scrollMensajeMasReciente();
+    } catch(e) {
+      if(kDebugMode) {
+        print("Error al cargar mensajes: $e");
+      }
+    }
+  }
+
+  ///
+  /// Desplazar al último mensaje
+  ///
+  void _scrollMensajeMasReciente() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.jumpTo(_scrollController.position.minScrollExtent);
     });
   }
 
-  @override
-  Widget build(BuildContext context)
-  {
-    return DraggableScrollableSheet
-    (
-      // Configuración del DraggableScrollableSheet
-      initialChildSize: 0.6, 
-      maxChildSize: 0.9,
-      minChildSize: 0.3,
+  ///
+  /// Enviar mensaje con WebSocket
+  ///
+  void _enviarMensaje() {
+    if(_controller.text.trim().isEmpty) return;
+    if(channel != null) {
+      channel!.sink.add(jsonEncode({
+        "contenido": _controller.text.trim(),
+      }));
+      _controller.clear();
+    } else {
+      if(kDebugMode) {
+        print("Error: WebSocket no conectado");
+      }
+    }
+  }
 
-      // Definimos el builder del DraggableScrollableSheet
-      builder: (_, _) => Container
-      (
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration
-        (
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  ///
+  /// Lista de mensajes
+  ///
+  Widget _listaMensajes() {
+    return Expanded(
+      child: ListView.builder(
+        controller: _scrollController,
+        reverse: true,
+        itemCount: mensajes.length,
+        itemBuilder: (context, index) {
+          final mensaje = mensajes[index];
+          final esPropio = mensaje["emisor"] == widget.jugadorId.toString();
+          // Si el mensaje es propio, se alinea a la derecha, si no, a la izquierda
+          return _itemLista(mensaje, esPropio);
+        }
+      )
+    );
+  }
+
+  ///
+  /// Mensaje ítem
+  ///
+  Widget _itemLista(Map<String, String> mensaje, bool esPropio) {
+    return Align(
+      alignment: esPropio ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: esPropio ? Colors.blue : Colors.grey[300],
+          borderRadius: BorderRadius.circular(8)
         ),
-        child: Column
-        (
-          children: 
-          [
-            const Text('Chat de la partida', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const Divider(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+                mensaje["contenido"]!,
+                style: TextStyle(color: esPropio ? Colors.white : Colors.black,
+                  fontSize: 16)
+            ),
+            Text(
+              mensaje["fecha_envio"]!,
+              style: TextStyle(fontSize: 12, color: Colors.black54)
+            )
+          ],
+        )
+      )
+    );
+  }
 
-            Expanded
-            (
-              child: _isloading // Si está cargando, mostramos un CircularProgressIndicator
-              ? const Center(child: CircularProgressIndicator(color: Colors.amber,))
-              : ListView.builder // En caso contrario mostramos el chat de la partida.
-              (
-                controller: _scrollController,
-                reverse: true,
-                itemCount: _messages.length,
-                itemBuilder: (context, index) 
-                {
-                  final message = _messages[index];
-                  return ListTile
-                  (
-                    leading: CircleAvatar(backgroundImage: NetworkImage(message.emisor.profileImageUrl)),
-                    title: Text(message.emisor.username),
-                    subtitle: Text(message.contenido),
-                    trailing: Text(message.fechaEnvio.toString()),
-                  );
-                },
+  ///
+  /// input en el que escribes el mensaje
+  ///
+  Widget _inputMensaje() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              decoration: InputDecoration(
+                hintText: "Escribe un mensaje...",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
-            Row
-            (
-              children: 
-              [
-                Expanded
-                (
-                  child: TextField
-                  (
-                    controller: _messageController,
-                    decoration: const InputDecoration
-                    (
-                      hintText: 'Escribe un mensaje...',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                IconButton
-                (
-                  icon: const Icon(Icons.send),
-                  onPressed: _sendMessage, // Enviamos el mensaje al pulsar el botón
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.send),
+            onPressed: _enviarMensaje,
+          ),
+        ],
       ),
     );
   }
 
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          const Background(),
+          const CornerDecoration(imageAsset: 'assets/images/gold_ornaments.png'),
+          SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    child: Column(
+                      children: [
+                        _listaMensajes(),
+                        _inputMensaje()
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            ),
+          )
+        ]
+      )
+    );
+  }
+
+  @override
+  void dispose() {
+    channel?.sink.close(WebSocketStatus.goingAway);
+    super.dispose();
+  }
 }

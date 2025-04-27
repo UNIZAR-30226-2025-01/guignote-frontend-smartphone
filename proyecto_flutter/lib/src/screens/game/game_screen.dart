@@ -25,7 +25,6 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   bool _isInitialized = false; // Bandera para evitar múltiples ejecuciones
-  double _volume = 0.5;
   late Timer cuentaAtrasTurnoTimer;
 
   WebsocketService? _websocketService; // Servicio WebSocket para la conexión
@@ -1372,7 +1371,19 @@ class _GameScreenState extends State<GameScreen> {
           context: context,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
-          builder:(_) => GamechatModal(chatId: chatId!),
+          builder:(_) => Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.8, // Máximo 80% de la altura de la pantalla
+              maxWidth: MediaQuery.of(context).size.width * 0.9,  // Máximo 90% del ancho de la pantalla
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white, // Fondo del modal
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(20), // Bordes redondeados en la parte superior
+              ),
+            ),
+            child: GameChatModal(chatId: chatId!, jugadorId: jugador1Id!),
+          ),
         );
       },
       style: ElevatedButton.styleFrom(

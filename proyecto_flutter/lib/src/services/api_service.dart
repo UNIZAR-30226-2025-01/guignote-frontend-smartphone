@@ -687,6 +687,65 @@ Future<List<Map<String, String>>> obtenerMensajes(String receptorId) async {
 }
 
 ///
+/// Obtener mensajes de un chat de un chat de partida específico
+///
+Future<List<Map<String, String>>> obtenerMensajesChatPartida(int chatId) async {
+  // Endpoint petición API
+  final url = Uri.parse(
+    '${Config.apiBaseURL}${Config.obtenerMensajesChatPartida}?chat_id=$chatId',
+  );
+
+  // Obtener token de usuario, si existe
+  String? token = await StorageService.getToken();
+  if (token == null) {
+    throw Exception("No hay un token de autentificación disponible.");
+  }
+
+  // Petición GET
+  try {
+    final response = await http.get(url, headers: {"Auth": token});
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      List<Map<String, String>> mensajes = List<Map<String, String>>.from(
+        data["mensajes"].map(
+          (mensaje) => {
+            "emisor": mensaje["emisor"].toString(),
+            "contenido": mensaje["contenido"].toString(),
+            "fecha_envio": mensaje["fecha_envio"].toString(),
+          },
+        ),
+      );
+      return mensajes;
+    } else {
+      switch (response.statusCode) {
+        case 400:
+          throw Exception("Datos inválidos.");
+        case 401:
+          throw Exception("Token inválido o expirado.");
+        case 403:
+          throw Exception("No tienes permiso para ver estos mensajes.");
+        case 404:
+          throw Exception(
+            "El chat no existe o el destinatario no fue encontrado.",
+          );
+        case 405:
+          throw Exception("Método no permitido.");
+        default:
+          throw Exception(
+            "Error desconocido. Código: ${response.statusCode} - ${response.body}",
+          ); // ⚠️ Mensaje más detallado
+      }
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print("Error en obtenerMensajes: $e");
+    }
+    rethrow;
+  }
+}
+
+
+///
 /// Cambiar imagen de perfil
 ///
 Future<String> cambiarImagenPerfil(File imagen) async {
