@@ -63,6 +63,7 @@ class SecurityScreen extends StatelessWidget
     ]; // Lista de datos de los tiles
     return Scaffold
     (
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent,
       body: Stack
       (

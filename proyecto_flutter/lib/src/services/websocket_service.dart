@@ -77,12 +77,20 @@ class WebsocketService
     );
   }
 
+  /// Chequea si hay una conexión WebSocket activa.
+  /// Devuelve true si la conexión está activa, false en caso contrario.
+  bool isConnected() {
+    return _channel != null;
+  }
+
   /// Envía un mensaje en formato JSON al servidor.
   void send(Map<String, dynamic> message) 
   {
     if (_channel != null) 
     {
       _channel!.sink.add(jsonEncode(message));
+      final json = jsonEncode(message);
+      print('Mensaje enviado: $json');
     } else 
     {
       throw Exception('No hay conexión WebSocket activa');

@@ -133,6 +133,7 @@ class LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent, // Fondo transparente.
       body: Stack(
         children: [

@@ -71,6 +71,7 @@ class _PasswordRecoverScreenState extends State<PasswordRecoverScreen>
   {
     return Scaffold
     (
+     resizeToAvoidBottomInset: false,
      backgroundColor: Colors.transparent,
 
      body: Stack

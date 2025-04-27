@@ -5,12 +5,14 @@ import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/widgets/game/game_card.dart';
 import 'package:sota_caballo_rey/src/widgets/game/card_in_fan.dart';
 import 'package:sota_caballo_rey/src/services/websocket_service.dart';
+import 'package:sota_caballo_rey/routes.dart';
 import 'dart:math' as math;
 import 'dart:async';
 import 'package:sota_caballo_rey/src/screens/game/gamechat_modal.dart';
 
-const int SEGUNDOS_POR_TURNO = 60; // Segundos por turno
-const int CARTAS_POR_RONDA = 2; // Cartas que se juegan en cada ronda entre todos los jugadores
+
+
+const int SEGUNDOS_POR_TURNO = 15; // Segundos por turno
 const String deckSelected = 'base'; // Baraja seleccionada por el jugador.
 
 class GameScreen extends StatefulWidget {
@@ -28,12 +30,16 @@ class _GameScreenState extends State<GameScreen> {
 
   WebsocketService? _websocketService; // Servicio WebSocket para la conexión
 
+  int numJugadores = 2; // Número de jugadores en la partida (2 o 4)
+
+  int cartasPorRonda = 2; // Número de cartas que se juegan en una ronda (2 o 4)
+
   String? selectedCard; // null o la carta elegida.
 
   String triunfo = '';
 
-  String rivalPlayedCard = '';
-  String playerPlayedCard = '';
+
+
   List<String> playerHand = ['1Oros', '2Oros', '3Oros', '4Oros', '5Oros', '6Oros'];
   List<String> rivalHand = ['Back', 'Back', 'Back', 'Back', 'Back', 'Back'];
   int cartasRestantes = 0;
@@ -61,13 +67,68 @@ class _GameScreenState extends State<GameScreen> {
   int? jugador1NumCartas;
   int jugador1Puntos = 0;
   String jugador1FotoUrl = '';
+  String jugador1PlayedCard = '';
 
+  // el jugador 2 es el compañero del jugador 1
+  // (solo en 2vs2, en 1vs1 es el rival)
   String? jugador2Nombre;
   int? jugador2Id;
   int? jugador2Equipo;
   int? jugador2NumCartas;
   int jugador2Puntos = 0;
-  String jugador2FotoUrl = 'https://picsum.photos/seed/picsum/200/300';
+  String jugador2FotoUrl = '';
+  String jugador2PlayedCard = '';
+
+  // el jugador 3 es un rival solo en 2vs2
+  String? jugador3Nombre;
+  int? jugador3Id;
+  int? jugador3Equipo;
+  int? jugador3NumCartas;
+  int jugador3Puntos = 0;
+  String jugador3FotoUrl = '';
+  String jugador3PlayedCard = '';
+
+  // el jugador 4 es un rival solo en 2vs2
+  String? jugador4Nombre;
+  int? jugador4Id;
+  int? jugador4Equipo;
+  int? jugador4NumCartas;
+  int jugador4Puntos = 0;
+  String jugador4FotoUrl = '';
+  String jugador4PlayedCard = '';
+
+
+  void ordenarCartas(List<String> hand) {
+    const valorPrioridad = {
+      '1': 10,
+      '3': 9,
+      '12': 8,
+      '10': 7,
+      '11': 6,
+      '7': 5,
+      '6': 4,
+      '5': 3,
+      '4': 2,
+      '2': 1,
+    };
+
+    hand.sort((a, b) {
+      // Divide las cartas en valor y palo
+      final cardA = parseCard(a)!; // Usa parseCard para obtener el valor y el palo
+      final cardB = parseCard(b)!;
+
+      // Compara primero por palo
+      int paloComparison = cardA['palo']!.compareTo(cardB['palo']!);
+      if (paloComparison != 0) {
+        return paloComparison; // Si los palos son diferentes, ordena por palo
+      }
+
+      // Si los palos son iguales, compara por prioridad de valor
+      int prioridadA = valorPrioridad[cardA['valor']!]!;
+      int prioridadB = valorPrioridad[cardB['valor']!]!;
+      return prioridadB.compareTo(prioridadA); // Ordena de mayor a menor prioridad
+    });
+  }
 
   Map<String, String>? parseCard(String card) {
     // Usa una expresión regular para separar el número y el palo
@@ -87,13 +148,40 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  void salirDeLaPartida() {
+    cuentaAtrasTurnoTimer.cancel(); // Cancela el temporizador de cuenta atrás
+    _websocketService?.disconnect(); // Cierra el WebSocket
+    Navigator.pushReplacementNamed(context, AppRoutes.home); // Redirige a la pantalla de inicio
+                      
+  }
+
   void onCardTap(String card) {
     setState(() {
       if (selectedCard == card) {
         jugarCarta(card);
         selectedCard = null;
       } else {
-        selectedCard = card;
+        String card1 = selectedCard ?? '';
+        String card2 = card;
+        if (card1.isNotEmpty && card2.isNotEmpty) {
+          // Intercambia las cartas seleccionadas
+          int index1 = playerHand.indexOf(card1);
+          int index2 = playerHand.indexOf(card2);
+
+          // Verifica que ambos valores existan en la lista
+          if (index1 != -1 && index2 != -1) {
+            // Intercambia los elementos
+            final temp = playerHand[index1];
+            playerHand[index1] = playerHand[index2];
+            playerHand[index2] = temp;
+          }
+          selectedCard = null; // Reinicia la selección de cartas
+        }else{
+          // Selecciona la carta
+          selectedCard = card;
+        } 
+        
+
       }
     });
   }
@@ -101,24 +189,27 @@ class _GameScreenState extends State<GameScreen> {
   void jugarCarta(String card) {
     setState(() {
       if(turnoJugador == jugador1Nombre) {
+        if(jugador1PlayedCard.isEmpty) {
+          final mapCard = parseCard(card);
+          
+          int valorCarta = int.parse(mapCard!['valor']!);
 
-        final mapCard = parseCard(card);
-        
-        int valorCarta = int.parse(mapCard!['valor']!);
+          final data = {
+            'accion': 'jugar_carta',
+              'carta': {
+              'palo': mapCard['palo'],
+              'valor': valorCarta,
+            },
+          };
 
-        final data = {
-          'accion': 'jugar_carta',
-            'carta': {
-            'palo': mapCard['palo'],
-            'valor': valorCarta,
-          },
-        };
+          if (_websocketService!.isConnected()) {
+            _websocketService?.send(data); // Envía la carta jugada al servidor
+          } else {
+            print('No hay conexión WebSocket activa');
+          }
 
-        _websocketService?.send(data); // Envía la carta jugada al servidor
-
-        playerPlayedCard = card;
-        playerHand.remove(card);
-        //print('jugar_carta: $data');
+          //print('jugar_carta: $data');
+        }
       } else {
         print('No es tu turno para jugar la carta: $card');
       }
@@ -126,9 +217,35 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  void accionCantar() {
+    setState(() {
+
+      final data = {
+        'accion': 'cantar',
+      };
+
+      if (_websocketService!.isConnected()) {
+        _websocketService?.send(data); // Envía la carta jugada al servidor
+      } else {
+        print('No hay conexión WebSocket activa');
+      }
+      
+    });
+  }
+
   void cambiarTriunfo() {
     setState(() {
-      //triunfo = '1Copas';
+      //Mandamos el mensaje al servidor para intentar cambiar el triunfo
+      final data = {
+        'accion': 'cambiar_siete',
+      };
+
+      if (_websocketService!.isConnected()) {
+        _websocketService?.send(data); // Envía la carta jugada al servidor
+      } else {
+        print('No hay conexión WebSocket activa');
+      }
+
     });
   }
   
@@ -161,11 +278,14 @@ class _GameScreenState extends State<GameScreen> {
   // Método para escuchar mensajes del WebSocket
   void _listenToWebSocket() {
     _websocketService?.incomingMessages.listen((message) {
+      
+      print(message); // Imprime el mensaje recibido para depuración
+
+
       final type = message['type'] as String?;
       final data = message['data'] as Map<String, dynamic>?;
 
-      print(type);
-      print(data);
+      
       
       if (type == 'turn_update' && data != null) {
         setState(() {
@@ -193,10 +313,20 @@ class _GameScreenState extends State<GameScreen> {
         final carta = data['carta']; // carta jugada por el jugador
         String cartaString = carta['valor'].toString() + carta['palo'].toString(); // carta jugada en formato string
         setState(() {
-          if(jugadorid != jugador1Id){
-            rivalPlayedCard = cartaString; // carta jugada por el rival
-            rivalHand.remove('Back'); // elimina la carta del mazo del rival
+          if(jugadorid == jugador1Id){
+            jugador1PlayedCard = cartaString; // carta jugada por el jugador
+            playerHand.remove(cartaString); // elimina la carta del mazo del jugador
+          }else if(jugadorid == jugador2Id){
+            jugador2PlayedCard = cartaString; // carta jugada por el compañero
+            if(numJugadores == 2) {
+              rivalHand.remove('Back'); // elimina la carta del mazo del jugador
+            }
+          }else if(jugadorid == jugador3Id){
+            jugador3PlayedCard = cartaString; // carta jugada por el rival
+          }else if(jugadorid == jugador4Id){
+            jugador4PlayedCard = cartaString; // carta jugada por el rival
           }
+
         });
       }
 
@@ -218,22 +348,52 @@ class _GameScreenState extends State<GameScreen> {
 
       if (type == 'round_result' && data != null) {
 
-        final ganadorId = data['ganador']?['id']; // id del jugador que ha jugado la carta
-        int puntosGanados = (data['puntos_baza'] as num).toInt(); // Convierte puntosGanados a int
+        int puntosEquipo1 = (data['puntos_equipo_1'] as num).toInt(); // Convierte puntosGanados a int
+        int puntosEquipo2 = (data['puntos_equipo_2'] as num).toInt(); // Convierte puntosGanados a int
         
         setState(() {
           if (cartasRestantes > 0) {
-            cartasRestantes -= CARTAS_POR_RONDA; // Actualiza el número de cartas restantes
+            cartasRestantes -= numJugadores; // Actualiza el número de cartas restantes
           }
-          playerPlayedCard = ''; // Reinicia la carta jugada por el jugador
-          rivalPlayedCard = ''; // Reinicia la carta jugada por el rival
+
+          if (cartasRestantes <= 0) {
+            faseArrastre = true; // Asegúrate de que no sea negativo
+          }
+          Future.delayed(const Duration(seconds: 1), () {
+            setState(() {
+              jugador1PlayedCard = ''; // Reinicia la carta jugada por el jugador
+              jugador2PlayedCard = ''; // Reinicia la carta jugada por el rival
+              jugador3PlayedCard = ''; // Reinicia la carta jugada por el rival
+              jugador4PlayedCard = ''; // Reinicia la carta jugada por el rival
+            });
+          });
+          segundosRestantesTurno = SEGUNDOS_POR_TURNO; // Reinicia el temporizador de cuenta atrás
+          mostrarSegundosRestantesTurno = false; // Oculta el temporizador de cuenta atrás
           // Actualiza los puntos de los jugadores
-          if(ganadorId == jugador1Id){
-            jugador1Puntos += puntosGanados; // suma los puntos ganados al jugador 1
+          if(jugador1Equipo == 1){
+            jugador1Puntos = puntosEquipo1;
+          }else{
+            jugador1Puntos = puntosEquipo2;
           }
-          if(ganadorId == jugador2Id){
-            jugador2Puntos += puntosGanados; // suma los puntos ganados al jugador 2
+
+          if(jugador2Equipo == 1){
+            jugador2Puntos = puntosEquipo1;
+          }else{
+            jugador2Puntos = puntosEquipo2;
           }
+
+          if(jugador3Equipo == 1){
+            jugador3Puntos = puntosEquipo1;
+          }else{
+            jugador3Puntos = puntosEquipo2;
+          }
+
+          if(jugador4Equipo == 1){
+            jugador4Puntos = puntosEquipo1;
+          }else{
+            jugador4Puntos = puntosEquipo2;
+          }
+          
         });
       }
 
@@ -252,7 +412,121 @@ class _GameScreenState extends State<GameScreen> {
         
         setState(() {
           playerHand.add(cartaString); // añade la carta al mazo del jugador
-          rivalHand.add('Back'); // añade la carta al mazo del rival
+          if(numJugadores == 2) {
+            rivalHand.add('Back'); // elimina la carta del mazo del jugador
+          }
+        });
+      }
+
+      /*
+      {
+        "type": "cambio_siete",
+        "data": {
+          "jugador": {
+            "nombre": "Usuario 1",
+            "id": 1,
+            "equipo": 1
+          },
+          "carta_robada": {"palo": "Oros", valor: 1} // Carta de triunfo. La que cambias por el 7
+        }
+      }
+      */
+
+      if (type == 'cambio_siete' && data != null) {
+        
+        final jugadorNombre = data['jugador']?['nombre']; // nombre del jugador que ha jugado la carta
+        final jugadorid = data['jugador']?['id']; // id del jugador que ha jugado la carta
+        final carta = data['carta_robada']; // carta jugada por el jugador
+        String cartaString = carta['valor'].toString() + carta['palo'].toString(); // carta jugada en formato string
+        String sieteTriunfo = '7' + carta['palo'].toString(); // carta jugada en formato string
+
+        
+
+        setState(() {
+          triunfo = sieteTriunfo; // Actualiza la carta de triunfo
+          if(jugadorid == jugador1Id){
+            if(playerHand.contains(sieteTriunfo)) {
+              playerHand.remove(sieteTriunfo); // elimina el 7 del mazo del jugador
+              playerHand.add(cartaString); // añade la carta al mazo del jugador
+            }
+          }
+          String mensaje = '${jugadorNombre} ha cambiado el 7'; // Mensaje de canto
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                mensaje,
+                style: const TextStyle(color: Colors.white),
+                ),
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.black87,
+            ),
+          );
+        });
+      }
+
+      /*
+      {
+        "type": "canto",
+        "data": {
+          "jugador": {
+            "nombre": "Usuario 1",
+            "id": 1,
+            "equipo": 1
+          },
+          "cantos": ["20 (Oros)", "40 (triunfo)"],  // Lista de cantos realizados
+          "puntos": 60,                             // Puntos totales sumados
+          "puntos_equipo_1": 60,                    // Puntos actuales equipo 1
+          "puntos_equipo_2": 0                      // Puntos actuales equipo 2
+        }
+      }
+      */
+      if (type == 'canto' && data != null) {
+
+        final jugadorNombre = data['jugador']?['nombre']; // id del jugador que ha jugado la carta
+        final cantos = data['cantos']; // carta jugada por el jugador
+        final puntosEquipo1 = data['puntos_equipo_1']; // puntos del equipo 1
+        final puntosEquipo2 = data['puntos_equipo_2']; // puntos del equipo 2
+        
+
+        setState(() {
+          // Actualiza los puntos de los jugadores
+          if(jugador1Equipo == 1){
+            jugador1Puntos = puntosEquipo1;
+          }else{
+            jugador1Puntos = puntosEquipo2;
+          }
+
+          if(jugador2Equipo == 1){
+            jugador2Puntos = puntosEquipo1;
+          }else{
+            jugador2Puntos = puntosEquipo2;
+          }
+
+          if(jugador3Equipo == 1){
+            jugador3Puntos = puntosEquipo1;
+          }else{
+            jugador3Puntos = puntosEquipo2;
+          }
+
+          if(jugador4Equipo == 1){
+            jugador4Puntos = puntosEquipo1;
+          }else{
+            jugador4Puntos = puntosEquipo2;
+          }
+
+          String mensaje = 'Canto de $jugadorNombre: ${cantos.join(', ')}'; // Mensaje de canto
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                mensaje,
+                style: const TextStyle(color: Colors.white),
+                ),
+              duration: const Duration(seconds: 5),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.black87,
+            ),
+          );
         });
       }
 
@@ -281,6 +555,65 @@ class _GameScreenState extends State<GameScreen> {
       }
       */
 
+      
+      /*
+      { "type": "start_game",
+        "data": {
+          "mazo_restante": 27,                                       cartas que quedan en mazo central
+          "mis_cartas": [ /* cartas asignadas al jugador */ ],       tu mano
+          "fase_arrastre": false,                                    estás en arrastre?
+          "carta_triunfo": { "palo": "oros", "valor": 7 },           carta triunfo
+          "chat_id": <CHAT_ID>,                                      id del chat de la partida
+          "jugadores": [                                             información jugadores
+            {
+              "id": 1,
+              "nombre": "Usuario 1",
+              "equipo": 1,
+              "num_cartas": 6
+            },
+            {
+              "id": 2,
+              "nombre": "Usuario 2",
+              "equipo": 2,
+              "num_cartas": 6
+            }
+          ]
+        }
+      */
+      
+      if (type == 'start_game' && data != null) {
+        setState(() {
+          cartasRestantes = data['mazo_restante'];
+
+          playerHand = ['1Oros', '2Oros', '3Oros', '4Oros', '5Oros', '6Oros']; // Inicializa la mano del jugador
+
+          misCartas = data['mis_cartas'];
+          if (misCartas != null) {
+            for (var carta in misCartas!) {
+              if (carta.length >= 2) {
+                String palo = carta['palo'].toString(); // Extrae el valor asociado a la clave 'palo'
+                String valor = carta['valor'].toString(); // Segundo elemento de la sublista
+
+                playerHand[misCartas!.indexOf(carta)] = valor + palo; // Asigna el primer elemento a la mano del jugador
+              }
+            }
+          }
+
+          ordenarCartas(playerHand); // Ordena las cartas de la mano del jugador
+
+          if(numJugadores == 2) {
+            rivalHand = ['Back', 'Back', 'Back', 'Back', 'Back', 'Back']; // Inicializa la mano del rival
+          }
+          
+          faseArrastre = data['fase_arrastre'];
+
+          // Extrae detalles de la carta triunfo
+          cartaTriunfo = data['carta_triunfo'];
+          triunfo = (cartaTriunfo?['valor']?.toString() ?? '') + (cartaTriunfo?['palo']?.toString() ?? '');
+          
+          segundosRestantesTurno = SEGUNDOS_POR_TURNO; // Reinicia el temporizador de cuenta atrás
+        });
+      }
 
       /*
       {
@@ -293,7 +626,202 @@ class _GameScreenState extends State<GameScreen> {
         }
       }
       */
+
+      if (type == 'end_game' && data != null) {
+
+        setState(() {
+          cuentaAtrasTurnoTimer.cancel(); // Cancela el temporizador de cuenta atrás
+          mostrarSegundosRestantesTurno = false;
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('FIN DE LA PARTIDA'),
+                content: Text('Tus puntos: $jugador1Puntos\nPuntos rival: ${numJugadores == 4 ? jugador3Puntos : jugador2Puntos}\nGanador: ${data['ganador_equipo'] == jugador1Equipo ? 'TU EQUIPO' : 'EQUIPO RIVAL'}'),
+                actions: [
+                    Align(
+                    alignment: Alignment.bottomCenter,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.9, // Ocupa el 90% del ancho
+                      child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red, // Color rojo
+                        padding: const EdgeInsets.symmetric(vertical: 15), // Altura del botón
+                        shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10), // Bordes redondeados
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Cierra el diálogo
+                        _websocketService?.disconnect(); // Cierra el WebSocket
+                        Navigator.pushReplacementNamed(context, AppRoutes.home); // Redirige a la pantalla de inicio
+                      },
+                      child: const Text(
+                        'SALIR',
+                        style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18, // Tamaño de fuente más grande
+                        fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        });
+      }
     });
+  }
+
+  void fillPlayerData2vs2(String miNombre) async{
+    final jugador1 = jugadores?[0] as Map<String, dynamic>;
+    final jugador2 = jugadores?[1] as Map<String, dynamic>;
+    final jugador3 = jugadores?[2] as Map<String, dynamic>;
+    final jugador4 = jugadores?[3] as Map<String, dynamic>;
+
+
+    if (jugador1['nombre'] == miNombre) {
+      
+      jugador1Nombre = jugador1['nombre'];
+      jugador1Id = jugador1['id'];
+      jugador1Equipo = jugador1['equipo'];
+      jugador1NumCartas = jugador1['num_cartas'];
+
+      jugador2Nombre = jugador3['nombre'];
+      jugador2Id = jugador3['id'];
+      jugador2Equipo = jugador3['equipo'];
+      jugador2NumCartas = jugador3['num_cartas'];
+
+      jugador3Nombre = jugador4['nombre'];
+      jugador3Id = jugador4['id'];
+      jugador3Equipo = jugador4['equipo'];
+      jugador3NumCartas = jugador4['num_cartas'];
+
+      jugador4Nombre = jugador2['nombre'];
+      jugador4Id = jugador2['id'];
+      jugador4Equipo = jugador2['equipo'];
+      jugador4NumCartas = jugador2['num_cartas'];
+
+    } else if(jugador2['nombre'] == miNombre) {
+
+      jugador1Nombre = jugador2['nombre'];
+      jugador1Id = jugador2['id'];
+      jugador1Equipo = jugador2['equipo'];
+      jugador1NumCartas = jugador2['num_cartas'];
+
+      jugador2Nombre = jugador4['nombre'];
+      jugador2Id = jugador4['id'];
+      jugador2Equipo = jugador4['equipo'];
+      jugador2NumCartas = jugador4['num_cartas'];
+
+      jugador3Nombre = jugador1['nombre'];
+      jugador3Id = jugador1['id'];
+      jugador3Equipo = jugador1['equipo'];
+      jugador3NumCartas = jugador1['num_cartas'];
+
+      jugador4Nombre = jugador3['nombre'];
+      jugador4Id = jugador3['id'];
+      jugador4Equipo = jugador3['equipo'];
+      jugador4NumCartas = jugador3['num_cartas'];
+
+    } else if(jugador3['nombre'] == miNombre) {
+
+      jugador1Nombre = jugador3['nombre'];
+      jugador1Id = jugador3['id'];
+      jugador1Equipo = jugador3['equipo'];
+      jugador1NumCartas = jugador3['num_cartas'];
+
+      jugador2Nombre = jugador1['nombre'];
+      jugador2Id = jugador1['id'];
+      jugador2Equipo = jugador1['equipo'];
+      jugador2NumCartas = jugador1['num_cartas'];
+
+      jugador3Nombre = jugador2['nombre'];
+      jugador3Id = jugador2['id'];
+      jugador3Equipo = jugador2['equipo'];
+      jugador3NumCartas = jugador2['num_cartas'];
+
+      jugador4Nombre = jugador4['nombre'];
+      jugador4Id = jugador4['id'];
+      jugador4Equipo = jugador4['equipo'];
+      jugador4NumCartas = jugador4['num_cartas'];
+
+    } else if(jugador4['nombre'] == miNombre) {
+
+      jugador1Nombre = jugador4['nombre'];
+      jugador1Id = jugador4['id'];
+      jugador1Equipo = jugador4['equipo'];
+      jugador1NumCartas = jugador4['num_cartas'];
+
+      jugador2Nombre = jugador2['nombre'];
+      jugador2Id = jugador2['id'];
+      jugador2Equipo = jugador2['equipo'];
+      jugador2NumCartas = jugador2['num_cartas'];
+
+      jugador3Nombre = jugador3['nombre'];
+      jugador3Id = jugador3['id'];
+      jugador3Equipo = jugador3['equipo'];
+      jugador3NumCartas = jugador3['num_cartas'];
+
+      jugador4Nombre = jugador1['nombre'];
+      jugador4Id = jugador1['id'];
+      jugador4Equipo = jugador1['equipo'];
+      jugador4NumCartas = jugador1['num_cartas'];
+
+    }
+        
+
+    final dataJugador1 = await getUserStatisticsWithID(jugador1Id!); // Llama al método para obtener los datos del jugador 1
+    final dataJugador2 = await getUserStatisticsWithID(jugador2Id!); // Llama al método para obtener los datos del jugador 2
+    final dataJugador3 = await getUserStatisticsWithID(jugador3Id!); // Llama al método para obtener los datos del jugador 3
+    final dataJugador4 = await getUserStatisticsWithID(jugador4Id!); // Llama al método para obtener los datos del jugador 4
+
+    jugador1FotoUrl = dataJugador1['imagen'] ?? ''; // Asigna la foto del jugador a jugador1
+    jugador2FotoUrl = dataJugador2['imagen'] ?? ''; // Asigna la foto del jugador a jugador2
+    jugador3FotoUrl = dataJugador3['imagen'] ?? ''; // Asigna la foto del jugador a jugador3
+    jugador4FotoUrl = dataJugador4['imagen'] ?? ''; // Asigna la foto del jugador a jugador4
+  }
+
+  void fillPlayerData1vs1(String miNombre) async{
+    final jugador1 = jugadores?[0] as Map<String, dynamic>;
+    final jugador2 = jugadores?[1] as Map<String, dynamic>;
+
+    if (jugadores?.length != null && jugadores!.length >= 2) {
+      if (jugador1['nombre'] == miNombre) {
+        
+        jugador1Nombre = jugador1['nombre'];
+        jugador1Id = jugador1['id'];
+        jugador1Equipo = jugador1['equipo'];
+        jugador1NumCartas = jugador1['num_cartas'];
+
+        jugador2Nombre = jugador2['nombre'];
+        jugador2Id = jugador2['id'];
+        jugador2Equipo = jugador2['equipo'];
+        jugador2NumCartas = jugador2['num_cartas'];
+
+      }else{
+
+        jugador1Nombre = jugador2['nombre'];
+        jugador1Id = jugador2['id'];
+        jugador1Equipo = jugador2['equipo'];
+        jugador1NumCartas = jugador2['num_cartas'];
+
+        jugador2Nombre = jugador1['nombre'];
+        jugador2Id = jugador1['id'];
+        jugador2Equipo = jugador1['equipo'];
+        jugador2NumCartas = jugador1['num_cartas'];
+
+      }
+    }
+
+    final dataJugador1 = await getUserStatisticsWithID(jugador1Id!); // Llama al método para obtener los datos del jugador 1
+    final dataJugador2 = await getUserStatisticsWithID(jugador2Id!); // Llama al método para obtener los datos del jugador 2
+
+    jugador1FotoUrl = dataJugador1['imagen'] ?? ''; // Asigna la foto del jugador a jugador1
+    jugador2FotoUrl = dataJugador2['imagen'] ?? ''; // Asigna la foto del jugador a jugador2
   }
 
 
@@ -350,7 +878,8 @@ class _GameScreenState extends State<GameScreen> {
         }
       }
     }
-  
+
+    ordenarCartas(playerHand); // Ordena las cartas de la mano del jugador
 
     faseArrastre = data?['fase_arrastre'];
 
@@ -363,57 +892,29 @@ class _GameScreenState extends State<GameScreen> {
 
 
     String miNombre = '';
-    String miFoto = '';
+
     // extrae mis datos
     try {
       final stats = await getUserStatistics(); // Llama al método para obtener los datos
       miNombre = stats['nombre'] ?? 'null'; // Nombre del jugador
-      miFoto = stats['imagen'] ?? 'null'; // URL de la foto del jugador
     } catch (error) {
       print("Error al obtener estadísticas del usuario: $error");
     }
 
     jugadores = data?['jugadores'];
-    final jugador1 = jugadores?[0] as Map<String, dynamic>;
-    final jugador2 = jugadores?[1] as Map<String, dynamic>;
-
-    if (jugadores?.length != null && jugadores!.length >= 2) {
-      if (jugador1['nombre'] == miNombre) {
-        
-        jugador1Nombre = jugador1['nombre'];
-        jugador1Id = jugador1['id'];
-        jugador1Equipo = jugador1['equipo'];
-        jugador1NumCartas = jugador1['num_cartas'];
-
-        jugador2Nombre = jugador2['nombre'];
-        jugador2Id = jugador2['id'];
-        jugador2Equipo = jugador2['equipo'];
-        jugador2NumCartas = jugador2['num_cartas'];
-
-      }else{
-
-        jugador1Nombre = jugador2['nombre'];
-        jugador1Id = jugador2['id'];
-        jugador1Equipo = jugador2['equipo'];
-        jugador1NumCartas = jugador2['num_cartas'];
-
-        jugador2Nombre = jugador1['nombre'];
-        jugador2Id = jugador1['id'];
-        jugador2Equipo = jugador1['equipo'];
-        jugador2NumCartas = jugador1['num_cartas'];
-
-      }
+    if (jugadores != null) {
+      numJugadores = jugadores!.length; // Número de jugadores en la partida
     }
 
-
-    jugador1FotoUrl = miFoto; // Asigna la foto del jugador a jugador1
-    jugador2FotoUrl = '';
-
-  
-
     
 
+    print('Número de jugadores: $numJugadores');
     
+    if(numJugadores == 4) {
+      fillPlayerData2vs2(miNombre); // Llama a la función para llenar los datos del jugador 2vs2
+    }else{
+      fillPlayerData1vs1(miNombre); // Llama a la función para llenar los datos del jugador 1vs1
+    }
 
     _listenToWebSocket(); // Escucha los mensajes del WebSocket
   }
@@ -429,11 +930,9 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-
-
+  Scaffold build1vs1(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
@@ -454,35 +953,37 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
 
-          // Carta triunfo
-          Align(
-            alignment: const Alignment(0.3, -0.11),
-            child: RotatedBox(
+          if (faseArrastre == false) ...[
+            // Carta triunfo
+            Align(
+              alignment: const Alignment(0.3, -0.11),
+              child: RotatedBox(
               quarterTurns: 45,
               child: GameCard(card: triunfo, deck: deckSelected, width: 75),
+              ),
             ),
-          ),
-          // Carta del mazo
-          Align(
-            alignment: const Alignment(0.0, -0.15),
-            child: GameCard(card: 'Back', deck: deckSelected, width: 75),
-          ),
+            // Carta del mazo
+            Align(
+              alignment: const Alignment(0.0, -0.15),
+              child: GameCard(card: 'Back', deck: deckSelected, width: 75),
+            ),
+          ],
 
           
           // Carta jugada por el jugador
-          playerPlayedCard.isNotEmpty
+          jugador1PlayedCard.isNotEmpty
               ? Align(
                   alignment: const Alignment(0.0, 0.25),
-                  child: GameCard(card: playerPlayedCard, deck: deckSelected, width: 75),
+                  child: GameCard(card: jugador1PlayedCard, deck: deckSelected, width: 75),
                 )
               : const SizedBox.shrink(),
 
           
           // Carta jugada por el rival
-          rivalPlayedCard.isNotEmpty
+          jugador2PlayedCard.isNotEmpty
               ? Align(
                   alignment: const Alignment(0.0, -0.55),
-                  child: GameCard(card: rivalPlayedCard, deck: deckSelected, width: 75),
+                  child: GameCard(card: jugador2PlayedCard, deck: deckSelected, width: 75),
                 )
               : const SizedBox.shrink(),
 
@@ -552,6 +1053,147 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  Scaffold build2vs2(BuildContext context) {
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          // Fondo principal:
+          const Background(),
+          const CornerDecoration(
+            imageAsset: 'assets/images/gold_ornaments.png',
+          ),
+          // Logo de la aplicación al fondo
+          Align(
+            alignment: const Alignment(0.0, -0.15),
+            child: Opacity(
+              opacity: 0.5,
+              child: Image.asset(
+                'assets/images/app_logo_white.png',
+                width: 100,
+              ),
+            ),
+          ),
+
+          if (faseArrastre == false) ...[
+            // Carta triunfo
+            Align(
+              alignment: const Alignment(0.0, -0.15),
+              child: GameCard(card: triunfo, deck: deckSelected, width: 75),
+            ),
+          ],
+
+          
+          // Carta jugada por el jugador
+          jugador1PlayedCard.isNotEmpty
+              ? Align(
+                  alignment: const Alignment(0.0, 0.25),
+                  child: GameCard(card: jugador1PlayedCard, deck: deckSelected, width: 75),
+                )
+              : const SizedBox.shrink(),
+
+          
+          // Carta jugada por el jugador
+          jugador2PlayedCard.isNotEmpty
+              ? Align(
+                  alignment: const Alignment(0.0, -0.55),
+                  child: GameCard(card: jugador2PlayedCard, deck: deckSelected, width: 75),
+                )
+              : const SizedBox.shrink(),
+
+          // Carta jugada por el rival 1
+          jugador3PlayedCard.isNotEmpty
+              ? Align(
+                  alignment: const Alignment(-0.55, -0.15),
+                  child: GameCard(card: jugador3PlayedCard, deck: deckSelected, width: 75),
+                )
+              : const SizedBox.shrink(),
+          
+          // Carta jugada por el rival 3
+          jugador4PlayedCard.isNotEmpty
+              ? Align(
+                  alignment: const Alignment(0.55, -0.15),
+                  child: GameCard(card: jugador4PlayedCard, deck: deckSelected, width: 75),
+                )
+              : const SizedBox.shrink(),
+
+          // Añadimos mano del jugador
+          Align(
+            alignment: const Alignment(0.0, 0.77),
+            child: buildPlayerHand(context, playerHand),
+          ),
+
+
+          // Botones del juego
+          Align(
+            alignment: const Alignment(0.80, -0.90),
+            child: buildSettingsButton(context),
+          ),
+
+          Align(
+            alignment: const Alignment(0.80, -0.75),
+            child: buildChatButton(context),
+          ),
+
+          Align(
+            alignment: const Alignment(0.95, 0.38),
+            child: buildGameButtons(context),
+          ),
+
+          // Información de la partida
+          Align(
+            alignment: const Alignment(-0.80, -0.90),
+            child: buildInfoPartida(context),
+          ),
+
+          // Iconos de los jugadores
+          Align(
+            alignment: const Alignment(-0.70, 0.38),
+            child: buildPlayerIcon(context, jugador1Nombre.toString(), jugador1FotoUrl),
+          ),
+          Align(
+            alignment: const Alignment(0.0, -0.90),
+            child: buildPlayerIcon(context, jugador2Nombre.toString(), jugador2FotoUrl),
+          ),
+          Align(
+            alignment: const Alignment(-0.9, -0.50),
+            child: buildPlayerIcon(context, jugador3Nombre.toString(), jugador3FotoUrl),
+          ),
+          Align(
+            alignment: const Alignment(0.9, -0.50),
+            child: buildPlayerIcon(context, jugador4Nombre.toString(), jugador4FotoUrl),
+          ),
+
+          // Mostrar segundos restantes del turno
+          if (mostrarSegundosRestantesTurno)
+            Align(
+              alignment: const Alignment(0.0, 0.45),
+              child: Text(
+              '$segundosRestantesTurno',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                
+              ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    if (numJugadores == 4) {
+      return build2vs2(context);
+    } else {
+      return build1vs1(context);
+    }
+  }
+
   buildInfoPartida(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(8.0),
@@ -567,7 +1209,11 @@ class _GameScreenState extends State<GameScreen> {
           Text('Puntos:', style: const TextStyle(color: Colors.white)),
           Text('$jugador1Puntos', style: const TextStyle(color: Colors.white)),
           Text('Pts. rival:', style: const TextStyle(color: Colors.white)),
-          Text('$jugador2Puntos', style: const TextStyle(color: Colors.white)),
+          if (numJugadores == 4) ...[
+            Text('$jugador3Puntos', style: const TextStyle(color: Colors.white)),
+          ] else ...[
+            Text('$jugador2Puntos', style: const TextStyle(color: Colors.white)),
+          ]
         ],
       ),
     );
@@ -669,51 +1315,38 @@ class _GameScreenState extends State<GameScreen> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              backgroundColor: Colors.black,
-              content: SizedBox(
-                height: 200,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Ajustes',
-                      style: TextStyle(color: Colors.white, fontSize: 24),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Volumen',
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                    Slider(
-                      value: _volume,
-                      min: 0,
-                      max: 1,
-                      divisions: 10,
-                      onChanged: (value) {
-                        setState(() {
-                          _volume = value;
-                        });
-                      },
-                      activeColor: Colors.white,
-                      inactiveColor: Colors.grey,
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
+                title: const Text('AJUSTES'),
+                content: Text(''),
+                actions: [
+                    Align(
+                    alignment: Alignment.bottomCenter,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.9, // Ocupa el 90% del ancho
+                      child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
+                        backgroundColor: Colors.red, // Color rojo
+                        padding: const EdgeInsets.symmetric(vertical: 15), // Altura del botón
+                        shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10), // Bordes redondeados
+                        ),
                       ),
                       onPressed: () {
-                        Navigator.of(context).pop();
-                      },
+                        Navigator.of(context).pop(); // Cierra el diálogo
+                        salirDeLaPartida(); // Cierra el WebSocket y redirige a la pantalla de inicio
+                        },
                       child: const Text(
-                        'Cerrar',
-                        style: TextStyle(color: Colors.black),
+                        'SALIR',
+                        style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18, // Tamaño de fuente más grande
+                        fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            );
+                  ),
+                ],
+              );
           },
         );
       },
@@ -776,6 +1409,7 @@ class _GameScreenState extends State<GameScreen> {
           child: ElevatedButton(
             onPressed: () {
               // Acción para el segundo botón
+              accionCantar();
             },
             child: const Text('Cantar', style: TextStyle(color: Colors.white)),
           ),
@@ -800,7 +1434,9 @@ class _GameScreenState extends State<GameScreen> {
           ),
             child: CircleAvatar(
             radius: 40,
-            backgroundImage: NetworkImage(imagePath),
+            backgroundImage: imagePath != ''
+              ? NetworkImage(imagePath)
+              : const AssetImage('assets/images/default_profile.png') as ImageProvider,
           ),
         ),
         const SizedBox(height: 8),
