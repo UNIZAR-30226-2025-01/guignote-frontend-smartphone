@@ -9,6 +9,8 @@ import 'package:sota_caballo_rey/routes.dart';
 import 'dart:math' as math;
 import 'dart:async';
 
+
+
 const int SEGUNDOS_POR_TURNO = 15; // Segundos por turno
 const String deckSelected = 'base'; // Baraja seleccionada por el jugador.
 
@@ -430,19 +432,100 @@ class _GameScreenState extends State<GameScreen> {
       */
 
       if (type == 'cambio_siete' && data != null) {
-
+        
+        final jugadorNombre = data['jugador']?['nombre']; // nombre del jugador que ha jugado la carta
         final jugadorid = data['jugador']?['id']; // id del jugador que ha jugado la carta
         final carta = data['carta_robada']; // carta jugada por el jugador
         String cartaString = carta['valor'].toString() + carta['palo'].toString(); // carta jugada en formato string
         String sieteTriunfo = '7' + carta['palo'].toString(); // carta jugada en formato string
 
+        
+
         setState(() {
+          triunfo = sieteTriunfo; // Actualiza la carta de triunfo
           if(jugadorid == jugador1Id){
             if(playerHand.contains(sieteTriunfo)) {
               playerHand.remove(sieteTriunfo); // elimina el 7 del mazo del jugador
               playerHand.add(cartaString); // añade la carta al mazo del jugador
             }
           }
+          String mensaje = '${jugadorNombre} ha cambiado el 7'; // Mensaje de canto
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                mensaje,
+                style: const TextStyle(color: Colors.white),
+                ),
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.black87,
+            ),
+          );
+        });
+      }
+
+      /*
+      {
+        "type": "canto",
+        "data": {
+          "jugador": {
+            "nombre": "Usuario 1",
+            "id": 1,
+            "equipo": 1
+          },
+          "cantos": ["20 (Oros)", "40 (triunfo)"],  // Lista de cantos realizados
+          "puntos": 60,                             // Puntos totales sumados
+          "puntos_equipo_1": 60,                    // Puntos actuales equipo 1
+          "puntos_equipo_2": 0                      // Puntos actuales equipo 2
+        }
+      }
+      */
+      if (type == 'canto' && data != null) {
+
+        final jugadorNombre = data['jugador']?['nombre']; // id del jugador que ha jugado la carta
+        final cantos = data['cantos']; // carta jugada por el jugador
+        final puntosEquipo1 = data['puntos_equipo_1']; // puntos del equipo 1
+        final puntosEquipo2 = data['puntos_equipo_2']; // puntos del equipo 2
+        
+
+        setState(() {
+          // Actualiza los puntos de los jugadores
+          if(jugador1Equipo == 1){
+            jugador1Puntos = puntosEquipo1;
+          }else{
+            jugador1Puntos = puntosEquipo2;
+          }
+
+          if(jugador2Equipo == 1){
+            jugador2Puntos = puntosEquipo1;
+          }else{
+            jugador2Puntos = puntosEquipo2;
+          }
+
+          if(jugador3Equipo == 1){
+            jugador3Puntos = puntosEquipo1;
+          }else{
+            jugador3Puntos = puntosEquipo2;
+          }
+
+          if(jugador4Equipo == 1){
+            jugador4Puntos = puntosEquipo1;
+          }else{
+            jugador4Puntos = puntosEquipo2;
+          }
+
+          String mensaje = 'Canto de $jugadorNombre: ${cantos.join(', ')}'; // Mensaje de canto
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                mensaje,
+                style: const TextStyle(color: Colors.white),
+                ),
+              duration: const Duration(seconds: 5),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.black87,
+            ),
+          );
         });
       }
 
@@ -1343,7 +1426,9 @@ class _GameScreenState extends State<GameScreen> {
           ),
             child: CircleAvatar(
             radius: 40,
-            backgroundImage: NetworkImage(imagePath),
+            backgroundImage: imagePath != ''
+              ? NetworkImage(imagePath)
+              : const AssetImage('assets/images/default_profile.png') as ImageProvider,
           ),
         ),
         const SizedBox(height: 8),
