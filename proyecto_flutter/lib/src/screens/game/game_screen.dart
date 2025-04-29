@@ -9,6 +9,7 @@ import 'package:sota_caballo_rey/routes.dart';
 import 'dart:math' as math;
 import 'dart:async';
 import 'package:sota_caballo_rey/src/screens/game/gamechat_modal.dart';
+import 'package:sota_caballo_rey/src/screens/game/game_settings.dart';
 
 
 
@@ -1309,50 +1310,22 @@ class _GameScreenState extends State<GameScreen> {
 
   ElevatedButton buildSettingsButton(BuildContext context) {
     return ElevatedButton(
-      onPressed: () {
-        showDialog(
+      onPressed: () 
+      {
+        showDialog
+        (
           context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-                title: const Text('AJUSTES'),
-                content: Text(''),
-                actions: [
-                    Align(
-                    alignment: Alignment.bottomCenter,
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.9, // Ocupa el 90% del ancho
-                      child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red, // Color rojo
-                        padding: const EdgeInsets.symmetric(vertical: 15), // Altura del botón
-                        shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10), // Bordes redondeados
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Cierra el diálogo
-                        salirDeLaPartida(); // Cierra el WebSocket y redirige a la pantalla de inicio
-                        },
-                      child: const Text(
-                        'SALIR',
-                        style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18, // Tamaño de fuente más grande
-                        fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-          },
+          builder: (BuildContext context)
+          {
+            return GameSettings(exitGameCallback: salirDeLaPartida);
+          }
         );
       },
       style: ElevatedButton.styleFrom(
         shape: CircleBorder(), // Forma circular
         padding: EdgeInsets.all(15), // Espaciado interno aumentado
         backgroundColor: Colors.black, // Color de fondo del botón
+
       ),
       child: Icon(
         Icons.settings, // Icono de ajustes
