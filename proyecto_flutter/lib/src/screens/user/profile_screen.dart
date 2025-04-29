@@ -14,7 +14,13 @@ import 'package:image_picker/image_picker.dart';
 // Esta pantalla le mostrará al usuario la información de su perfil, la informacion de sus estadisticas
 // y su mochila con las skins de sus cartas y tapetes.
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  // Esto sirve para el test del boton de logout.
+  final Future<void> Function()? onLogout;
+
+  // Esto sirve para poder Generar el FutureBuilder de profileBox en los tests.
+  final Future<Map<String, dynamic>> Function() loadStats;
+
+  const ProfileScreen({super.key, this.onLogout, this.loadStats = getUserStatistics});
 
   @override
   ProfileScreenState createState() => ProfileScreenState();
@@ -44,7 +50,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                 color: const Color(0xff171718),
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
-                  child: buildProfileBox(context, setState),
+                  child: buildProfileBox(context, setState, widget.loadStats),
                 ),
               ),
             ),
@@ -64,7 +70,11 @@ class ProfileScreenState extends State<ProfileScreen> {
               iconSize: 40,
               onPressed: () async {
                 // Elimina el token del usuario.
-                await StorageService.deleteToken();
+                if (widget.onLogout != null) {
+                  await widget.onLogout!(); //Pruebas para el test.
+                } else {
+                  await StorageService.deleteToken();
+                }
 
                 // Verifica si el widget sigue montado.
                 if (!mounted) return;
@@ -102,25 +112,24 @@ Widget _buildProfileImage(String imagenUrl, BuildContext context, Function setSt
         }
       }
     },
-    child: imagenUrl.isNotEmpty
+    child:
+      imagenUrl.isNotEmpty
         ? ClipOval(
-      child: Image.network(
-        imagenUrl,
-        width: 64,
-        height: 64,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-        const Icon(Icons.person, size: 32, color: Colors.white),
-      ),
-    )
-        : const Icon(Icons.person, size: 32, color: Colors.white),
+            child: Image.network(
+              imagenUrl,
+              width: 64,
+              height: 64,
+              fit: BoxFit.cover,
+              errorBuilder:
+              (_, __, ___) => const Icon(Icons.person, size: 32, color: Colors.white))
+          ) : const Icon(Icons.person, size: 32, color: Colors.white),
   );
 }
 
 // Construye la caja con la información del perfil, estadisticas y mochila.
-Widget buildProfileBox(BuildContext context, Function setState) {
+Widget buildProfileBox(BuildContext context, Function setState, Future<Map<String, dynamic>> Function() loadStats) {
   return FutureBuilder<Map<String, dynamic>>(
-    future: getUserStatistics(),
+    future: loadStats(),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return const Center(child: CircularProgressIndicator());
@@ -146,6 +155,7 @@ Widget buildProfileBox(BuildContext context, Function setState) {
 
         return Center(
           child: Container(
+            key: const Key('ProfileBox'),
             constraints: const BoxConstraints(maxWidth: 300),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -162,7 +172,7 @@ Widget buildProfileBox(BuildContext context, Function setState) {
 
                 // Titulo del perfil.
                 const SizedBox(height: 10),
-                const Text('Perfil', style: AppTheme.titleTextStyle),
+                const Text('Perfil', style: AppTheme.titleTextStyle, key: Key('profileTitle'),),
 
                 // Foto del usuario.
                 const SizedBox(height: 30),
@@ -198,27 +208,6 @@ Widget buildProfileBox(BuildContext context, Function setState) {
                         fontFamily: 'poppins',
                       ),
                     ), // Por el momento no se implementa en el backend.
-
-                    SizedBox(width: 20),
-                    Row(
-                      children: [
-                        Image.asset(
-                          'assets/images/trophy.png',
-                          width: 24,
-                          height: 24,
-                        ),
-
-                        const SizedBox(width: 5),
-                        Text(
-                          elo.toString(),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontFamily: 'poppins',
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
 
@@ -237,16 +226,9 @@ Widget buildProfileBox(BuildContext context, Function setState) {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    buildStatItem(
-                      "Nº Victorias",
-                      victorias.toString(),
-                      "assets/images/victory.png",
-                    ),
-                    buildStatItem(
-                      "Nº Derrotas",
-                      derrotas.toString(),
-                      "assets/images/loss.png",
-                    ),
+                    Expanded(child: buildStatItem("Nº Victorias", victorias.toString(), "assets/images/victory.png")),
+                    const SizedBox(width: 10),
+                    Expanded(child:buildStatItem("Nº Derrotas",  derrotas.toString(),  "assets/images/loss.png")),
                   ],
                 ),
 
@@ -255,16 +237,9 @@ Widget buildProfileBox(BuildContext context, Function setState) {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    buildStatItem(
-                      "Win/Loss",
-                      winLoss.toString(),
-                      "assets/images/laurel.png",
-                    ),
-                    buildStatItem(
-                      "Partidas",
-                      partidas.toString(),
-                      "assets/images/laurel.png",
-                    ),
+                    Expanded(child: buildStatItem("Win/Loss", winLoss.toString(), "assets/images/laurel.png")),
+                    const SizedBox(width: 10),
+                    Expanded(child: buildStatItem("Partidas", partidas.toString(), "assets/images/laurel.png")),
                   ],
                 ),
 
@@ -273,16 +248,9 @@ Widget buildProfileBox(BuildContext context, Function setState) {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    buildStatItem(
-                      "Racha",
-                      racha.toString(),
-                      "assets/images/star.png",
-                    ),
-                    buildStatItem(
-                      "Racha max",
-                      rachaMax.toString(),
-                      "assets/images/star.png",
-                    ),
+                    Expanded(child: buildStatItem("Racha", racha.toString(), "assets/images/star.png")),
+                    const SizedBox(width: 10),
+                    Expanded(child: buildStatItem("Racha max", rachaMax.toString(), "assets/images/star.png")),
                   ],
                 ),
 
@@ -291,16 +259,9 @@ Widget buildProfileBox(BuildContext context, Function setState) {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    buildStatItem(
-                      "ELO 1vs1",
-                      elo.toString(),
-                      "assets/images/trophy.png",
-                    ),
-                    buildStatItem(
-                      "ELO 2vs2",
-                      eloParejas.toString(),
-                      "assets/images/trophy.png",
-                    ),
+                    Expanded( child: buildStatItem("ELO 1vs1", elo.toString(), "assets/images/trophy.png")),
+                    const SizedBox(width: 10),
+                    Expanded(child: buildStatItem("ELO 2vs2", eloParejas.toString(), "assets/images/trophy.png"))
                   ],
                 ),
 
@@ -343,7 +304,7 @@ Widget buildStatItem(String statName, String statValue, String imageAsset) {
       //Recuadro blanco con el valor e imagen al lado.
       const SizedBox(height: 5),
       Container(
-        width: 80,
+        width: double.infinity,
         height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         decoration: BoxDecoration(
@@ -352,18 +313,22 @@ Widget buildStatItem(String statName, String statValue, String imageAsset) {
         ),
 
         child: Row(
+          mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(imageAsset, width: 24, height: 24),
 
             const SizedBox(width: 5),
-            Text(
-              statValue,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'poppins',
-                color: Colors.black,
+            Flexible(
+              child: Text(
+                statValue,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'poppins',
+                  color: Colors.black,
+                ),
               ),
             ),
           ],
@@ -414,6 +379,7 @@ class BackpackTabsState extends State<BackPackTabs> {
               },
 
               child: Container(
+                key: const Key('tabCartasButton'),
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: selectedTab == 0 ? Colors.white : Colors.transparent,
@@ -423,6 +389,7 @@ class BackpackTabsState extends State<BackPackTabs> {
                 padding: const EdgeInsets.all(8),
                 child: Image.asset(
                   'assets/images/Back.png', //URL CARTAS
+                  key: const Key('tabCartasImage'),
                   width: 50,
                   height: 50,
                 ),
@@ -439,6 +406,7 @@ class BackpackTabsState extends State<BackPackTabs> {
                 });
               },
               child: Container(
+                key: const Key('tabTapetesButton'),
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: selectedTab == 1 ? Colors.white : Colors.transparent,
@@ -448,6 +416,7 @@ class BackpackTabsState extends State<BackPackTabs> {
                 padding: const EdgeInsets.all(8),
                 child: Image.asset(
                   'assets/images/tapete.jpg', //URL TAPETES
+                  key: const Key('tabTapetesImage'),
                   width: 50,
                   height: 50,
                 ),

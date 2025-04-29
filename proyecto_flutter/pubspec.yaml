@@ -48,7 +48,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  
+  mockito: ^5.0.17
 
   # Lints recomendadas para seguir el estilo de flutter.
   flutter_lints: ^5.0.0

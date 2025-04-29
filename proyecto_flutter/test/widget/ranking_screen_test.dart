@@ -48,22 +48,28 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: const RankingScreen()));
     await tester.pump();
 
-    // Verificamos los elementos estáticos.
+    // Fondo.
     expect(
       find.byType(Background),
       findsOneWidget,
       reason: 'debe pintar el widget Backgorund',
     );
+
+    // Decoraciones de las esquinas.
     expect(
       find.byType(CornerDecoration),
       findsOneWidget,
-      reason: 'debe pintar las decoraciones de esquina',
+      reason: 'debe pintar las decoraciones de las esquinas',
     );
+
+    // Barra de Navegación.
     expect(
       find.byType(CustomNavBar),
       findsOneWidget,
       reason: 'debe mostrar la barra de navegación inferior',
     );
+
+    // Titulo de rankings.
     expect(
       find.text('Rankings'),
       findsOneWidget,
