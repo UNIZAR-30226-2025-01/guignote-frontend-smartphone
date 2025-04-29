@@ -8,6 +8,9 @@ import 'package:sota_caballo_rey/src/services/websocket_service.dart';
 import 'package:sota_caballo_rey/routes.dart';
 import 'dart:math' as math;
 import 'dart:async';
+import 'package:sota_caballo_rey/src/screens/game/gamechat_modal.dart';
+
+
 
 const int SEGUNDOS_POR_TURNO = 15; // Segundos por turno
 const String deckSelected = 'base'; // Baraja seleccionada por el jugador.
@@ -22,7 +25,6 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   bool _isInitialized = false; // Bandera para evitar múltiples ejecuciones
-  double _volume = 0.5;
   late Timer cuentaAtrasTurnoTimer;
 
   WebsocketService? _websocketService; // Servicio WebSocket para la conexión
@@ -140,7 +142,7 @@ class _GameScreenState extends State<GameScreen> {
         'valor': numero,
       };
     } else {
-      print('Formato de carta inválido: $card');
+      debugPrint('Formato de carta inválido: $card');
       return null; // Devuelve null si el formato es inválido
     }
   }
@@ -199,7 +201,11 @@ class _GameScreenState extends State<GameScreen> {
             },
           };
 
-          _websocketService?.send(data); // Envía la carta jugada al servidor
+          if (_websocketService!.isConnected()) {
+            _websocketService?.send(data); // Envía la carta jugada al servidor
+          } else {
+            print('No hay conexión WebSocket activa');
+          }
 
           //print('jugar_carta: $data');
         }
@@ -210,9 +216,35 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  void accionCantar() {
+    setState(() {
+
+      final data = {
+        'accion': 'cantar',
+      };
+
+      if (_websocketService!.isConnected()) {
+        _websocketService?.send(data); // Envía la carta jugada al servidor
+      } else {
+        print('No hay conexión WebSocket activa');
+      }
+      
+    });
+  }
+
   void cambiarTriunfo() {
     setState(() {
-      //triunfo = '1Copas';
+      //Mandamos el mensaje al servidor para intentar cambiar el triunfo
+      final data = {
+        'accion': 'cambiar_siete',
+      };
+
+      if (_websocketService!.isConnected()) {
+        _websocketService?.send(data); // Envía la carta jugada al servidor
+      } else {
+        print('No hay conexión WebSocket activa');
+      }
+
     });
   }
   
@@ -245,11 +277,14 @@ class _GameScreenState extends State<GameScreen> {
   // Método para escuchar mensajes del WebSocket
   void _listenToWebSocket() {
     _websocketService?.incomingMessages.listen((message) {
+      
+      print(message); // Imprime el mensaje recibido para depuración
+
+
       final type = message['type'] as String?;
       final data = message['data'] as Map<String, dynamic>?;
 
-      print(type);
-      print(data);
+      
       
       if (type == 'turn_update' && data != null) {
         setState(() {
@@ -384,6 +419,118 @@ class _GameScreenState extends State<GameScreen> {
 
       /*
       {
+        "type": "cambio_siete",
+        "data": {
+          "jugador": {
+            "nombre": "Usuario 1",
+            "id": 1,
+            "equipo": 1
+          },
+          "carta_robada": {"palo": "Oros", valor: 1} // Carta de triunfo. La que cambias por el 7
+        }
+      }
+      */
+
+      if (type == 'cambio_siete' && data != null) {
+        
+        final jugadorNombre = data['jugador']?['nombre']; // nombre del jugador que ha jugado la carta
+        final jugadorid = data['jugador']?['id']; // id del jugador que ha jugado la carta
+        final carta = data['carta_robada']; // carta jugada por el jugador
+        String cartaString = carta['valor'].toString() + carta['palo'].toString(); // carta jugada en formato string
+        String sieteTriunfo = '7' + carta['palo'].toString(); // carta jugada en formato string
+
+        
+
+        setState(() {
+          triunfo = sieteTriunfo; // Actualiza la carta de triunfo
+          if(jugadorid == jugador1Id){
+            if(playerHand.contains(sieteTriunfo)) {
+              playerHand.remove(sieteTriunfo); // elimina el 7 del mazo del jugador
+              playerHand.add(cartaString); // añade la carta al mazo del jugador
+            }
+          }
+          String mensaje = '${jugadorNombre} ha cambiado el 7'; // Mensaje de canto
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                mensaje,
+                style: const TextStyle(color: Colors.white),
+                ),
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.black87,
+            ),
+          );
+        });
+      }
+
+      /*
+      {
+        "type": "canto",
+        "data": {
+          "jugador": {
+            "nombre": "Usuario 1",
+            "id": 1,
+            "equipo": 1
+          },
+          "cantos": ["20 (Oros)", "40 (triunfo)"],  // Lista de cantos realizados
+          "puntos": 60,                             // Puntos totales sumados
+          "puntos_equipo_1": 60,                    // Puntos actuales equipo 1
+          "puntos_equipo_2": 0                      // Puntos actuales equipo 2
+        }
+      }
+      */
+      if (type == 'canto' && data != null) {
+
+        final jugadorNombre = data['jugador']?['nombre']; // id del jugador que ha jugado la carta
+        final cantos = data['cantos']; // carta jugada por el jugador
+        final puntosEquipo1 = data['puntos_equipo_1']; // puntos del equipo 1
+        final puntosEquipo2 = data['puntos_equipo_2']; // puntos del equipo 2
+        
+
+        setState(() {
+          // Actualiza los puntos de los jugadores
+          if(jugador1Equipo == 1){
+            jugador1Puntos = puntosEquipo1;
+          }else{
+            jugador1Puntos = puntosEquipo2;
+          }
+
+          if(jugador2Equipo == 1){
+            jugador2Puntos = puntosEquipo1;
+          }else{
+            jugador2Puntos = puntosEquipo2;
+          }
+
+          if(jugador3Equipo == 1){
+            jugador3Puntos = puntosEquipo1;
+          }else{
+            jugador3Puntos = puntosEquipo2;
+          }
+
+          if(jugador4Equipo == 1){
+            jugador4Puntos = puntosEquipo1;
+          }else{
+            jugador4Puntos = puntosEquipo2;
+          }
+
+          String mensaje = 'Canto de $jugadorNombre: ${cantos.join(', ')}'; // Mensaje de canto
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                mensaje,
+                style: const TextStyle(color: Colors.white),
+                ),
+              duration: const Duration(seconds: 5),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.black87,
+            ),
+          );
+        });
+      }
+
+      /*
+      {
         "type": "phase_update",
         "data": {
           "message": "La partida entra en fase de arrastre."
@@ -407,6 +554,65 @@ class _GameScreenState extends State<GameScreen> {
       }
       */
 
+      
+      /*
+      { "type": "start_game",
+        "data": {
+          "mazo_restante": 27,                                       cartas que quedan en mazo central
+          "mis_cartas": [ /* cartas asignadas al jugador */ ],       tu mano
+          "fase_arrastre": false,                                    estás en arrastre?
+          "carta_triunfo": { "palo": "oros", "valor": 7 },           carta triunfo
+          "chat_id": <CHAT_ID>,                                      id del chat de la partida
+          "jugadores": [                                             información jugadores
+            {
+              "id": 1,
+              "nombre": "Usuario 1",
+              "equipo": 1,
+              "num_cartas": 6
+            },
+            {
+              "id": 2,
+              "nombre": "Usuario 2",
+              "equipo": 2,
+              "num_cartas": 6
+            }
+          ]
+        }
+      */
+      
+      if (type == 'start_game' && data != null) {
+        setState(() {
+          cartasRestantes = data['mazo_restante'];
+
+          playerHand = ['1Oros', '2Oros', '3Oros', '4Oros', '5Oros', '6Oros']; // Inicializa la mano del jugador
+
+          misCartas = data['mis_cartas'];
+          if (misCartas != null) {
+            for (var carta in misCartas!) {
+              if (carta.length >= 2) {
+                String palo = carta['palo'].toString(); // Extrae el valor asociado a la clave 'palo'
+                String valor = carta['valor'].toString(); // Segundo elemento de la sublista
+
+                playerHand[misCartas!.indexOf(carta)] = valor + palo; // Asigna el primer elemento a la mano del jugador
+              }
+            }
+          }
+
+          ordenarCartas(playerHand); // Ordena las cartas de la mano del jugador
+
+          if(numJugadores == 2) {
+            rivalHand = ['Back', 'Back', 'Back', 'Back', 'Back', 'Back']; // Inicializa la mano del rival
+          }
+          
+          faseArrastre = data['fase_arrastre'];
+
+          // Extrae detalles de la carta triunfo
+          cartaTriunfo = data['carta_triunfo'];
+          triunfo = (cartaTriunfo?['valor']?.toString() ?? '') + (cartaTriunfo?['palo']?.toString() ?? '');
+          
+          segundosRestantesTurno = SEGUNDOS_POR_TURNO; // Reinicia el temporizador de cuenta atrás
+        });
+      }
 
       /*
       {
@@ -1158,8 +1364,35 @@ class _GameScreenState extends State<GameScreen> {
 
   ElevatedButton buildChatButton(BuildContext context) {
     return ElevatedButton(
-      onPressed: () {
-        // Acción cuando se presiona el botón
+      onPressed: () 
+      {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true, // Permite que el modal se ajuste al teclado
+          backgroundColor: Colors.transparent,
+          builder: (_) => SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom, // Ajusta el espacio según el teclado
+              ),
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.8, // Máximo 80% de la altura de la pantalla
+                maxWidth: MediaQuery.of(context).size.width * 0.9,  // Máximo 90% del ancho de la pantalla
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white, // Fondo del modal
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(20), // Bordes redondeados en la parte superior
+                ),
+              ),
+              child: GameChatModal(
+                chatId: chatId!,
+                jugadorId: jugador1Id!,
+                jugadores: jugadores,
+              ),
+            ),
+          ),
+        );
       },
       style: ElevatedButton.styleFrom(
         shape: CircleBorder(), // Forma circular
@@ -1168,7 +1401,7 @@ class _GameScreenState extends State<GameScreen> {
       ),
       child: Icon(
         Icons.chat, // Icono de ajustes
-        color: Colors.white, // Color del ícono
+        color: Colors.white, // Color del icono
         size: 30, // Tamaño del ícono aumentado
       ),
     );
@@ -1195,6 +1428,7 @@ class _GameScreenState extends State<GameScreen> {
           child: ElevatedButton(
             onPressed: () {
               // Acción para el segundo botón
+              accionCantar();
             },
             child: const Text('Cantar', style: TextStyle(color: Colors.white)),
           ),
@@ -1219,7 +1453,9 @@ class _GameScreenState extends State<GameScreen> {
           ),
             child: CircleAvatar(
             radius: 40,
-            backgroundImage: NetworkImage(imagePath),
+            backgroundImage: imagePath != ''
+              ? NetworkImage(imagePath)
+              : const AssetImage('assets/images/default_profile.png') as ImageProvider,
           ),
         ),
         const SizedBox(height: 8),

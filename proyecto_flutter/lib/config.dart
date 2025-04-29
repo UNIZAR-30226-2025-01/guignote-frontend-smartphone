@@ -91,4 +91,7 @@ class Config {
   static String get topEloFriendsEndpoint => _config['top_elo_amigos_endpoint'];
   static String get topEloParejasFriendsEndpoint =>
       _config['top_elo_parejas_amigos_endpoint'];
+  
+  static String get obtenerMensajesChatPartida => _config['obtener_mensajes_chat_partida_endpoint'];
+  static String get websocketChatPartida => _config['websocket_chat_partida_endpoint']; 
 }

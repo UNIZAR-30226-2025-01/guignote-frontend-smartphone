@@ -61,6 +61,7 @@ class HomeScreenState extends State<HomeScreen>
   String? _profileImageUrl; // URL de la imagen de perfil del usuario
   final int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
   Map<String, dynamic>? _gameData; // datos del juego
+  int _currentMode = 0; // modo de juego actual (0: 2vs2, 1: 1vs1)
 
   @override
   void initState() 
@@ -110,7 +111,7 @@ class HomeScreenState extends State<HomeScreen>
     try
     {
       // Conecta al socket pidiendo 2 jugadores
-      await _websocketService.connect(capacidad: 4, soloAmigos: false);
+      await _websocketService.connect(capacidad: _currentMode == 0 ? 4 : 2, soloAmigos: false);
 
       _subscription?.cancel(); // Cancela la suscripción anterior si existe.
       _subscription = null; // Restablece la suscripción.
@@ -129,7 +130,7 @@ class HomeScreenState extends State<HomeScreen>
           {
             setState(() {
               _players.add(data['usuario'] as Map<String, dynamic>); // Agrega el jugador a la lista de jugadores.
-              _statusMessage = 'Esperando jugadores: ${_players.length}/2'; // Actualiza el mensaje de estado.
+              _statusMessage = 'Esperando jugadores: ${_players.length}/${_currentMode == 0 ? '4' : '2'}'; // Actualiza el mensaje de estado.
             });
 
             //if(Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
@@ -275,6 +276,12 @@ class HomeScreenState extends State<HomeScreen>
                             child:  PageView
                             (
                               controller: _pageController,
+                              onPageChanged: (int page){
+                                setState(() {
+                                  _currentMode = page;
+                                  //print('Current page: $page'); // Imprime la página actual.
+                                }); // Actualiza el estado al cambiar de página.
+                              },
                               children: 
                               [
                                 BuildGameModeCard(title: 'Modo 2vs2', assetPath: 'assets/images/cartasBoton.png', description: 'Juega en equipos de dos.'),
