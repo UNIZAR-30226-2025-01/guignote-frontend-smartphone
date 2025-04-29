@@ -1366,23 +1366,31 @@ class _GameScreenState extends State<GameScreen> {
     return ElevatedButton(
       onPressed: () 
       {
-        showModalBottomSheet
-        (
+        showModalBottomSheet(
           context: context,
-          isScrollControlled: true,
+          isScrollControlled: true, // Permite que el modal se ajuste al teclado
           backgroundColor: Colors.transparent,
-          builder:(_) => Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.8, // Máximo 80% de la altura de la pantalla
-              maxWidth: MediaQuery.of(context).size.width * 0.9,  // Máximo 90% del ancho de la pantalla
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white, // Fondo del modal
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(20), // Bordes redondeados en la parte superior
+          builder: (_) => SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom, // Ajusta el espacio según el teclado
+              ),
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.8, // Máximo 80% de la altura de la pantalla
+                maxWidth: MediaQuery.of(context).size.width * 0.9,  // Máximo 90% del ancho de la pantalla
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white, // Fondo del modal
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(20), // Bordes redondeados en la parte superior
+                ),
+              ),
+              child: GameChatModal(
+                chatId: chatId!,
+                jugadorId: jugador1Id!,
+                jugadores: jugadores,
               ),
             ),
-            child: GameChatModal(chatId: chatId!, jugadorId: jugador1Id!),
           ),
         );
       },

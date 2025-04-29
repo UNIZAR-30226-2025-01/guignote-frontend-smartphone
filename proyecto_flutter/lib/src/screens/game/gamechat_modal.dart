@@ -14,11 +14,13 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 class GameChatModal extends StatefulWidget {
   final int chatId;
   final int jugadorId;
+  final List<dynamic>? jugadores;
 
   const GameChatModal({
     super.key,
     required this.chatId,
     required this.jugadorId,
+    required this.jugadores,
   });
 
   @override
@@ -132,7 +134,11 @@ class GameChatState extends State<GameChatModal> {
           final mensaje = mensajes[index];
           final esPropio = mensaje["emisor"] == widget.jugadorId.toString();
           // Si el mensaje es propio, se alinea a la derecha, si no, a la izquierda
-          return _itemLista(mensaje, esPropio);
+          final nombreEmisor = widget.jugadores?.firstWhere(
+            (jugador) => jugador["id"].toString() == mensaje["emisor"],
+            orElse: () => {"nombre": "Desconocido"}
+          )["nombre"] ?? "Desconocido";
+          return _itemLista(mensaje, esPropio, nombreEmisor);
         }
       )
     );
@@ -141,7 +147,7 @@ class GameChatState extends State<GameChatModal> {
   ///
   /// Mensaje ítem
   ///
-  Widget _itemLista(Map<String, String> mensaje, bool esPropio) {
+  Widget _itemLista(Map<String, String> mensaje, bool esPropio, String nombreEmisor) {
     return Align(
       alignment: esPropio ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -154,6 +160,11 @@ class GameChatState extends State<GameChatModal> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+                nombreEmisor,
+                style: TextStyle(color: esPropio ? Colors.white : Colors.black,
+                  fontSize: 16, fontWeight: FontWeight.bold)
+            ),
             Text(
                 mensaje["contenido"]!,
                 style: TextStyle(color: esPropio ? Colors.white : Colors.black,
