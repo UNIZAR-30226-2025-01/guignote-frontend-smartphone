@@ -147,6 +147,20 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  void mostrarMensaje(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content: Text(
+          mensaje,
+          style: const TextStyle(color: Colors.white),
+          ),
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.black87,
+      ),
+    );
+  }
+
   void salirDeLaPartida() {
     cuentaAtrasTurnoTimer.cancel(); // Cancela el temporizador de cuenta atrás
     _websocketService?.disconnect(); // Cierra el WebSocket
@@ -450,17 +464,7 @@ class _GameScreenState extends State<GameScreen> {
             }
           }
           String mensaje = '${jugadorNombre} ha cambiado el 7'; // Mensaje de canto
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(
-                mensaje,
-                style: const TextStyle(color: Colors.white),
-                ),
-              duration: const Duration(seconds: 3),
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Colors.black87,
-            ),
-          );
+          mostrarMensaje(mensaje); // Muestra el mensaje en la pantalla
         });
       }
 
@@ -514,18 +518,15 @@ class _GameScreenState extends State<GameScreen> {
             jugador4Puntos = puntosEquipo2;
           }
 
-          String mensaje = 'Canto de $jugadorNombre: ${cantos.join(', ')}'; // Mensaje de canto
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(
-                mensaje,
-                style: const TextStyle(color: Colors.white),
-                ),
-              duration: const Duration(seconds: 5),
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: Colors.black87,
-            ),
-          );
+          String mensaje;
+
+          if(faseArrastre == false) {
+            mensaje = 'Canto de $jugadorNombre: ${cantos.join(', ')}'; // Mensaje de canto
+          }else{
+            mensaje = 'Canto de $jugadorNombre'; // Mensaje de canto
+          }
+          
+          mostrarMensaje(mensaje);
         });
       }
 
@@ -672,6 +673,14 @@ class _GameScreenState extends State<GameScreen> {
           );
         });
       }
+
+      if (type == 'error' && data != null) {
+        setState(() {
+          String mensaje = data['message'] ?? 'Error desconocido'; // Mensaje de error
+          mostrarMensaje(mensaje); // Muestra el mensaje en la pantalla
+        });
+      }
+
     });
   }
 
