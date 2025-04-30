@@ -68,6 +68,7 @@ class _GameScreenState extends State<GameScreen> {
   int jugador1Puntos = 0;
   String jugador1FotoUrl = '';
   String jugador1PlayedCard = '';
+  bool jugador1SolicitaPausa = false;
 
   // el jugador 2 es el compañero del jugador 1
   // (solo en 2vs2, en 1vs1 es el rival)
@@ -78,6 +79,7 @@ class _GameScreenState extends State<GameScreen> {
   int jugador2Puntos = 0;
   String jugador2FotoUrl = '';
   String jugador2PlayedCard = '';
+  bool jugador2SolicitaPausa = false;
 
   // el jugador 3 es un rival solo en 2vs2
   String? jugador3Nombre;
@@ -87,6 +89,7 @@ class _GameScreenState extends State<GameScreen> {
   int jugador3Puntos = 0;
   String jugador3FotoUrl = '';
   String jugador3PlayedCard = '';
+  bool jugador3SolicitaPausa = false;
 
   // el jugador 4 es un rival solo en 2vs2
   String? jugador4Nombre;
@@ -96,6 +99,7 @@ class _GameScreenState extends State<GameScreen> {
   int jugador4Puntos = 0;
   String jugador4FotoUrl = '';
   String jugador4PlayedCard = '';
+  bool jugador4SolicitaPausa = false;
 
 
   void ordenarCartas(List<String> hand) {
@@ -231,6 +235,38 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  void anularPausarPartida(){
+    setState(() {
+      //Mandamos el mensaje al servidor para intentar cambiar el triunfo
+      final data = {
+        'accion': 'anular_pausa',
+      };
+
+      if (_websocketService!.isConnected()) {
+        _websocketService?.send(data); // Envía la carta jugada al servidor
+      } else {
+        print('No hay conexión WebSocket activa');
+      }
+
+    });
+  }
+
+  void pausarPartida(){
+    setState(() {
+      //Mandamos el mensaje al servidor para intentar cambiar el triunfo
+      final data = {
+        'accion': 'pausa',
+      };
+
+      if (_websocketService!.isConnected()) {
+        _websocketService?.send(data); // Envía la carta jugada al servidor
+      } else {
+        print('No hay conexión WebSocket activa');
+      }
+
+    });
+  }
+
   void accionCantar() {
     setState(() {
 
@@ -293,14 +329,12 @@ class _GameScreenState extends State<GameScreen> {
   void _listenToWebSocket() {
     _websocketService?.incomingMessages.listen((message) {
       
-      print(message); // Imprime el mensaje recibido para depuración
-
+      print(message); // Imprime el mensaje recibido en la consola
 
       final type = message['type'] as String?;
       final data = message['data'] as Map<String, dynamic>?;
-
       
-      
+            
       if (type == 'turn_update' && data != null) {
         setState(() {
           turnoJugador = data['jugador']?['nombre'] ?? 'null'; // Nombre del jugador que le toca jugar
@@ -555,6 +589,92 @@ class _GameScreenState extends State<GameScreen> {
         }
       }
       */
+
+      /*
+      {
+        "type": "pause",
+        "data": {
+          "jugador": {
+            "id": 1,
+            "nombre": "Usuario 1",
+            "equipo": 1
+          },
+          "num_solicitudes_pausa": 1
+        }
+      }
+      */
+      if (type == 'pause' && data != null) {
+        setState(() {
+          String jugadorNombre = data['jugador']?['nombre'] ?? 'null'; // Nombre del jugador que ha jugado la carta
+          int jugadorId = data['jugador']?['id']; // id del jugador que ha jugado la carta
+          //int numSolicitudesPausa = data['num_solicitudes_pausa'] ?? 0; // Número de solicitudes de pausa
+          
+          if(jugadorId == jugador1Id){
+            jugador1SolicitaPausa = true; // El jugador 1 ha solicitado una pausa
+          }else if(jugadorId == jugador2Id){
+            jugador2SolicitaPausa = true; // El jugador 2 ha solicitado una pausa
+          }else if(jugadorId == jugador3Id){
+            jugador3SolicitaPausa = true; // El jugador 3 ha solicitado una pausa
+          }else if(jugadorId == jugador4Id){
+            jugador4SolicitaPausa = true; // El jugador 4 ha solicitado una pausa
+          }
+          
+          String mensaje = '$jugadorNombre ha solicitado una pausa'; // Mensaje de pausa
+          mostrarMensaje(mensaje); // Muestra el mensaje en la pantalla
+        });
+      }
+
+      /*
+      {
+        "type": "all_pause",
+        "data": {
+          "message": "La partida ha sido pausada por acuerdo de todos los jugadores."
+        }
+      }
+      */
+
+      if (type == 'all_pause' && data != null) {
+        setState(() {
+          String mensaje = "Se ha pausado la partida"; // Mensaje de pausa
+          mostrarMensaje(mensaje); // Muestra el mensaje en la pantalla
+          salirDeLaPartida(); // Salir de la partida
+        });
+      }
+
+      /*
+      {
+        "type": "resume",
+        "data": {
+          "jugador": {
+            "id": 1,
+            "nombre": "Usuario 1",
+            "equipo": 1
+          },
+          "num_solicitudes_pausa": 0
+        }
+      }
+      */
+
+      if (type == 'resume' && data != null) {
+        setState(() {
+          String jugadorNombre = data['jugador']?['nombre'] ?? 'null'; // Nombre del jugador que ha jugado la carta
+          int jugadorId = data['jugador']?['id']; // id del jugador que ha jugado la carta
+          //int numSolicitudesPausa = data['num_solicitudes_pausa'] ?? 0; // Número de solicitudes de pausa
+          
+          if(jugadorId == jugador1Id){
+            jugador1SolicitaPausa = false; // El jugador 1 ha solicitado una pausa
+          }else if(jugadorId == jugador2Id){
+            jugador2SolicitaPausa = false; // El jugador 2 ha solicitado una pausa
+          }else if(jugadorId == jugador3Id){
+            jugador3SolicitaPausa = false; // El jugador 3 ha solicitado una pausa
+          }else if(jugadorId == jugador4Id){
+            jugador4SolicitaPausa = false; // El jugador 4 ha solicitado una pausa
+          }
+          
+          String mensaje = '$jugadorNombre ha cancelado la pausa'; // Mensaje de pausa
+          mostrarMensaje(mensaje); // Muestra el mensaje en la pantalla
+        });
+      }
 
       
       /*
@@ -1036,11 +1156,11 @@ class _GameScreenState extends State<GameScreen> {
           // Iconos de los jugadores
           Align(
             alignment: const Alignment(-0.9, 0.38),
-            child: buildPlayerIcon(context, jugador1Nombre.toString(), jugador1FotoUrl),
+            child: buildPlayerIcon(context, jugador1Nombre.toString(), jugador1FotoUrl, jugador1SolicitaPausa),
           ),
           Align(
             alignment: const Alignment(-0.9, -0.68),
-            child: buildPlayerIcon(context, jugador2Nombre.toString(), jugador2FotoUrl),
+            child: buildPlayerIcon(context, jugador2Nombre.toString(), jugador2FotoUrl, jugador2SolicitaPausa),
           ),
 
           // Mostrar segundos restantes del turno
@@ -1159,19 +1279,19 @@ class _GameScreenState extends State<GameScreen> {
           // Iconos de los jugadores
           Align(
             alignment: const Alignment(-0.70, 0.38),
-            child: buildPlayerIcon(context, jugador1Nombre.toString(), jugador1FotoUrl),
+            child: buildPlayerIcon(context, jugador1Nombre.toString(), jugador1FotoUrl, jugador1SolicitaPausa),
           ),
           Align(
             alignment: const Alignment(0.0, -0.90),
-            child: buildPlayerIcon(context, jugador2Nombre.toString(), jugador2FotoUrl),
+            child: buildPlayerIcon(context, jugador2Nombre.toString(), jugador2FotoUrl, jugador2SolicitaPausa),
           ),
           Align(
             alignment: const Alignment(-0.9, -0.50),
-            child: buildPlayerIcon(context, jugador3Nombre.toString(), jugador3FotoUrl),
+            child: buildPlayerIcon(context, jugador3Nombre.toString(), jugador3FotoUrl, jugador3SolicitaPausa),
           ),
           Align(
             alignment: const Alignment(0.9, -0.50),
-            child: buildPlayerIcon(context, jugador4Nombre.toString(), jugador4FotoUrl),
+            child: buildPlayerIcon(context, jugador4Nombre.toString(), jugador4FotoUrl, jugador4SolicitaPausa),
           ),
 
           // Mostrar segundos restantes del turno
@@ -1326,7 +1446,7 @@ class _GameScreenState extends State<GameScreen> {
           context: context,
           builder: (BuildContext context)
           {
-            return GameSettings(exitGameCallback: salirDeLaPartida);
+            return GameSettings(exitGameCallback: salirDeLaPartida, pauseGameCallback: pausarPartida, resumeGameCallback: anularPausarPartida,pausaSolicitada: jugador1SolicitaPausa);
           }
         );
       },
@@ -1423,22 +1543,47 @@ class _GameScreenState extends State<GameScreen> {
     BuildContext context,
     String playerName,
     String imagePath,
+    bool mostrarIconoPausa,
   ) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(2.0),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.black, width: 2),
-          ),
-            child: CircleAvatar(
-            radius: 40,
-            backgroundImage: imagePath != ''
-              ? NetworkImage(imagePath)
-              : const AssetImage('assets/images/default_profile.png') as ImageProvider,
-          ),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(2.0),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.black, width: 2),
+              ),
+              child: CircleAvatar(
+                radius: 40,
+                backgroundImage: imagePath != ''
+                    ? NetworkImage(imagePath)
+                    : const AssetImage('assets/images/default_profile.png') as ImageProvider,
+              ),
+            ),
+            if (mostrarIconoPausa)
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: 
+                Container(
+                  width: 35,
+                  height: 35,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.red,
+                  ),
+                  child: const Icon(
+                    Icons.pause,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 8),
         Text(
