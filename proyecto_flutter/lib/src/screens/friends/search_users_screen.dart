@@ -5,9 +5,12 @@ import 'package:sota_caballo_rey/src/widgets/custom_title.dart';
 
 
 class SearchUsersScreen extends StatefulWidget {
+  // Necesario para tests.
+  final Future<List<Map<String,String>>> Function(String prefix) onSearch;
+  final Future<void> Function(String id)? onSend;
 
-  /// Constructor de clase
-  const SearchUsersScreen({super.key});
+  // Constructor de clase
+  const SearchUsersScreen({super.key, Future<List<Map<String,String>>> Function(String) ? onSearch, this.onSend}) : onSearch = onSearch ?? buscarUsuarios;
 
   @override
   SearchUsersState createState() => SearchUsersState();
@@ -40,7 +43,7 @@ class SearchUsersState extends State<SearchUsersScreen> {
       _cargando = true;
     });
     try {
-      List<Map<String, String>> usuarios = await buscarUsuarios(prefijo);
+      List<Map<String, String>> usuarios = await widget.onSearch(prefijo);
       setState(() {
         _usuarios = usuarios;
         _cargando = false;
@@ -59,7 +62,7 @@ class SearchUsersState extends State<SearchUsersScreen> {
   ///
   void _enviarSolicitud(int index, String id) async {
     try {
-      await enviarSolicitud(id);
+      await widget.onSend!(id);
 
       _animatedListKey.currentState!.removeItem(
         index, (context, animation) => _itemLista(_usuarios[index], index, animation),
@@ -84,8 +87,7 @@ class SearchUsersState extends State<SearchUsersScreen> {
   ///
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
+    return Column(
         mainAxisSize: MainAxisSize.max,
         children: [
           const CustomTitle(title: "Buscar usuarios"),
@@ -99,8 +101,7 @@ class SearchUsersState extends State<SearchUsersScreen> {
           if(!_cargando && !_error)
             _lista()
         ],
-      )
-    );
+      );
   }
 
   ///

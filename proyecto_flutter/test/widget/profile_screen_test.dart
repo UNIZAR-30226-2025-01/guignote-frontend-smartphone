@@ -100,8 +100,8 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: ProfileScreen(
-          onLogout: () async {}, // no-op para logout
-          loadStats: fakeStats, // nuestro FutureBuilder “rápido”
+          onLogout: () async {}, 
+          loadStats: fakeStats,
         ),
       ),
     );
@@ -220,8 +220,8 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: ProfileScreen(
-          onLogout: () async {}, // no-op para logout
-          loadStats: fakeStats, // nuestro FutureBuilder “rápido”
+          onLogout: () async {},
+          loadStats: fakeStats, 
         ),
       ),
     );
