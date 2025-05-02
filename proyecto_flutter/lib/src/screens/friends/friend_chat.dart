@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
@@ -8,15 +7,25 @@ import 'package:sota_caballo_rey/src/services/storage_service.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:intl/intl.dart';
+
 
 class FriendChat extends StatefulWidget {
   final String receptorId;
   final String receptorNom;
 
+  // Para los tests
+  final List<Map<String,String>>? initialMensajes;
+  final Future<void> Function(String)? onSend;
+  final Future<List<Map<String,String>>> Function(String receptorId)? onLoad;
+
   const FriendChat({
     super.key,
     required this.receptorId,
-    required this.receptorNom
+    required this.receptorNom,
+    this.initialMensajes,
+    this.onLoad,
+    this.onSend,
   });
 
   @override
@@ -32,8 +41,16 @@ class FriendChatState extends State<FriendChat> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialMensajes != null)
+    {
+      mensajes = widget.initialMensajes!;
+    }
+    else
+    {
+      _cargarMensajes();
+    }
+
     _conectar();
-    _cargarMensajes();
   }
 
   ///
@@ -79,16 +96,16 @@ class FriendChatState extends State<FriendChat> {
   ///
   Future<void> _cargarMensajes() async {
     try {
-      List<Map<String, String>> mensajesCargados = await obtenerMensajes(widget.receptorId);
-      setState(() {
-        mensajes = mensajesCargados;
-      });
-      _scrollMensajeMasReciente();
-    } catch(e) {
-      if(kDebugMode) {
-        print("Error al cargar mensajes: $e");
+      final lista = widget.onLoad != null
+        ? await widget.onLoad!(widget.receptorId)
+        : await obtenerMensajes(widget.receptorId);
+      if (mounted) 
+      {
+        setState(() {
+          mensajes = lista;
+        });
       }
-    }
+    } catch (_) {}
   }
 
   ///
@@ -103,18 +120,28 @@ class FriendChatState extends State<FriendChat> {
   ///
   /// Enviar mensaje con WebSocket
   ///
-  void _enviarMensaje() {
-    if(_controller.text.trim().isEmpty) return;
-    if(channel != null) {
-      channel!.sink.add(jsonEncode({
-        "contenido": _controller.text.trim(),
-      }));
-      _controller.clear();
-    } else {
-      if(kDebugMode) {
-        print("Error: WebSocket no conectado");
-      }
+  Future<void> _enviarMensaje() async {
+    final texto = _controller.text.trim();
+    if (texto.isEmpty) return;
+
+    if (widget.onSend != null)
+    {
+      await widget.onSend!(texto);
+
+      setState(() {
+        mensajes.insert(0, {
+          'emisor': 'me',
+          'contenido': texto,
+          'fecha_envio': DateFormat.Hm().format(DateTime.now())
+        });
+      });
     }
+    else
+    {
+      channel!.sink.add(jsonEncode({'contenido' : texto}));
+    }
+
+    _controller.clear();
   }
 
   ///

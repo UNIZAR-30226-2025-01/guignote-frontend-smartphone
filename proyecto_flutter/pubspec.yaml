@@ -45,6 +45,9 @@ dependencies:
   # Paquete para las notificaciones
   flutter_local_notifications: ^19.1.0
 
+  # Paquete para extraer la hora en friends chat.
+  intl: ^0.17.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
