@@ -12,11 +12,23 @@ class GameSettings extends StatefulWidget
   // Callback para salir de la partida.
   final VoidCallback exitGameCallback;
 
+  // Callback para pausar la partida.
+  final VoidCallback pauseGameCallback;
+
+  // Callback para anular la pausa.
+  final VoidCallback resumeGameCallback;
+
+  // Indica si se ha solicitado una pausa.
+  final bool pausaSolicitada;
+
   const GameSettings
   (
     {
       super.key,
-      required this.exitGameCallback
+      required this.exitGameCallback,
+      required this.pauseGameCallback,
+      required this.resumeGameCallback,
+      required this.pausaSolicitada,
     }
   );
 
@@ -42,7 +54,7 @@ class _GameSettingsState extends State<GameSettings>
       backgroundColor: AppTheme.blackColor,
       content: SizedBox
       (
-        height: 300,
+        height: 320,
         width: 200,
         child: Column
         (
@@ -74,6 +86,33 @@ class _GameSettingsState extends State<GameSettings>
 
               }
             ),
+
+            // Opción para pausar la partida.
+            // Al pulsar esta opción se llama al callback para pausar la partida.
+            
+            widget.pausaSolicitada
+              ? ListTile(
+                  leading: const Icon(Icons.play_arrow, color: Colors.white),
+                  title: const Text('Anular pausa', style: AppTheme.dialogBodyStyle),
+                  tileColor: Colors.greenAccent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  onTap: () {
+                    widget.resumeGameCallback();
+                    Navigator.of(context).pop();
+                  },
+                )
+              : ListTile(
+                  leading: const Icon(Icons.pause, color: Colors.white),
+                  title: const Text('Pausar partida', style: AppTheme.dialogBodyStyle),
+                  tileColor: Colors.blueAccent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  onTap: () {
+                    widget.pauseGameCallback();
+                    Navigator.of(context).pop();
+                  },
+                ),
+
+            const SizedBox(height: 10),
 
             // Opción para abandonar la partida.
             // Al pulsar esta opción se llama al callback para salir de la partida.
