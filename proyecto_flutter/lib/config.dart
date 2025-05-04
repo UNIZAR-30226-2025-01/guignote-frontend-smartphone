@@ -93,5 +93,7 @@ class Config {
       _config['top_elo_parejas_amigos_endpoint'];
   
   static String get obtenerMensajesChatPartida => _config['obtener_mensajes_chat_partida_endpoint'];
-  static String get websocketChatPartida => _config['websocket_chat_partida_endpoint']; 
+  static String get websocketChatPartida => _config['websocket_chat_partida_endpoint'];
+  static String get listarSalasDisponibles => _config['listar_salas_disponibles_endpoint'];
+  static String get listarSalasReconectables => _config['listar_salas_reconectables_endpoint']; 
 }
