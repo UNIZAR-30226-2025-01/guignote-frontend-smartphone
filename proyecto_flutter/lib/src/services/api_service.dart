@@ -1114,7 +1114,7 @@ Future<String?> getProfileImage() async
 /// Devuelve lista de salas disponibles (no llenas y en estado 'esperando').
 ///
 
-Future<Map<String, dynamic>> getSalasDisponibles() async
+Future<Map<String, dynamic>> getSalasDisponibles({int? capacidad}) async
 {
    // Obtenemos el token de autenticación.
   String? token = await StorageService.getToken();
@@ -1122,12 +1122,18 @@ Future<Map<String, dynamic>> getSalasDisponibles() async
     throw Exception("No hay token de autenticación disponible.");
   }
 
-  final url = Uri.parse(
-    '${Config.apiBaseURL}${Config.listarSalasDisponibles}',
-  );
+  final url;
+
+  if(capacidad == null){
+    url = Uri.parse('${Config.apiBaseURL}${Config.listarSalasDisponibles}');
+  }else if(capacidad == 2 || capacidad == 4){
+    url = Uri.parse('${Config.apiBaseURL}${Config.listarSalasDisponibles}?capacidad=$capacidad');
+  }else{
+    throw Exception("Capacidad no válida. Debe ser 2 o 4.");
+  }
+ 
 
   final response = await http.get(url, headers: {"Auth": token});
-  print (response);
 
   
   if (response.statusCode == 200) {
@@ -1160,7 +1166,7 @@ Future<Map<String, dynamic>> getSalasReconectables() async
   );
 
   final response = await http.get(url, headers: {"Auth": token});
-  print (response);
+  
 
   
   if (response.statusCode == 200) {

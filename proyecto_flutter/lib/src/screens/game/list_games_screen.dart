@@ -21,20 +21,60 @@ class ListGamesScreenState extends State<ListGamesScreen> {
   StreamSubscription<Map<String,dynamic>>? subscription; // suscripción al stream de mensajes entrantes
   Map<String, dynamic>? gameData; // datos del juego
 
+  // Variables para almacenar las selecciones de los desplegables
+  String seleccionFiltro1 = 'Disponibles';
+  String seleccionFiltro2 = 'Todas';
+
+  Timer? updateTimer; // Timer para actualizar la lista de partidas
+
+  void iniciarTimer() {
+    updateTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (seleccionFiltro1 == 'Reconectables') {
+          updateSalasReconectables(); // Actualiza las salas reconectables
+        } else {
+          if (seleccionFiltro2 == '1 vs 1') {
+            updateSalasDisponibles(capacidad: 2); // Actualiza las salas de 1 vs 1
+          } else if (seleccionFiltro2 == '2 vs 2') {
+            updateSalasDisponibles(capacidad: 4); // Actualiza las salas de 2 vs 2
+          } else {
+            updateSalasDisponibles(); // Actualiza todas las salas
+          }
+        }
+      });
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     updateSalasDisponibles();
+    iniciarTimer(); // Inicia el timer para actualizar la lista de partidas cada segundo
   }
 
-  void updateSalasDisponibles() async {
-    final _salas = await getSalasDisponibles();
+  @override
+  void dispose() {
+    // Cancela el Timer para evitar fugas de memoria
+    updateTimer?.cancel();
+    subscription?.cancel();
+    super.dispose();
+  }
+
+  void updateSalasDisponibles({int? capacidad}) async {
+    final _salas = await getSalasDisponibles(capacidad: capacidad);
+    print(salas);
     setState(() {
       salas = _salas;
     });
-    
-    print(salas);
   }
+
+  void updateSalasReconectables() async {
+    final _salas = await getSalasReconectables();
+    setState(() {
+      salas = _salas;
+    });
+  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -135,12 +175,8 @@ class ListGamesScreenState extends State<ListGamesScreen> {
   Widget buildGameList() {
 
     // Opciones para los desplegables
-    final List<String> filterOptions1 = ['Todos', 'Activas', 'Finalizadas'];
-    final List<String> filterOptions2 = ['Por fecha', 'Por nombre'];
-
-    // Variables para almacenar las selecciones de los desplegables
-    String selectedFilter1 = filterOptions1[0];
-    String selectedFilter2 = filterOptions2[0];
+    final List<String> opcionesFiltro1 = ['Disponibles', 'Reconectables'];
+    final List<String> opcionesFiltro2 = ['Todas', '1 vs 1', '2 vs 2'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center, // Center the dropdowns horizontally
@@ -157,14 +193,25 @@ class ListGamesScreenState extends State<ListGamesScreen> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: DropdownButton<String>(
-                value: selectedFilter1,
+                value: seleccionFiltro1,
                 dropdownColor: Colors.black, // Set dropdown menu background to black
                 onChanged: (String? newValue) {
                   setState(() {
-                    selectedFilter1 = newValue!;
+                    seleccionFiltro1 = newValue!;
+                    if (seleccionFiltro1 == 'Reconectables') {
+                      updateSalasReconectables(); // Filtrar por salas reconectables
+                    } else {
+                      if (seleccionFiltro2 == '1 vs 1') {
+                        updateSalasDisponibles(capacidad: 2); // Filtrar por 1 vs 1
+                      } else if (seleccionFiltro2 == '2 vs 2') {
+                        updateSalasDisponibles(capacidad: 4); // Filtrar por 2 vs 2
+                      } else {
+                        updateSalasDisponibles(); // Mostrar todas las salas
+                      }
+                    }
                   });
                 },
-                items: filterOptions1.map<DropdownMenuItem<String>>((String value) {
+                items: opcionesFiltro1.map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
                     child: Text(value, style: const TextStyle(color: Colors.white)), // Set text color to white
@@ -183,14 +230,21 @@ class ListGamesScreenState extends State<ListGamesScreen> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: DropdownButton<String>(
-                value: selectedFilter2,
+                value: seleccionFiltro2,
                 dropdownColor: Colors.black, // Set dropdown menu background to black
                 onChanged: (String? newValue) {
                   setState(() {
-                    selectedFilter2 = newValue!;
+                    seleccionFiltro2 = newValue!;
+                    if (seleccionFiltro2 == '1 vs 1') {
+                      updateSalasDisponibles(capacidad: 2); // Filtrar por 1 vs 1
+                    } else if (seleccionFiltro2 == '2 vs 2') {
+                      updateSalasDisponibles(capacidad: 4); // Filtrar por 2 vs 2
+                    } else {
+                      updateSalasDisponibles(); // Mostrar todas las salas
+                    }
                   });
                 },
-                items: filterOptions2.map<DropdownMenuItem<String>>((String value) {
+                items: opcionesFiltro2.map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
                     child: Text(value, style: const TextStyle(color: Colors.white)), // Set text color to white
