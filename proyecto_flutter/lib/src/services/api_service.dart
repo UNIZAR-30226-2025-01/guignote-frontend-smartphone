@@ -1109,3 +1109,202 @@ Future<String?> getProfileImage() async
   }
 }
 
+// Desbloque una skin para el usuario.
+Future<String> unlockSkin (int userId, int skinId) async
+{
+  // Obtenemos el token.
+  final token = await StorageService.getToken();
+  if (token == null)
+  {
+    throw Exception("No hay token de autenticación.");
+  }
+  
+  // Llamamos al endpoint.
+  final url = Uri.parse('${Config.apiBaseURL}${Config.unlockSkinEndpoint}$userId/');
+  final response = await http.post(url, headers: {"Auth": token, "Content-Type": "application/json",}, body: jsonEncode({"skin_id": skinId}));
+
+  // Resultados de la llamada.
+  if (response.statusCode == 200)
+  {
+    return jsonDecode(response.body)["message"];
+  }
+  else
+  {
+    throw Exception("Error ${response.statusCode}: ${response.body}");
+  }
+}
+
+// Desbloque un back para el usuario.
+Future<String> unlockBack (int userId, int backId) async
+{
+  // Obtenemos el token.
+  final token = await StorageService.getToken();
+  if (token == null)
+  {
+    throw Exception("No hay token de autenticación.");
+  }
+  
+  // Llamamos al endpoint.
+  final url = Uri.parse('${Config.apiBaseURL}${Config.unlockBackEndpoint}$userId/');
+  final response = await http.post(url, headers: {"Auth": token, "Content-Type": "application/json",}, body: jsonEncode({"back_id": backId}));
+
+  // Resultados de la llamada.
+  if (response.statusCode == 200)
+  {
+    return jsonDecode(response.body)["message"];
+  }
+  else
+  {
+    throw Exception("Error ${response.statusCode}: ${response.body}");
+  }
+}
+
+// Desbloque un tapete para el usuario.
+Future<String> unlockTapete (int userId, int tapeteId) async
+{
+  // Obtenemos el token.
+  final token = await StorageService.getToken();
+  if (token == null)
+  {
+    throw Exception("No hay token de autenticación.");
+  }
+  
+  // Llamamos al endpoint.
+  final url = Uri.parse('${Config.apiBaseURL}${Config.unlockTapeteEndpoint}$userId/');
+  final response = await http.post(url, headers: {"Auth": token, "Content-Type": "application/json",}, body: jsonEncode({"tapete_id": tapeteId}));
+
+  // Resultados de la llamada.
+  if (response.statusCode == 200)
+  {
+    return jsonDecode(response.body)["message"];
+  }
+  else
+  {
+    throw Exception("Error ${response.statusCode}: ${response.body}");
+  }
+}
+
+// Equipa una skin al usuario.
+Future<Map<String, dynamic>> equipSkin (int userId, int skinId) async
+{
+  // Obtenemos el token.
+  final token = await StorageService.getToken();
+  if (token == null)
+  {
+    throw Exception("No hay token de autenticación.");
+  }
+  
+  // Llamamos al endpoint.
+  final url = Uri.parse('${Config.apiBaseURL}${Config.equipSkinEndpoint}$userId/');
+  final response = await http.post(url, headers: {"Auth": token, "Content-Type": "application/json", "Accept": "application/json"}, body: jsonEncode({"skin_id": skinId}));
+
+  // Resultados de la llamada.
+  if (response.statusCode == 200)
+  {
+    return jsonDecode(response.body)["equipped_skin"];
+  }
+  else
+  {
+    throw Exception("Error ${response.statusCode}: ${response.body}");
+  }
+}
+
+// Equipa un back al usuario.
+Future<Map<String, dynamic>> equipBack (int userId, int backId) async
+{
+  // Obtenemos el token.
+  final token = await StorageService.getToken();
+  if (token == null)
+  {
+    throw Exception("No hay token de autenticación.");
+  }
+  
+  // Llamamos al endpoint.
+  final url = Uri.parse('${Config.apiBaseURL}${Config.equipBackEndpoint}$userId/');
+  final response = await http.post(url, headers: {"Auth": token, "Content-Type": "application/json", "Accept": "application/json"}, body: jsonEncode({"back_id": backId}));
+
+  // Resultados de la llamada.
+  if (response.statusCode == 200)
+  {
+    return jsonDecode(response.body)["equipped_back"];
+  }
+  else
+  {
+    throw Exception("Error ${response.statusCode}: ${response.body}");
+  }
+}
+
+// Equipa un tapete al usuario.
+Future<Map<String, dynamic>> equipTapete (int userId, int tapeteId) async
+{
+  // Obtenemos el token.
+  final token = await StorageService.getToken();
+  if (token == null)
+  {
+    throw Exception("No hay token de autenticación.");
+  }
+  
+  // Llamamos al endpoint.
+  final url = Uri.parse('${Config.apiBaseURL}${Config.equipTapeteEndpoint}$userId/');
+  final response = await http.post(url, headers: {"Auth": token, "Content-Type": "application/json", "Accept": "application/json"}, body: jsonEncode({"tapete_id": tapeteId}));
+
+  // Resultados de la llamada.
+  if (response.statusCode == 200)
+  {
+    return jsonDecode(response.body)["equipped_tapete"];
+  }
+  else
+  {
+    throw Exception("Error ${response.statusCode}: ${response.body}");
+  }
+}
+
+// Obtener todos los items desbloqueados.
+Future<Map<String, dynamic>> getUnlockedItems (int userId) async 
+{
+   // Obtenemos el token.
+  final token = await StorageService.getToken();
+  if (token == null)
+  {
+    throw Exception("No hay token de autenticación.");
+  }
+  
+  // Llamamos al endpoint.
+  final url = Uri.parse('${Config.apiBaseURL}${Config.getUnlockedItemsEndpoint}$userId/');
+  final response = await http.get(url, headers: {"Auth": token, "Accept": "application/json"});
+
+  // Resultados de la llamada.
+  if (response.statusCode == 200)
+  {
+    return jsonDecode(response.body);
+  }
+  else
+  {
+    throw Exception("Error ${response.statusCode}: ${response.body}");
+  }
+}
+
+// Obtener todos los items equipados.
+Future<Map<String, dynamic>> getEquippedItems (int userId) async 
+{
+   // Obtenemos el token.
+  final token = await StorageService.getToken();
+  if (token == null)
+  {
+    throw Exception("No hay token de autenticación.");
+  }
+  
+  // Llamamos al endpoint.
+  final url = Uri.parse('${Config.apiBaseURL}${Config.getEquippedItemsEndpoint}$userId/');
+  final response = await http.get(url, headers: {"Auth": token, "Accept": "application/json"});
+
+  // Resultados de la llamada.
+  if (response.statusCode == 200)
+  {
+    return jsonDecode(response.body);
+  }
+  else
+  {
+    throw Exception("Error ${response.statusCode}: ${response.body}");
+  }
+}

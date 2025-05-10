@@ -20,5 +20,13 @@
     "top_elo_amigos_endpoint": "/usuarios/top_elo_amigos/",
     "top_elo_parejas_amigos_endpoint": "/usuarios/top_elo_parejas_amigos/",
     "obtener_mensajes_chat_partida_endpoint": "/chat_partida/obtener/",
-    "websocket_chat_partida_endpoint": "/ws/chat_partida/"
+    "websocket_chat_partida_endpoint": "/ws/chat_partida/",
+    "unlock_skin_endpoint": "/usuarios/unlock_skin/",
+    "unlock_back_endpoint": "/usuarios/unlock_back/",
+    "unlock_tapete_endpoint": "/usuarios/unlock_tapete/",
+    "equip_skin_endpoint": "/usuarios/equip_skin/",
+    "equip_back_endpoint": "/usuarios/equip_back/",
+    "equip_tapete_endpoint": "/usuarios/equip_tapete/",
+    "get_unlocked_items_endpoint": "/usuarios/get_unlocked_items/",
+    "get_equipped_items_endpoint": "/usuarios/get_equipped_items/"
 }
