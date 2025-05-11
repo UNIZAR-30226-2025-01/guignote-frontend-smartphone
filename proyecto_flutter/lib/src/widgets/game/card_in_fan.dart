@@ -88,7 +88,7 @@ class _CardInFanState extends State<CardInFan>
                   ),
                   child: GestureDetector(
                     onTap: widget.onTap,
-                    child: GameCard(card: widget.card, deck: deckSelected, width: widget.width),
+                    child: GameCard(card: widget.card, deck: widget.deck, width: widget.width),
                   ),
                 ),
               ),
