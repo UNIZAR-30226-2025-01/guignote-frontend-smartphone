@@ -92,4 +92,5 @@ class Config {
   static String get equipTapeteEndpoint => _config['equip_tapete_endpoint'];
   static String get getUnlockedItemsEndpoint => _config['get_unlocked_items_endpoint'];
   static String get getEquippedItemsEndpoint => _config['get_equipped_items_endpoint'];
+  static String get getUserIdEndpoint => _config['get_user_id_endpoint'];
 }

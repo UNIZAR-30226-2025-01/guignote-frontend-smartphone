@@ -28,5 +28,6 @@
     "equip_back_endpoint": "/usuarios/equip_back/",
     "equip_tapete_endpoint": "/usuarios/equip_tapete/",
     "get_unlocked_items_endpoint": "/usuarios/get_unlocked_items/",
-    "get_equipped_items_endpoint": "/usuarios/get_equipped_items/"
+    "get_equipped_items_endpoint": "/usuarios/get_equipped_items/",
+    "get_user_id_endpoint": "/usuarios/usuarios/id/"
 }

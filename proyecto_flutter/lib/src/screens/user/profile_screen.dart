@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:sota_caballo_rey/src/data/skin_sets.dart';
 import 'package:sota_caballo_rey/src/services/storage_service.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
@@ -275,7 +276,27 @@ Widget buildProfileBox(BuildContext context, Function setState, Future<Map<Strin
 
                 // Contenido mochila.
                 const SizedBox(height: 30),
-                const BackPackTabs(),
+                
+                
+                // Obtenemos el userID antes de mostrar la mochila.
+                FutureBuilder<int>(
+                  future: getUserIdByUsername(usuario),
+                  builder: (ctx, snapId) {
+                    if (snapId.connectionState == ConnectionState.waiting)
+                    {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapId.hasError)
+                    {
+                      return Text(
+                        "Error al cargar el usuario: ${snapId.error}",
+                        style: const TextStyle(color: Colors.white),
+                      );
+                    }
+                    final userId = snapId.data!;
+                    return BackPackTabs(userId: userId);
+                  },
+                )
               ],
             ),
           ),
@@ -351,7 +372,8 @@ Widget buildSectionSeparator() {
 
 //Widget para la creacion del contenido de la mochila.
 class BackPackTabs extends StatefulWidget {
-  const BackPackTabs({super.key});
+  final int userId;
+  const BackPackTabs({super.key, required this.userId});
 
   @override
   BackpackTabsState createState() => BackpackTabsState();
@@ -361,104 +383,158 @@ class BackpackTabsState extends State<BackPackTabs> {
   // 0 --> Cartas.
   // 1 --> Tapetes.
   int selectedTab = 0;
+  int selectedSetIndex = 0;
+  List<int> unlockedSetIds = [];
+  int? equippedSetId;
+  
+  @override
+  void initState() 
+  {
+    super.initState();
+    _loadInventory();
+  }
+
+  // Obtiene los ids de los sets desbloqueados por el usuario y el equipado.
+  Future<void> _loadInventory () async
+  {
+    // Obtenemos los items desbloqueados.
+    final unlockedData = await getUnlockedItems(widget.userId);
+    final ids = (unlockedData['unlocked_skins'] as List).map((m) => m['id'] as int).toList();
+
+    // Obtenemos los items equipados.
+    final equippedData = await getEquippedItems(widget.userId);
+    final equippedSkinIds = equippedData['equipped_skin'] as Map<String,dynamic>?;
+    final eqId = equippedSkinIds != null ? equippedSkinIds['id'] as int : null;
+
+    setState(() {
+      unlockedSetIds = ids;
+      equippedSetId = eqId;
+    });
+  }
+
+  Future<void> _onSelectSet (int setId) async
+  {
+    // Si no esta desbloqueada no hacemos nada.
+    if (!unlockedSetIds.contains(setId)) return;
+
+    // Equipamos el set.
+    await equipSkin (widget.userId, setId);
+
+    // Recargamos unlocked y equipped.
+    await _loadInventory();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      //Fila con los botones de cada categoria.
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            //Boton de cartas.
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedTab = 0;
-                });
-              },
-
-              child: Container(
-                key: const Key('tabCartasButton'),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: selectedTab == 0 ? Colors.white : Colors.transparent,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: Image.asset(
-                  'assets/images/Back.png', //URL CARTAS
-                  key: const Key('tabCartasImage'),
-                  width: 50,
-                  height: 50,
-                ),
-              ),
+            _buildTabButton(
+              iconAsset: 'assets/images/Back.png',
+              isSelected: selectedTab == 0,
+              onTap: () => setState(() => selectedTab = 0),
+              keyBtn: const Key ('tabCartasButton'),
+              keyImg: const Key ('tabCartasImage'),
             ),
-
+            
             const SizedBox(width: 20),
 
-            //Boton de tapetes.
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedTab = 1;
-                });
-              },
-              child: Container(
-                key: const Key('tabTapetesButton'),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: selectedTab == 1 ? Colors.white : Colors.transparent,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: Image.asset(
-                  'assets/images/tapete.jpg', //URL TAPETES
-                  key: const Key('tabTapetesImage'),
-                  width: 50,
-                  height: 50,
-                ),
-              ),
+            _buildTabButton(
+              iconAsset: 'assets/images/tapete.jpg',
+              isSelected: selectedTab == 1,
+              onTap: () => setState(() => selectedTab = 1),
+              keyBtn: const Key ('tabTapetesButton'),
+              keyImg: const Key ('tabTapetesImage'),
             ),
           ],
         ),
 
-        //Muestra la coleccion de skins segun la categoría seleccionada.
-        selectedTab == 0
-            ? buildGridContent("cartas")
-            : buildGridContent("tapetes"),
+        const SizedBox(height: 12),
+
+        // Contenido según la pestaña.
+        if (selectedTab == 0)
+          _buildSetsGrid()
+        else
+          _buildTapetesGrid(),
       ],
+    );      
+  }
+
+  Widget _buildSetsGrid ()
+  {
+    final availableSets = skinSets.where((s) => unlockedSetIds.contains(s.id));
+
+    return GridView.count(
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      shrinkWrap: true,
+      children: availableSets.map((set) {
+        final equipped = equippedSetId == set.id;
+        
+        return GestureDetector(
+          onTap: () => _onSelectSet(set.id),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Imagen del dorso de cada set.
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: equipped ? Colors.green : Colors.transparent,
+                    width: 3,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Image.asset(
+                  set.backAsset, 
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
-  // Método para construir el grid de elementos.
-  Widget buildGridContent(String tipo) {
+  Widget _buildTapetesGrid ()
+  {
     return GridView.count(
       physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
       crossAxisCount: 2,
       crossAxisSpacing: 10,
       mainAxisSpacing: 10,
-      children: List.generate(4, (index) {
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white),
-          ),
+      shrinkWrap: true,
+      children: List.generate(4, (i) => Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(child: Text('Tapete ${i + 1}')),
+        ),
+      ),
+    );
+  }
 
-          child: Center(
-            child: Text(
-              tipo == "cartas"
-                  ? 'skin de Carta ${index + 1}'
-                  : 'skin de tapete ${index + 1}',
-              style: const TextStyle(color: Colors.white),
-            ),
+  Widget _buildTabButton ({required String iconAsset, required bool isSelected,required VoidCallback onTap, required Key keyBtn, required Key keyImg,}) 
+  {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        key: keyBtn,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? Colors.white : Colors.transparent,
           ),
-        );
-      }),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Image.asset(iconAsset, key: keyImg, width: 50, height: 50),
+      ),
     );
   }
 }

@@ -1262,7 +1262,7 @@ Future<Map<String, dynamic>> equipTapete (int userId, int tapeteId) async
 // Obtener todos los items desbloqueados.
 Future<Map<String, dynamic>> getUnlockedItems (int userId) async 
 {
-   // Obtenemos el token.
+  // Obtenemos el token.
   final token = await StorageService.getToken();
   if (token == null)
   {
@@ -1287,7 +1287,7 @@ Future<Map<String, dynamic>> getUnlockedItems (int userId) async
 // Obtener todos los items equipados.
 Future<Map<String, dynamic>> getEquippedItems (int userId) async 
 {
-   // Obtenemos el token.
+  // Obtenemos el token.
   final token = await StorageService.getToken();
   if (token == null)
   {
@@ -1302,6 +1302,36 @@ Future<Map<String, dynamic>> getEquippedItems (int userId) async
   if (response.statusCode == 200)
   {
     return jsonDecode(response.body);
+  }
+  else
+  {
+    throw Exception("Error ${response.statusCode}: ${response.body}");
+  }
+}
+
+// Obtiene el userId a partir del nombre de usuario.
+Future<int> getUserIdByUsername (String username) async
+{
+   // Obtenemos el token.
+  final token = await StorageService.getToken();
+  if (token == null)
+  {
+    throw Exception("No hay token de autenticación.");
+  }
+  
+  // Llamamos al endpoint.
+  final url = Uri.parse('${Config.apiBaseURL}${Config.getUserIdEndpoint}$username/');
+  final response = await http.get(url, headers: {"Auth": token, "Accept": "application/json"});
+
+  // Resultados de la llamada.
+  if (response.statusCode == 200)
+  {
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    return body['user_id'] as int;
+  }
+  else if (response.statusCode == 400)
+  {
+    throw Exception("Usuario no encontrado");
   }
   else
   {
