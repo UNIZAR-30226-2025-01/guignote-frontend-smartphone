@@ -1179,3 +1179,65 @@ Future<Map<String, dynamic>> getSalasReconectables() async
     throw Exception("Error desconocido. Codigo ${response.statusCode}");
   }
 }
+
+
+///
+/// Devuelve la lista de salas pausadas 
+/// 
+
+Future<Map<String, dynamic>> getSalasPausadas() async
+{
+  // Obtenemos el token de autenticación.
+  String? token = await StorageService.getToken();
+  if (token == null || token.isEmpty) {
+    throw Exception("No hay token de autenticación disponible.");
+  }
+
+  final url = Uri.parse(
+    '${Config.apiBaseURL}${Config.listarSalasPausadas}',
+  );
+
+  final response = await http.get(url, headers: {"Auth": token});
+  
+
+  
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else if (response.statusCode == 401) {
+    throw Exception("Token inválido o no proporcionado.");
+  } else if (response.statusCode == 405) {
+    throw Exception("Método no permitido.");
+  } else {
+    throw Exception("Error desconocido. Codigo ${response.statusCode}");
+  }
+}
+
+/// 
+/// Devuelve las salas de partidas de amigos.
+/// 
+Future<Map<String, dynamic>> getSalasAmigos({int? capacidad}) async
+{
+  // Obtenemos el token de autenticación.
+  String? token = await StorageService.getToken();
+  if (token == null || token.isEmpty) {
+    throw Exception("No hay token de autenticación disponible.");
+  }
+
+  final url = Uri.parse(
+    '${Config.apiBaseURL}${Config.listarSalasAmigos}',
+  ).replace(queryParameters: capacidad != null ? {"capacidad": "$capacidad"} : null);
+
+  final response = await http.get(url, headers: {"Auth": token});
+  
+
+  
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else if (response.statusCode == 401) {
+    throw Exception("Token inválido o no proporcionado.");
+  } else if (response.statusCode == 405) {
+    throw Exception("Método no permitido.");
+  } else {
+    throw Exception("Error desconocido. Codigo ${response.statusCode}");
+  }
+}
