@@ -6,6 +6,7 @@ import 'package:sota_caballo_rey/src/screens/friends/search_users_screen.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
+import 'package:sota_caballo_rey/src/services/api_service.dart';
 
 class FriendsScreen extends StatefulWidget {
   const FriendsScreen({super.key});
@@ -17,16 +18,31 @@ class FriendsScreen extends StatefulWidget {
 class FriendsScreenState extends State<FriendsScreen> {
   int _pantallaSeleccionada = 0;
 
-  // Lista de pantallas de gestión de amigos
-  final List<Widget> _pantallas = [
-    FriendsListScreen(),
-    FriendRequestScreen(),
-    SearchUsersScreen(),
-  ];
+
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) 
+  {
+    // Definimos la lista de pantallas para poder usar el contexto
+    final pantallas = <Widget>
+    [
+      const FriendsListScreen(),
+      const FriendRequestScreen(),
+      SearchUsersScreen
+      (
+        onSend: (String id) async 
+        {
+          // Llama a tu ApiService
+          await enviarSolicitud(id);
+          // Muestra resultado
+          if (!mounted) return;
+
+        },
+      ),
+    ];
+
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -40,7 +56,7 @@ class FriendsScreenState extends State<FriendsScreen> {
                   children: [
                     menu(),
                     SizedBox(height: 32),
-                    Expanded(child: _pantallas[_pantallaSeleccionada])
+                    Expanded(child: pantallas[_pantallaSeleccionada])
                   ],
                 )
             )

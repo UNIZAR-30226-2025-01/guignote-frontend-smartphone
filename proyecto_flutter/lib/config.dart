@@ -91,7 +91,12 @@ class Config {
   static String get topEloFriendsEndpoint => _config['top_elo_amigos_endpoint'];
   static String get topEloParejasFriendsEndpoint =>
       _config['top_elo_parejas_amigos_endpoint'];
+  
+  static String get obtenerMensajesChatPartida => _config['obtener_mensajes_chat_partida_endpoint'];
+  static String get websocketChatPartida => _config['websocket_chat_partida_endpoint'];
+  static String get listarSalasDisponibles => _config['listar_salas_disponibles_endpoint'];
+  static String get listarSalasReconectables => _config['listar_salas_reconectables_endpoint']; 
+  static String get listarSalasPausadas => _config['listar_salas_pausadas_endpoint'];
+  static String get listarSalasAmigos => _config['listar_salas_amigos_endpoint'];
 
-  static String get obtenerListadoPartidasDisponibles => _config['obtener_listado_partidas_endpoint'];
-  static String get obtenerListadoPartidasReconectables => _config['obtener_listado_partidas_reconectables_endpoint'];
 }

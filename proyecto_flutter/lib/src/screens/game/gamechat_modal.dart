@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
@@ -7,32 +8,26 @@ import 'package:sota_caballo_rey/src/services/storage_service.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:intl/intl.dart';
 
 
-class FriendChat extends StatefulWidget {
-  final String receptorId;
-  final String receptorNom;
 
-  // Para los tests
-  final List<Map<String,String>>? initialMensajes;
-  final Future<void> Function(String)? onSend;
-  final Future<List<Map<String,String>>> Function(String receptorId)? onLoad;
+class GameChatModal extends StatefulWidget {
+  final int chatId;
+  final int jugadorId;
+  final List<dynamic>? jugadores;
 
-  const FriendChat({
+  const GameChatModal({
     super.key,
-    required this.receptorId,
-    required this.receptorNom,
-    this.initialMensajes,
-    this.onLoad,
-    this.onSend,
+    required this.chatId,
+    required this.jugadorId,
+    required this.jugadores,
   });
 
   @override
-  FriendChatState createState() => FriendChatState();
+  GameChatState createState() => GameChatState();
 }
 
-class FriendChatState extends State<FriendChat> {
+class GameChatState extends State<GameChatModal> {
   WebSocketChannel? channel;
   List<Map<String, String>> mensajes = [];
   final TextEditingController _controller = TextEditingController();
@@ -41,20 +36,12 @@ class FriendChatState extends State<FriendChat> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialMensajes != null)
-    {
-      mensajes = widget.initialMensajes!;
-    }
-    else
-    {
-      _cargarMensajes();
-    }
-
     _conectar();
+    _cargarMensajes();
   }
 
   ///
-  /// Conectar al WebSocket del chat usando 'receptorId'
+  /// Conectar al WebSocket del chat usando 'chatId'
   ///
   void _conectar() async {
     try {
@@ -63,14 +50,14 @@ class FriendChatState extends State<FriendChat> {
         if(kDebugMode) { print("Error: No se encontró token"); }
         return;
       }
-      final wsUrl = Uri.parse("ws://188.165.76.134:8000/ws/chat/${widget.receptorId}/?token=$token");
+      final wsUrl = Uri.parse("ws://188.165.76.134:8000/ws/chat_partida/${widget.chatId}/?token=$token");
       channel = WebSocketChannel.connect(wsUrl);
       channel!.stream.listen(
           (message) {
             final data = json.decode(message);
             setState(() {
               mensajes.insert(0, {
-                "emisor": data["emisor"].toString(),
+                "emisor": data["emisor"]["id"].toString(),
                 "contenido": data["contenido"],
                 "fecha_envio": data["fecha_envio"]
               });
@@ -96,16 +83,16 @@ class FriendChatState extends State<FriendChat> {
   ///
   Future<void> _cargarMensajes() async {
     try {
-      final lista = widget.onLoad != null
-        ? await widget.onLoad!(widget.receptorId)
-        : await obtenerMensajes(widget.receptorId);
-      if (mounted) 
-      {
-        setState(() {
-          mensajes = lista;
-        });
+      List<Map<String, String>> mensajesCargados = await obtenerMensajesChatPartida(widget.chatId);
+      setState(() {
+        mensajes = mensajesCargados;
+      });
+      _scrollMensajeMasReciente();
+    } catch(e) {
+      if(kDebugMode) {
+        print("Error al cargar mensajes: $e");
       }
-    } catch (_) {}
+    }
   }
 
   ///
@@ -120,28 +107,18 @@ class FriendChatState extends State<FriendChat> {
   ///
   /// Enviar mensaje con WebSocket
   ///
-  Future<void> _enviarMensaje() async {
-    final texto = _controller.text.trim();
-    if (texto.isEmpty) return;
-
-    if (widget.onSend != null)
-    {
-      await widget.onSend!(texto);
-
-      setState(() {
-        mensajes.insert(0, {
-          'emisor': 'me',
-          'contenido': texto,
-          'fecha_envio': DateFormat.Hm().format(DateTime.now())
-        });
-      });
+  void _enviarMensaje() {
+    if(_controller.text.trim().isEmpty) return;
+    if(channel != null) {
+      channel!.sink.add(jsonEncode({
+        "contenido": _controller.text.trim(),
+      }));
+      _controller.clear();
+    } else {
+      if(kDebugMode) {
+        print("Error: WebSocket no conectado");
+      }
     }
-    else
-    {
-      channel!.sink.add(jsonEncode({'contenido' : texto}));
-    }
-
-    _controller.clear();
   }
 
   ///
@@ -155,8 +132,13 @@ class FriendChatState extends State<FriendChat> {
         itemCount: mensajes.length,
         itemBuilder: (context, index) {
           final mensaje = mensajes[index];
-          final esPropio = mensaje["emisor"] != widget.receptorId;
-          return _itemLista(mensaje, esPropio);
+          final esPropio = mensaje["emisor"] == widget.jugadorId.toString();
+          // Si el mensaje es propio, se alinea a la derecha, si no, a la izquierda
+          final nombreEmisor = widget.jugadores?.firstWhere(
+            (jugador) => jugador["id"].toString() == mensaje["emisor"],
+            orElse: () => {"nombre": "Desconocido"}
+          )["nombre"] ?? "Desconocido";
+          return _itemLista(mensaje, esPropio, nombreEmisor);
         }
       )
     );
@@ -165,7 +147,7 @@ class FriendChatState extends State<FriendChat> {
   ///
   /// Mensaje ítem
   ///
-  Widget _itemLista(Map<String, String> mensaje, bool esPropio) {
+  Widget _itemLista(Map<String, String> mensaje, bool esPropio, String nombreEmisor) {
     return Align(
       alignment: esPropio ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -178,6 +160,11 @@ class FriendChatState extends State<FriendChat> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+                nombreEmisor,
+                style: TextStyle(color: esPropio ? Colors.white : Colors.black,
+                  fontSize: 16, fontWeight: FontWeight.bold)
+            ),
             Text(
                 mensaje["contenido"]!,
                 style: TextStyle(color: esPropio ? Colors.white : Colors.black,
@@ -221,77 +208,32 @@ class FriendChatState extends State<FriendChat> {
     );
   }
 
-  ///
-  /// Barra superior con botón para volver a pantalla
-  /// anterior y nombre del amigo con el que chateas
-  ///
-  Widget _barraSuperior() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: const Icon(Icons.arrow_back, color: Colors.white)
-          ),
-          Expanded(
-            child: Text(
-              widget.receptorNom,
-              style: const TextStyle(
-                fontFamily: 'tituloApp',
-                fontSize: 24,
-                color: Colors.white
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-              textAlign: TextAlign.center
-            )
-          )
-        ],
-      )
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
-    double barraAltura = MediaQuery.of(context).padding.top + 52.0;
 
     return Scaffold(
-      resizeToAvoidBottomInset: true, // Ajustar al teclado
+      resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           const Background(),
           const CornerDecoration(imageAsset: 'assets/images/gold_ornaments.png'),
-          Container(
-            height: barraAltura,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                colors: [Colors.black.withAlpha(192), Colors.black.withAlpha(64)]
-              )
-            ),
-          ),
           SafeArea(
             child: Column(
               children: [
-                _barraSuperior(),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     child: Column(
                       children: [
-                        Expanded( // Asegura que la lista de mensajes ocupe el espacio disponible
-                          child: _listaMensajes(),
-                        ),
-                        _inputMensaje() // Mantén el input fuera del área desplazable
+                        _listaMensajes(),
+                        _inputMensaje()
                       ],
                     ),
                   ),
-                ),
+                )
               ],
             ),
           )

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:sota_caballo_rey/config.dart';
 import 'dart:async';
@@ -44,8 +45,8 @@ class WebsocketService
     {
       'token': token,
       if (partidaID != null) 'partida_id': partidaID.toString(),
-      if (partidaID == null) 'capacidad': capacidad.toString(),
-      if (partidaID == null) 'solo_amigos': soloAmigos.toString(),
+      'capacidad': capacidad.toString(),
+      'solo_amigos': soloAmigos.toString(),
     }).query;
 
     // URL completa para la conexión WebSocket
@@ -77,12 +78,46 @@ class WebsocketService
     );
   }
 
+  /// Crea una partida personalizada.
+  Future<void> connectPersonalizada
+  (
+    {
+      required int capacidad,
+      required bool soloAmigos,
+      required int tiempoTurno,
+      required bool permitirRevueltas,
+      required bool reglasArrastre,
+    })  async
+    {
+      final params = <String, String>
+      {
+        'token': await StorageService.getToken() ?? '',
+        'es_personalizada': 'true',
+        'capacidad': capacidad.toString(),
+        'solo_amigos': soloAmigos.toString(),
+        'tiempo_turno': tiempoTurno.toString(),
+        'permitir_revueltas': permitirRevueltas.toString(),
+        'reglas_arrastre': reglasArrastre.toString(),
+      };
+      final url = Uri.parse('${Config.wsBaseURL}${Config.conexionPartida}?${Uri(queryParameters: params).query}');
+
+      _channel = IOWebSocketChannel.connect(url.toString());
+    }
+
+  /// Chequea si hay una conexión WebSocket activa.
+  /// Devuelve true si la conexión está activa, false en caso contrario.
+  bool isConnected() {
+    return _channel != null;
+  }
+
   /// Envía un mensaje en formato JSON al servidor.
   void send(Map<String, dynamic> message) 
   {
     if (_channel != null) 
     {
       _channel!.sink.add(jsonEncode(message));
+      final json = jsonEncode(message);
+      print('Mensaje enviado: $json');
     } else 
     {
       throw Exception('No hay conexión WebSocket activa');

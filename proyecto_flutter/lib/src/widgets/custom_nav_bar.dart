@@ -39,11 +39,11 @@ class CustomNavBar extends StatelessWidget
         break;
 
       case 3:
-        Navigator.pushNamed(context, AppRoutes.ranking);
+        Navigator.pushNamed(context, AppRoutes.listGames);
         break;
       
       case 4:
-        Navigator.pushNamed(context, AppRoutes.help);
+        Navigator.pushNamed(context, AppRoutes.ranking);
         break;
       
       default:
@@ -79,15 +79,16 @@ class CustomNavBar extends StatelessWidget
 
           BottomNavigationBarItem
           (
-            icon: Icon(Icons.emoji_events),
-            label: 'Clasificación',
+            icon: Icon(Icons.dns),
+            label: 'Partidas',
           ),
 
           BottomNavigationBarItem
           (
-            icon: Icon(Icons.help),
-            label: 'Ayuda',
+            icon: Icon(Icons.emoji_events),
+            label: 'Clasificación',
           ),
+
         ],
 
         

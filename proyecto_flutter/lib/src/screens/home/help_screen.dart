@@ -13,6 +13,7 @@ class HelpScreen extends StatelessWidget
   {
     return Scaffold
     (
+      resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: Stack(

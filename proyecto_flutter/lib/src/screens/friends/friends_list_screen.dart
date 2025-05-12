@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:sota_caballo_rey/src/screens/friends/friend_chat.dart';
+import 'package:sota_caballo_rey/src/screens/friends/friend_profile_screen.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_title.dart';
 
 class FriendsListScreen extends StatefulWidget {
+  //Lo usamos para los tests.
+  final List<Map<String, String>>? initialFriends;
+  final Future<void> Function(String id) onDelete;
 
   /// Constructor de clase
-  const FriendsListScreen({super.key});
-
+  const FriendsListScreen({super.key, this.initialFriends, Future<void> Function(String)? onDelete,})  : onDelete = onDelete ?? _defaultDelete;
   @override
   FriendsListState createState() => FriendsListState();
+
+  static Future<void> _defaultDelete (String id)
+  {
+    return eliminarAmigo(id);
+  }
 }
 
 class FriendsListState extends State<FriendsListScreen> {
@@ -26,7 +33,15 @@ class FriendsListState extends State<FriendsListScreen> {
   @override
   void initState() {
     super.initState();
-    _cargarAmigos();
+    if (widget.initialFriends != null)
+    {
+      _amigos = widget.initialFriends!;
+      _cargando = false;
+    }
+    else
+    {
+      _cargarAmigos();
+    }
   }
 
   ///
@@ -54,7 +69,7 @@ class FriendsListState extends State<FriendsListScreen> {
   ///
   void _eliminarAmigo(int index, String id) async {
     try {
-      await eliminarAmigo(id);
+      await widget.onDelete(id);
 
       _animatedListKey.currentState!.removeItem(
         index, (context, animation) => _itemLista(_amigos[index], index, animation),
@@ -79,8 +94,7 @@ class FriendsListState extends State<FriendsListScreen> {
   ///
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-        child: Column(
+    return Column(
           mainAxisSize: MainAxisSize.max,
           children: [
             CustomTitle(title: "Amigos"),
@@ -92,7 +106,6 @@ class FriendsListState extends State<FriendsListScreen> {
             if(!_cargando && !_error)
               _lista()
           ],
-        )
     );
   }
 
@@ -160,7 +173,7 @@ class FriendsListState extends State<FriendsListScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => FriendChat(receptorId: id, receptorNom: nombre),
+                    builder: (context) => FriendProfileScreen(friendId: id, nombre: nombre, loadStats: () => getUserStatisticsWithID(int.parse(id))),
                   ),
                 );
               },

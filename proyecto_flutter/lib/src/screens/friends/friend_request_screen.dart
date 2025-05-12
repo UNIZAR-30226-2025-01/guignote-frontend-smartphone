@@ -3,9 +3,17 @@ import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_title.dart';
 
 class FriendRequestScreen extends StatefulWidget {
+  // Para tests: solicitudes precargadas.
+  final List<Map<String, String>>? initialRequests;
+  final Future<void> Function(String id, bool accept) onManage;
 
   /// Constructor de clase
-  const FriendRequestScreen({super.key});
+  const FriendRequestScreen({super.key, this.initialRequests, Future<void> Function(String, bool)? onManage}) : onManage = onManage ?? _defaultManage;
+
+  static Future<void> _defaultManage(String id, bool accept)
+  {
+    return accept ? aceptarSolicitudAmistad(id) : denegarSolicitudAmistad(id);
+  }
 
   @override
   FriendRequestState createState() => FriendRequestState();
@@ -25,7 +33,16 @@ class FriendRequestState extends State<FriendRequestScreen> {
   @override
   void initState() {
     super.initState();
-    _cargarSolicitudes();
+
+    if (widget.initialRequests != null)
+    {
+      _solicitudes = widget.initialRequests!;
+      _cargando = false;
+    }
+    else
+    {
+      _cargarSolicitudes();
+    }
   }
 
   ///
@@ -51,11 +68,8 @@ class FriendRequestState extends State<FriendRequestScreen> {
   ///
   void _gestionSolicitud(int index, bool aceptar, String idSolicitud) async {
     try {
-      if(aceptar) {
-        await aceptarSolicitudAmistad(idSolicitud);
-      } else {
-        await denegarSolicitudAmistad(idSolicitud);
-      }
+      await widget.onManage(idSolicitud, aceptar);
+
       _animatedListKey.currentState!.removeItem(
         index, (context, animation) => _itemLista(_solicitudes[index], index, animation),
         duration: const Duration(milliseconds: 250),
@@ -79,8 +93,7 @@ class FriendRequestState extends State<FriendRequestScreen> {
   ///
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
+    return Column(
         mainAxisSize: MainAxisSize.max,
         children: [
           const CustomTitle(title: "Peticiones de amistad"),
@@ -92,8 +105,7 @@ class FriendRequestState extends State<FriendRequestScreen> {
           if(!_cargando && !_error)
             _lista()
         ],
-      )
-    );
+      );
   }
 
   ///

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:sota_caballo_rey/src/services/storage_service.dart';
+import 'package:sota_caballo_rey/src/screens/friends/friend_chat.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
@@ -13,20 +13,27 @@ import 'package:image_picker/image_picker.dart';
 //
 // Esta pantalla le mostrará al usuario la información de su perfil, la informacion de sus estadisticas
 // y su mochila con las skins de sus cartas y tapetes.
-class ProfileScreen extends StatefulWidget {
-  // Esto sirve para el test del boton de logout.
-  final Future<void> Function()? onLogout;
+class FriendProfileScreen extends StatefulWidget {
 
   // Esto sirve para poder Generar el FutureBuilder de profileBox en los tests.
   final Future<Map<String, dynamic>> Function() loadStats;
 
-  const ProfileScreen({super.key, this.onLogout, this.loadStats = getUserStatistics});
+  final String friendId;
+  final String nombre;
+
+  const FriendProfileScreen({super.key, required this.friendId, required this.nombre, required this.loadStats});
+
 
   @override
-  ProfileScreenState createState() => ProfileScreenState();
+  FriendProfileScreenState createState() => FriendProfileScreenState();
+
 }
 
-class ProfileScreenState extends State<ProfileScreen> {
+
+
+
+
+class FriendProfileScreenState extends State<FriendProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,32 +68,40 @@ class ProfileScreenState extends State<ProfileScreen> {
             imageAsset: 'assets/images/gold_ornaments.png',
           ),
 
-          // Boton de cierre de sesión
-          Positioned(
-            top: MediaQuery.of(context).padding.top,
-            right: 40,
+          //Boton de volver.
+          Align(
+            alignment: const Alignment(-0.75, -0.9),
             child: IconButton(
-              icon: const Icon(Icons.logout, color: Color(0xFF171718)),
-              iconSize: 40,
-              onPressed: () async {
-                // Elimina el token del usuario.
-                if (widget.onLogout != null) {
-                  await widget.onLogout!(); //Pruebas para el test.
-                } else {
-                  await StorageService.deleteToken();
-                }
-
-                // Verifica si el widget sigue montado.
-                if (!mounted) return;
-
-                // Navega a la página de login.
-                Navigator.pushReplacementNamed(context, '/login');
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 32),
+              onPressed: () {
+                Navigator.pop(context);
               },
             ),
           ),
+
+          // Botón circular con el icono del chat.
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 20, right: 20),
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FriendChat(receptorId: widget.friendId, receptorNom: widget.nombre)),
+                  );
+                },
+                backgroundColor: Colors.blue,
+                child: const Icon(Icons.chat, color: Colors.white),
+              ),
+            ),
+          ),
+
+  
         ],
       ),
-      bottomNavigationBar: CustomNavBar(selectedIndex: 0),
+      bottomNavigationBar: CustomNavBar(selectedIndex: 1),
     );
   }
 }
@@ -265,17 +280,6 @@ Widget buildProfileBox(BuildContext context, Function setState, Future<Map<Strin
                   ],
                 ),
 
-                // MOCHILA
-
-                // Separador de sección
-                buildSectionSeparator(),
-
-                // Titulo mochila.
-                const Text('Mochila', style: AppTheme.titleTextStyle),
-
-                // Contenido mochila.
-                const SizedBox(height: 30),
-                const BackPackTabs(),
               ],
             ),
           ),
@@ -349,116 +353,32 @@ Widget buildSectionSeparator() {
   );
 }
 
-//Widget para la creacion del contenido de la mochila.
-class BackPackTabs extends StatefulWidget {
-  const BackPackTabs({super.key});
-
-  @override
-  BackpackTabsState createState() => BackpackTabsState();
-}
-
-class BackpackTabsState extends State<BackPackTabs> {
-  // 0 --> Cartas.
-  // 1 --> Tapetes.
-  int selectedTab = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      //Fila con los botones de cada categoria.
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            //Boton de cartas.
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedTab = 0;
-                });
-              },
-
-              child: Container(
-                key: const Key('tabCartasButton'),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: selectedTab == 0 ? Colors.white : Colors.transparent,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: Image.asset(
-                  'assets/images/Back.png', //URL CARTAS
-                  key: const Key('tabCartasImage'),
-                  width: 50,
-                  height: 50,
-                ),
-              ),
-            ),
-
-            const SizedBox(width: 20),
-
-            //Boton de tapetes.
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedTab = 1;
-                });
-              },
-              child: Container(
-                key: const Key('tabTapetesButton'),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: selectedTab == 1 ? Colors.white : Colors.transparent,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: Image.asset(
-                  'assets/images/tapete.jpg', //URL TAPETES
-                  key: const Key('tabTapetesImage'),
-                  width: 50,
-                  height: 50,
-                ),
-              ),
-            ),
-          ],
+// Método para construir el grid de elementos.
+Widget buildGridContent(String tipo) {
+  return GridView.count(
+    physics: const NeverScrollableScrollPhysics(),
+    shrinkWrap: true,
+    crossAxisCount: 2,
+    crossAxisSpacing: 10,
+    mainAxisSpacing: 10,
+    children: List.generate(4, (index) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white),
         ),
 
-        //Muestra la coleccion de skins segun la categoría seleccionada.
-        selectedTab == 0
-            ? buildGridContent("cartas")
-            : buildGridContent("tapetes"),
-      ],
-    );
-  }
-
-  // Método para construir el grid de elementos.
-  Widget buildGridContent(String tipo) {
-    return GridView.count(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      crossAxisCount: 2,
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 10,
-      children: List.generate(4, (index) {
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white),
+        child: Center(
+          child: Text(
+            tipo == "cartas"
+                ? 'skin de Carta ${index + 1}'
+                : 'skin de tapete ${index + 1}',
+            style: const TextStyle(color: Colors.white),
           ),
-
-          child: Center(
-            child: Text(
-              tipo == "cartas"
-                  ? 'skin de Carta ${index + 1}'
-                  : 'skin de tapete ${index + 1}',
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
-        );
-      }),
-    );
-  }
+        ),
+      );
+    }),
+  );
 }
+
