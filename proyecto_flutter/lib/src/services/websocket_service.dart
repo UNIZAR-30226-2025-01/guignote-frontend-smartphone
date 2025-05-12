@@ -45,8 +45,8 @@ class WebsocketService
     {
       'token': token,
       if (partidaID != null) 'partida_id': partidaID.toString(),
-      if (partidaID == null) 'capacidad': capacidad.toString(),
-      if (partidaID == null) 'solo_amigos': soloAmigos.toString(),
+      'capacidad': capacidad.toString(),
+      'solo_amigos': soloAmigos.toString(),
     }).query;
 
     // URL completa para la conexión WebSocket
