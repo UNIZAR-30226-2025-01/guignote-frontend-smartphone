@@ -13,7 +13,6 @@ import 'package:sota_caballo_rey/src/screens/game/game_settings.dart';
 
 
 
-const int SEGUNDOS_POR_TURNO = 15; // Segundos por turno
 const String deckSelected = 'base'; // Baraja seleccionada por el jugador.
 
 class GameScreen extends StatefulWidget {
@@ -26,6 +25,7 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   bool _isInitialized = false; // Bandera para evitar múltiples ejecuciones
+  int segundosPorTurno = 15; // Segundos por turno
   late Timer cuentaAtrasTurnoTimer;
 
   WebsocketService? _websocketService; // Servicio WebSocket para la conexión
@@ -43,7 +43,7 @@ class _GameScreenState extends State<GameScreen> {
   List<String> playerHand = ['1Oros', '2Oros', '3Oros', '4Oros', '5Oros', '6Oros'];
   List<String> rivalHand = ['Back', 'Back', 'Back', 'Back', 'Back', 'Back'];
   int cartasRestantes = 0;
-  int segundosRestantesTurno = SEGUNDOS_POR_TURNO;
+  int segundosRestantesTurno = 15; // Segundos restantes para el turno
   bool mostrarSegundosRestantesTurno = false;
 
   int? mazoRestante;
@@ -230,6 +230,7 @@ class _GameScreenState extends State<GameScreen> {
         }
       } else {
         print('No es tu turno para jugar la carta: $card');
+        mostrarMensaje('No es tu turno para jugar la carta: $card');
       }
       
     });
@@ -308,7 +309,7 @@ class _GameScreenState extends State<GameScreen> {
         //print('Es el turno de $turnoJugador');
         setState(() {
           mostrarSegundosRestantesTurno = false;
-          segundosRestantesTurno = SEGUNDOS_POR_TURNO;
+          segundosRestantesTurno = segundosPorTurno; // Reinicia el temporizador de cuenta atrás
         });
       } else {
         //print('Es tu turno');
@@ -415,7 +416,7 @@ class _GameScreenState extends State<GameScreen> {
               jugador4PlayedCard = ''; // Reinicia la carta jugada por el rival
             });
           });
-          segundosRestantesTurno = SEGUNDOS_POR_TURNO; // Reinicia el temporizador de cuenta atrás
+          segundosRestantesTurno = segundosPorTurno; // Reinicia el temporizador de cuenta atrás
           mostrarSegundosRestantesTurno = false; // Oculta el temporizador de cuenta atrás
           // Actualiza los puntos de los jugadores
           if(jugador1Equipo == 1){
@@ -732,7 +733,8 @@ class _GameScreenState extends State<GameScreen> {
           cartaTriunfo = data['carta_triunfo'];
           triunfo = (cartaTriunfo?['valor']?.toString() ?? '') + (cartaTriunfo?['palo']?.toString() ?? '');
           
-          segundosRestantesTurno = SEGUNDOS_POR_TURNO; // Reinicia el temporizador de cuenta atrás
+          segundosPorTurno = data['tiempo_turno'] ?? 15; // Segundos por turno
+          segundosRestantesTurno = segundosPorTurno; // Reinicia el temporizador de cuenta atrás
         });
       }
 
@@ -834,6 +836,12 @@ class _GameScreenState extends State<GameScreen> {
       jugador4Equipo = jugador2['equipo'];
       jugador4NumCartas = jugador2['num_cartas'];
 
+      jugador1PlayedCard = jugador1['carta_jugada'] ?? '';
+      jugador2PlayedCard = jugador3['carta_jugada'] ?? '';
+      jugador3PlayedCard = jugador4['carta_jugada'] ?? '';
+      jugador4PlayedCard = jugador2['carta_jugada'] ?? '';
+      
+
     } else if(jugador2['nombre'] == miNombre) {
 
       jugador1Nombre = jugador2['nombre'];
@@ -855,6 +863,11 @@ class _GameScreenState extends State<GameScreen> {
       jugador4Id = jugador3['id'];
       jugador4Equipo = jugador3['equipo'];
       jugador4NumCartas = jugador3['num_cartas'];
+
+      jugador1PlayedCard = jugador2['carta_jugada'] ?? '';
+      jugador2PlayedCard = jugador4['carta_jugada'] ?? '';
+      jugador3PlayedCard = jugador1['carta_jugada'] ?? '';
+      jugador4PlayedCard = jugador3['carta_jugada'] ?? '';
 
     } else if(jugador3['nombre'] == miNombre) {
 
@@ -878,6 +891,11 @@ class _GameScreenState extends State<GameScreen> {
       jugador4Equipo = jugador4['equipo'];
       jugador4NumCartas = jugador4['num_cartas'];
 
+      jugador1PlayedCard = jugador3['carta_jugada'] ?? '';
+      jugador2PlayedCard = jugador1['carta_jugada'] ?? '';
+      jugador3PlayedCard = jugador2['carta_jugada'] ?? '';
+      jugador4PlayedCard = jugador4['carta_jugada'] ?? '';
+
     } else if(jugador4['nombre'] == miNombre) {
 
       jugador1Nombre = jugador4['nombre'];
@@ -899,6 +917,11 @@ class _GameScreenState extends State<GameScreen> {
       jugador4Id = jugador1['id'];
       jugador4Equipo = jugador1['equipo'];
       jugador4NumCartas = jugador1['num_cartas'];
+
+      jugador1PlayedCard = jugador4['carta_jugada'] ?? '';
+      jugador2PlayedCard = jugador2['carta_jugada'] ?? '';
+      jugador3PlayedCard = jugador3['carta_jugada'] ?? '';
+      jugador4PlayedCard = jugador1['carta_jugada'] ?? '';
 
     }
         
@@ -930,6 +953,9 @@ class _GameScreenState extends State<GameScreen> {
         jugador2Id = jugador2['id'];
         jugador2Equipo = jugador2['equipo'];
         jugador2NumCartas = jugador2['num_cartas'];
+        
+        jugador1PlayedCard = jugador1['carta_jugada'] ?? '';
+        jugador2PlayedCard = jugador2['carta_jugada'] ?? '';
 
       }else{
 
@@ -942,6 +968,9 @@ class _GameScreenState extends State<GameScreen> {
         jugador2Id = jugador1['id'];
         jugador2Equipo = jugador1['equipo'];
         jugador2NumCartas = jugador1['num_cartas'];
+
+        jugador1PlayedCard = jugador2['carta_jugada'] ?? '';
+        jugador2PlayedCard = jugador1['carta_jugada'] ?? '';
 
       }
     }
@@ -1019,6 +1048,8 @@ class _GameScreenState extends State<GameScreen> {
     
     chatId = data?['chat_id'];
 
+    segundosPorTurno = data?['tiempo_turno'] ?? 15; // Segundos por turno
+    segundosRestantesTurno = segundosPorTurno; // Reinicia el temporizador de cuenta atrás
 
     String miNombre = '';
 
