@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sota_caballo_rey/src/screens/game/game_screen.dart';
+//import 'package:sota_caballo_rey/src/screens/game/game_screen.dart';
 import 'package:sota_caballo_rey/src/widgets/game/game_card.dart';
 
 class CardInFan extends StatefulWidget {

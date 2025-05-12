@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
-import 'package:sota_caballo_rey/src/widgets/background.dart';
-import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/widgets/game/game_card.dart';
 import 'package:sota_caballo_rey/src/widgets/game/card_in_fan.dart';
 import 'package:sota_caballo_rey/src/services/websocket_service.dart';
@@ -10,6 +8,7 @@ import 'dart:math' as math;
 import 'dart:async';
 import 'package:sota_caballo_rey/src/screens/game/gamechat_modal.dart';
 import 'package:sota_caballo_rey/src/screens/game/game_settings.dart';
+import 'package:sota_caballo_rey/src/data/tapete_sets.dart';
 
 
 
@@ -18,6 +17,7 @@ String deckSelected1 = 'base';
 String deckSelected2 = 'base';
 String deckSelected3 = 'base';
 String deckSelected4 = 'base';
+String tapeteSelected = 'assets/images/tapete1.png'; // Tapete por defecto.
 
 class GameScreen extends StatefulWidget {
 
@@ -1048,6 +1048,7 @@ class _GameScreenState extends State<GameScreen> {
 
     _listenToWebSocket(); // Escucha los mensajes del WebSocket
     await _loadDecks();
+    await _loadTapete();
   }
 
 
@@ -1099,6 +1100,14 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  Future<void> _loadTapete() async
+  {
+    final eq = await getEquippedItems(jugador1Id!);
+    final tapId = (eq['equipped_tapete'] as Map<String,dynamic>?)?['id'] as int? ?? 1;
+    final set = tapeteSets.firstWhere((t) => t.id == tapId, orElse: () => tapeteSets[0]);
+    setState(() => tapeteSelected = set.assetPath);
+  }
+
   Scaffold build1vs1(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -1106,20 +1115,8 @@ class _GameScreenState extends State<GameScreen> {
       body: Stack(
         children: [
           // Fondo principal:
-          const Background(),
-          const CornerDecoration(
-            imageAsset: 'assets/images/gold_ornaments.png',
-          ),
-          // Logo de la aplicación al fondo
-          Align(
-            alignment: const Alignment(0.0, -0.15),
-            child: Opacity(
-              opacity: 0.5,
-              child: Image.asset(
-                'assets/images/app_logo_white.png',
-                width: 100,
-              ),
-            ),
+          Positioned.fill(
+            child: Image.asset(tapeteSelected, fit: BoxFit.fill, alignment: Alignment.center,), 
           ),
 
           if (faseArrastre == false) ...[
@@ -1229,20 +1226,8 @@ class _GameScreenState extends State<GameScreen> {
       body: Stack(
         children: [
           // Fondo principal:
-          const Background(),
-          const CornerDecoration(
-            imageAsset: 'assets/images/gold_ornaments.png',
-          ),
-          // Logo de la aplicación al fondo
-          Align(
-            alignment: const Alignment(0.0, -0.15),
-            child: Opacity(
-              opacity: 0.5,
-              child: Image.asset(
-                'assets/images/app_logo_white.png',
-                width: 100,
-              ),
-            ),
+          Positioned.fill(
+            child: Image.asset(tapeteSelected, fit: BoxFit.fill, alignment: Alignment.center,), 
           ),
 
           if (faseArrastre == false) ...[
