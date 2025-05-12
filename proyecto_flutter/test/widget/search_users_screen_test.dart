@@ -66,15 +66,6 @@ void main()
     expect(find.descendant(of: searchBar, matching: find.byIcon(Icons.search)), findsOneWidget);
   });
 
-  // Spy para onSend.
-  bool sendCalled = false;
-  String? sentId;
-  Future<void> fakeSend(String id) async 
-  {
-    sendCalled = true;
-    sentId = id;
-  }
-
   testWidgets('Menú superior selecciona y navega entre pantallas.', (tester) async 
   {
     // Montamos FriendsScreen.
@@ -136,6 +127,15 @@ void main()
       );
     }
 
+    // Spy para onSend.
+    bool sendCalled = false;
+    String? sentId;
+    Future<void> fakeSend(String id) async 
+    {
+      sendCalled = true;
+      sentId = id;
+    }
+
     // Montamos la pantalla.
     await tester.pumpWidget(
       MaterialApp(
@@ -181,6 +181,15 @@ void main()
       ];
 
       return todos.where((u) => u["nombre"]!.toLowerCase().contains(prefix.toLowerCase())).toList();
+    }
+
+    // Spy para onSend.
+    bool sendCalled = false;
+    String? sentId;
+    Future<void> fakeSend(String id) async 
+    {
+      sendCalled = true;
+      sentId = id;
     }
 
     // Montamos la pantalla.
@@ -232,7 +241,6 @@ void main()
         {"id" : "2", "nombre" : "Ana", "imagen" : ""},
       ];
     }
-
 
     // Spy para onSend.
     bool sendCalled = false;
@@ -287,12 +295,31 @@ void main()
 
   testWidgets('SearchUsersScreen muestra el mensaje "Sin resultados" cuando la lista está vacia.', (tester) async 
   {
+    // Spy para onSend.
+    bool sendCalled = false;
+    String? sentId;
+    Future<void> fakeSend(String id) async 
+    {
+      sendCalled = true;
+      sentId = id;
+    }
+
+    // Stub de búsqueda con delay.
+    Future<List<Map<String,String>>> fakeSearch(String prefix) async
+    {
+      return
+      [
+        {"id" : "1", "nombre" : "Paco", "imagen" : ""},
+        {"id" : "2", "nombre" : "Ana", "imagen" : ""},
+      ];
+    }
+
     // Montamos la pantalla.
     await tester.pumpWidget
     (
       MaterialApp (
         home: Scaffold (
-          body: SearchUsersScreen(
+          body: SearchUsersScreen(onSend: fakeSend, onSearch: fakeSearch,
           ),
         )
       )
