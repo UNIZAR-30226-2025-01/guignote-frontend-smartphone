@@ -76,6 +76,7 @@ class SearchUsersState extends State<SearchUsersScreen> {
         }
       });
     } catch(e) {
+      print(e);
       if(mounted) {
         Navigator.pushReplacementNamed(context, '/login');
       }

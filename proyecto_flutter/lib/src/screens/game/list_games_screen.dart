@@ -7,7 +7,8 @@ import 'package:sota_caballo_rey/src/services/websocket_service.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/routes.dart';
-import 'dart:convert';
+import 'package:sota_caballo_rey/src/widgets/search_lobby.dart';
+
 
 class ListGamesScreen extends StatefulWidget {
   const ListGamesScreen({super.key});
@@ -33,7 +34,8 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
   int _tiempoturno = 60; // tiempo de turno
   bool _reglasArrastre = true; // reglas de arrastre
   bool _permitirPartidasRevueltas = true; // permitir partidas revueltas
-  bool _soloAmigos = false; // solo amigos    
+  bool _soloAmigos = false; // solo amigos
+  bool _searching = false; // indica si se está buscando una partida    
   StreamSubscription<Map<String,dynamic>>? subscription; // suscripción al stream de mensajes entrantes
   Map<String, dynamic>? gameData; // datos del juego
 
@@ -76,15 +78,55 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
         break;
       
       case 'Amigos':
-        salas = await getSalasAmigos(capacidad: seleccionFiltro2 == '2 vs 2' ? 4 : null);
+        if(seleccionFiltro2 == '2 vs 2')
+        {
+          salas = await getSalasAmigos(capacidad: 4);
+        }
+        else if(seleccionFiltro2 == '1 vs 1')
+        {
+          salas = await getSalasAmigos(capacidad: 2);
+        }
+        else
+        {
+          // Si no se ha seleccionado nada, o se ha seleccionado "Todas", obtenemos todas las salas disponibles.
+          salas = await getSalasAmigos();
+        }
         break;
       
       default:
-        salas = await getSalasDisponibles(capacidad: seleccionFiltro2 == '2 vs 2' ? 4 : null);
+        if(seleccionFiltro2 == '2 vs 2')
+        {
+          salas = await getSalasDisponibles(capacidad: 4);
+        }
+        else if(seleccionFiltro2 == '1 vs 1')
+        {
+          salas = await getSalasDisponibles(capacidad: 2);
+        }
+        else
+        {
+          // Si no se ha seleccionado nada, o se ha seleccionado "Todas", obtenemos todas las salas disponibles.
+          salas = await getSalasDisponibles();
+        }
         break;
     }
+    print(salas);
     setState(() {
     });
+  }
+
+  void _cancelSearch()
+  {
+    setState(() 
+    {
+      _searching = false; // Cambia el estado a no buscando.
+
+    });
+
+    websocketService.disconnect(); // Desconecta el socket.
+    subscription?.cancel(); // Cancela la suscripción al socket.
+    subscription = null; // Restablece la suscripción.
+    
+
   }
 
   @override
@@ -169,8 +211,19 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
               ],
             ),
           ),
+
+          // Mostramos el prelobby si se está buscando una partida
+          if(_searching)...[
+            SearchLobby
+            (
+              statusMessage: "Esperando jugadores...",
+              players: [],
+              onCancel: _cancelSearch, // Llama a la función de cancelar búsqueda
+            ),
+          ],
         ],
       ),
+
       bottomNavigationBar: CustomNavBar(selectedIndex: 3),
     );
   }
@@ -337,27 +390,43 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
             contentPadding:  const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
             title: Text(s['nombre'], style: const TextStyle(color: Colors.white)),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            subtitle: Text
-            (
-              "${s['num_jugadores']}/${s['capacidad']} jugadores",
-              style: const TextStyle(color: Colors.white70),
-            ),
+            subtitle: 
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "${s['num_jugadores']}/${s['capacidad']} jugadores",
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  Text('${(s['jugadores']?.length ?? 0) > 0 ? s['jugadores'][0] : '-'}'),
+                  Text('${(s['jugadores']?.length ?? 0) > 1 ? s['jugadores'][1] : '-'}'),
+                  if ((s['capacidad'] ?? 0) > 2) 
+                  Text('${(s['jugadores']?.length ?? 0) > 2 ? s['jugadores'][2] : '-'}'),
+                  if ((s['capacidad'] ?? 0) > 2)
+                  Text('${(s['jugadores']?.length ?? 0) > 3 ? s['jugadores'][3] : '-'}'),
+                ],
+              ),
+            
+
+            
             
             trailing: const Icon(Icons.chevron_right, color: Colors.amber),
-            // onTap: () => _unirse(s['id'] as int),
+            onTap: () => joinGame(s['id'] as int, s['capacidad'] as int, false),
           ),
         );
       },
     );
   }
 
-  Future<void> joinGame(int partidaID) async
+  Future<void> joinGame(int partidaID, int capacidad, bool soloAmigos) async
   {
-
+    setState(() {
+      _searching = true; // Cambia el estado a buscando.
+    });
     try
     {
       // Conecta al socket pidiendo 2 jugadores
-      await websocketService.connect(partidaID: partidaID);
+      await websocketService.connect(partidaID: partidaID, capacidad: capacidad, soloAmigos: soloAmigos);
 
       subscription?.cancel(); // Cancela la suscripción anterior si existe.
       subscription = null; // Restablece la suscripción.
@@ -374,7 +443,6 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
 
           if (type == 'player_joined' && data != null)
           {
-
             //if(Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
           }
 
@@ -384,6 +452,7 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
             if( Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
             setState(() {
               gameData = data; // Guarda los datos del juego.
+              _searching = false;
             });
           }
 
