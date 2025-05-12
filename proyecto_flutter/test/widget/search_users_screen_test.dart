@@ -66,6 +66,15 @@ void main()
     expect(find.descendant(of: searchBar, matching: find.byIcon(Icons.search)), findsOneWidget);
   });
 
+  // Spy para onSend.
+  bool sendCalled = false;
+  String? sentId;
+  Future<void> fakeSend(String id) async 
+  {
+    sendCalled = true;
+    sentId = id;
+  }
+
   testWidgets('Menú superior selecciona y navega entre pantallas.', (tester) async 
   {
     // Montamos FriendsScreen.
@@ -95,6 +104,8 @@ void main()
 
       return (container.decoration as BoxDecoration).color;
     }
+
+  
 
     // Comprobamos que Buscar este seleccionado por defecto.
     final amigosColor = findBackgroundColor('Buscar');
@@ -132,7 +143,7 @@ void main()
           body: Column(
             children: [
               SizedBox(height: 32,),
-              Expanded(child: SearchUsersScreen(onSearch: fakeSearch)),
+              Expanded(child: SearchUsersScreen(onSearch: fakeSearch, onSend: fakeSend)),
             ],
           )
         ),
@@ -179,7 +190,7 @@ void main()
           body: Column(
             children: [
               SizedBox(height: 32,),
-              Expanded(child: SearchUsersScreen(onSearch: fakeSearch)),
+              Expanded(child: SearchUsersScreen(onSearch: fakeSearch, onSend: fakeSend)),
             ],
           )
         ),
@@ -221,6 +232,7 @@ void main()
         {"id" : "2", "nombre" : "Ana", "imagen" : ""},
       ];
     }
+
 
     // Spy para onSend.
     bool sendCalled = false;
