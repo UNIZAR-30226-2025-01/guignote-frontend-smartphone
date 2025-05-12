@@ -1,16 +1,18 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_title.dart';
+import 'package:sota_caballo_rey/routes.dart';
 
 
 class SearchUsersScreen extends StatefulWidget {
   // Necesario para tests.
   final Future<List<Map<String,String>>> Function(String prefix) onSearch;
-  final Future<void> Function(String id)? onSend;
+  final Future<void> Function(String id) onSend;
 
   // Constructor de clase
-  const SearchUsersScreen({super.key, Future<List<Map<String,String>>> Function(String) ? onSearch, this.onSend}) : onSearch = onSearch ?? buscarUsuarios;
+  const SearchUsersScreen({super.key, Future<List<Map<String,String>>> Function(String) ? onSearch, required this.onSend}) : onSearch = onSearch ?? buscarUsuarios;
 
   @override
   SearchUsersState createState() => SearchUsersState();
@@ -62,7 +64,7 @@ class SearchUsersState extends State<SearchUsersScreen> {
   ///
   void _enviarSolicitud(int index, String id) async {
     try {
-      await widget.onSend!(id);
+      await widget.onSend(id);
 
       _animatedListKey.currentState!.removeItem(
         index, (context, animation) => _itemLista(_usuarios[index], index, animation),
@@ -75,10 +77,27 @@ class SearchUsersState extends State<SearchUsersScreen> {
          });
         }
       });
-    } catch(e) {
-      print(e);
-      if(mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
+
+    }catch(e) 
+    {
+      final msg = e.toString().replaceFirst('Exception: ', '');
+
+      if(kDebugMode)
+      {
+        debugPrint(msg);
+      }
+
+      if(msg.contains('401'))
+      {
+        // Token invalido o expirado -> se debe volver a loguear
+        Navigator.pushReplacementNamed(context, AppRoutes.login);
+      }
+      else
+      {
+        debugPrintStack(
+          label: "Error al enviar la solicitud",
+          stackTrace: StackTrace.current,
+        );      
       }
     }
   }
