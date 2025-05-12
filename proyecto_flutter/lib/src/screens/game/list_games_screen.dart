@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
-import 'package:sota_caballo_rey/src/widgets/custom_button.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
 import 'package:sota_caballo_rey/src/services/websocket_service.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/routes.dart';
 import 'dart:convert';
-import 'package:sota_caballo_rey/src/widgets/custom_button.dart';
 
 class ListGamesScreen extends StatefulWidget {
   const ListGamesScreen({super.key});
@@ -30,7 +28,7 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
   final WebsocketService websocketService = WebsocketService(); // instancia del servicio de WebSocket
 
   // Variables para la pestaña "Crear"
-  final _form_key = GlobalKey<FormState>(); // clave para el formulario
+  final _formKey = GlobalKey<FormState>(); // clave para el formulario
   int _capacidad = 4; // capacidad de la sala
   int _tiempoturno = 60; // tiempo de turno
   bool _reglasArrastre = true; // reglas de arrastre
@@ -164,57 +162,7 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
                       ),
 
                       // Pestaña "Crear"
-                      SingleChildScrollView
-                      (
-                        padding:  const EdgeInsets.all(16),
-                        child: Form
-                        (
-                          key: _form_key,
-                          child: Column
-                          (
-                            children: 
-                            [
-                              DropdownButtonFormField<int>
-                              (
-                                value: _capacidad,
-                                decoration: const InputDecoration(labelText: 'Capacidad'),
-                                items: [2, 4].map((n) => DropdownMenuItem(value: n, child: Text("$n"))).toList(),
-                                onChanged: (value) => setState(() => _capacidad = value!),
-                              ),
-
-                              TextFormField
-                              (
-                                initialValue: "$_tiempoturno",
-                                decoration: const InputDecoration(labelText: 'Tiempo de turno (segundos)'),
-                                keyboardType: TextInputType.number,
-                                validator: (value) => int.tryParse(value ?? "") == null ? 'Introduce un número' : null,
-                                onChanged: (value) => setState(() => _tiempoturno = int.tryParse(value) ?? _tiempoturno),
-                              ),
-
-                              SwitchListTile.adaptive
-                              (
-                                title: const Text('Reglas de arrastre'),
-                                value: _reglasArrastre,
-                                onChanged: (value) => setState(() => _reglasArrastre = value),
-                              ),
-                              SwitchListTile.adaptive
-                              (
-                                title: const Text('Permitir partidas revueltas'),
-                                value: _permitirPartidasRevueltas,
-                                onChanged: (value) => setState(() => _permitirPartidasRevueltas = value),
-                              ),
-                              SwitchListTile.adaptive
-                              (
-                                title: const Text('Solo amigos'),
-                                value: _soloAmigos,
-                                onChanged: (value) => setState(() => _soloAmigos = value),
-                              ),
-                              const SizedBox(height: 24),
-                              CustomButton(buttonText: "Crear sala", onPressedAction: null , color: Colors.amber),
-                            ],
-                          ),
-                        ),
-                      ),
+                      _buildCrearTab(),
                     ],
                   ),
                 ),
@@ -474,20 +422,178 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
         ),
       );
     }
-  } 
-}
+  }
 
-Widget _buildCrearTab()
+  Widget _buildCrearTab()
 {
   return SingleChildScrollView
   (
     padding: const EdgeInsets.all(16),
     child: Container
     (
-      
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration
+      (
+        color: AppTheme.blackColor.withAlpha(200),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+      ),
+      child: Form
+      (
+        key: _formKey,
+        child: Column
+        (
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: 
+          [
+            DropdownButtonFormField<int>
+            (
+              value: _capacidad,
+              dropdownColor: AppTheme.blackColor.withAlpha(200),
+              iconEnabledColor: Colors.amber,
+              decoration: InputDecoration
+              (
+                labelText: 'Capacidad',
+                labelStyle: TextStyle(color: Colors.white70),
+                filled: true,
+                fillColor: AppTheme.blackColor.withAlpha(150),
+                enabledBorder: OutlineInputBorder
+                (
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+                focusedBorder: OutlineInputBorder
+                (
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.amber),
+                ), 
+              ),
+              items: [2, 4].map((n) => DropdownMenuItem(value: n, child: Text("$n", style: const TextStyle(color: Colors.white)))).toList(),
+              onChanged: (value) => setState(() => _capacidad = value!),
+            ),
+
+            const SizedBox(height: 16),
+
+            TextFormField
+            (
+              mouseCursor: SystemMouseCursors.text,
+              cursorColor: Colors.white,
+              
+              initialValue: "$_tiempoturno",
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration
+              (
+                labelText: 'Tiempo de turno (segundos)',
+                labelStyle: TextStyle(color: Colors.white70),
+                filled: true,
+                fillColor: AppTheme.blackColor.withAlpha(150),
+                enabledBorder: OutlineInputBorder
+                (
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+                focusedBorder: OutlineInputBorder
+                (
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.amber),
+                ), 
+              ),
+              keyboardType: TextInputType.number,
+              validator: (value) => int.tryParse(value ?? "") == null ? 'Introduce un número' : null,
+              onChanged: (value) => setState(() => _tiempoturno = int.tryParse(value) ?? _tiempoturno),
+            ),
+
+            const SizedBox(height: 24),
+            // — Switches personalizados —
+
+            SwitchListTile.adaptive
+            (
+              title: const Text('Reglas de arrastre', style: TextStyle(color: Colors.white)),
+              
+              tileColor: AppTheme.blackColor.withAlpha(150),
+              
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              
+              activeColor: AppTheme.blackColor,
+              activeTrackColor: Colors.amber,
+              
+              contentPadding:const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              
+              value: _reglasArrastre,
+              onChanged: (v) => setState(() => _reglasArrastre = v),
+            
+            ),
+            
+            const SizedBox(height: 8),
+            
+            SwitchListTile.adaptive
+            (
+              title: const Text('Permitir partidas revueltas', style: TextStyle(color: Colors.white)),
+              tileColor: AppTheme.blackColor.withAlpha(150),
+              
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              
+              activeColor: AppTheme.blackColor,
+              activeTrackColor: Colors.amber,
+              
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              value: _permitirPartidasRevueltas,
+              onChanged: (v) => setState(() => _permitirPartidasRevueltas = v),
+            ),
+            
+            const SizedBox(height: 8),
+            
+            SwitchListTile.adaptive
+            (
+              title: const Text('Solo amigos', style: TextStyle(color: Colors.white)),
+              tileColor: AppTheme.blackColor.withAlpha(150),
+              
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              
+              activeColor: AppTheme.blackColor,
+              activeTrackColor: Colors.amber,
+              
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              value: _soloAmigos,
+              onChanged: (v) => setState(() => _soloAmigos = v),
+            ),
+
+            const SizedBox(height: 24),
+
+            // — Botón “Crear sala” —
+            ElevatedButton
+            (
+              onPressed: () 
+              {
+                if (_formKey.currentState?.validate() ?? false) 
+                {
+                  // tu lógica de creación
+                }
+              },
+
+              style: ElevatedButton.styleFrom
+              (
+                backgroundColor: Colors.amber,
+                foregroundColor: AppTheme.blackColor,
+                disabledBackgroundColor: Colors.white10,
+                
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+
+              child: const Text('Crear sala', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ),
+          ],
+          
+        ),
+      ),
     ),
   );
+} 
 }
+
+
 
 
 

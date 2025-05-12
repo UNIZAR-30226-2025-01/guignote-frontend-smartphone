@@ -61,6 +61,7 @@ class CustomTextForm extends StatelessWidget
   {
     return TextFormField
     (
+      cursorColor: Colors.black,
       controller: controller,
       obscureText: obscureText,
       validator: validator,
