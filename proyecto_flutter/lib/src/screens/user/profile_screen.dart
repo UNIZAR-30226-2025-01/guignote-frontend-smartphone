@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/data/skin_sets.dart';
+import 'package:sota_caballo_rey/src/data/tapete_sets.dart';
 import 'package:sota_caballo_rey/src/services/storage_service.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
@@ -385,7 +386,10 @@ class BackpackTabsState extends State<BackPackTabs> {
   int selectedTab = 0;
   int selectedSetIndex = 0;
   List<int> unlockedSetIds = [];
+  List<int> unlockedTapetesIds = [];
   int? equippedSetId;
+  int? equippedTapeteId;
+
   
   @override
   void initState() 
@@ -399,16 +403,21 @@ class BackpackTabsState extends State<BackPackTabs> {
   {
     // Obtenemos los items desbloqueados.
     final unlockedData = await getUnlockedItems(widget.userId);
-    final ids = (unlockedData['unlocked_skins'] as List).map((m) => m['id'] as int).toList();
+    final skinIds = (unlockedData['unlocked_skins'] as List).map((m) => m['id'] as int).toList();
+    final tapeteIds = (unlockedData['unlocked_tapetes'] as List).map((m) => m['id'] as int).toList();
 
     // Obtenemos los items equipados.
     final equippedData = await getEquippedItems(widget.userId);
     final equippedSkinIds = equippedData['equipped_skin'] as Map<String,dynamic>?;
-    final eqId = equippedSkinIds != null ? equippedSkinIds['id'] as int : null;
+    final equippedTapeteIds = equippedData['equipped_tapete'] as Map<String,dynamic>?;
+    final eqSkinId = equippedSkinIds != null ? equippedSkinIds['id'] as int : null;
+    final eqTapeteId = equippedTapeteIds != null ? equippedTapeteIds['id'] as int : null;
 
     setState(() {
-      unlockedSetIds = ids;
-      equippedSetId = eqId;
+      unlockedSetIds = skinIds;
+      equippedSetId = eqSkinId;
+      unlockedTapetesIds = tapeteIds;
+      equippedTapeteId = eqTapeteId;
     });
   }
 
@@ -419,6 +428,18 @@ class BackpackTabsState extends State<BackPackTabs> {
 
     // Equipamos el set.
     await equipSkin (widget.userId, setId);
+
+    // Recargamos unlocked y equipped.
+    await _loadInventory();
+  }
+
+  Future<void> _onSelectTapete (int tapeteId) async
+  {
+    // Si no esta desbloqueada no hacemos nada.
+    if (!unlockedTapetesIds.contains(tapeteId)) return;
+
+    // Equipamos el set.
+    await equipTapete (widget.userId, tapeteId);
 
     // Recargamos unlocked y equipped.
     await _loadInventory();
@@ -503,20 +524,40 @@ class BackpackTabsState extends State<BackPackTabs> {
 
   Widget _buildTapetesGrid ()
   {
+ final availableTapetes = tapeteSets.where((s) => unlockedTapetesIds.contains(s.id));
+
     return GridView.count(
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 10,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
       shrinkWrap: true,
-      children: List.generate(4, (i) => Container(
-        decoration: BoxDecoration(
-          color: Colors.grey.shade300,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Center(child: Text('Tapete ${i + 1}')),
-        ),
-      ),
+      children: availableTapetes.map((set) {
+        final equipped = equippedTapeteId == set.id;
+        
+        return GestureDetector(
+          onTap: () => _onSelectTapete(set.id),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Imagen del dorso de cada set.
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: equipped ? Colors.green : Colors.transparent,
+                    width: 3,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Image.asset(
+                  set.assetPath, 
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 

@@ -63,6 +63,10 @@ class RegisterScreenState extends State<RegisterScreen>
         await register(username, email, password, confirmPassword);
         final userId = await getUserIdByUsername(username);
         await unlockSkin(userId, 1);
+        await unlockSkin(userId, 2);
+        await unlockTapete(userId, 1);
+        await unlockTapete(userId, 2);
+        await equipTapete(userId, 1);
         await equipSkin(userId, 1);
       });
 
