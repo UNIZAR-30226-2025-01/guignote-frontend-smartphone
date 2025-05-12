@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:sota_caballo_rey/config.dart';
 import 'dart:async';
@@ -76,6 +77,32 @@ class WebsocketService
       onDone: () => _incomingController!.close(),
     );
   }
+
+  /// Crea una partida personalizada.
+  Future<void> connectPersonalizada
+  (
+    {
+      required int capacidad,
+      required bool soloAmigos,
+      required int tiempoTurno,
+      required bool permitirRevueltas,
+      required bool reglasArrastre,
+    })  async
+    {
+      final params = <String, String>
+      {
+        'token': await StorageService.getToken() ?? '',
+        'es_personalizada': 'true',
+        'capacidad': capacidad.toString(),
+        'solo_amigos': soloAmigos.toString(),
+        'tiempo_turno': tiempoTurno.toString(),
+        'permitir_revueltas': permitirRevueltas.toString(),
+        'reglas_arrastre': reglasArrastre.toString(),
+      };
+      final url = Uri.parse('${Config.wsBaseURL}${Config.conexionPartida}?${Uri(queryParameters: params).query}');
+
+      _channel = IOWebSocketChannel.connect(url.toString());
+    }
 
   /// Chequea si hay una conexión WebSocket activa.
   /// Devuelve true si la conexión está activa, false en caso contrario.
