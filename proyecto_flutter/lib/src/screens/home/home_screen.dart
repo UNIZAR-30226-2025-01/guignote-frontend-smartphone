@@ -10,7 +10,6 @@ import 'package:sota_caballo_rey/src/services/audio_service.dart';
 import 'package:sota_caballo_rey/routes.dart';
 import 'dart:async';
 import 'package:sota_caballo_rey/src/services/websocket_service.dart';
-import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/widgets/search_lobby.dart';
 
 
@@ -58,7 +57,6 @@ class HomeScreenState extends State<HomeScreen>
   String _statusMessage = 'Pulsa "Buscar Partida" para comenzar'; // mensaje de estado
   final List <Map<String, dynamic>> _players = []; // lista de jugadores
   StreamSubscription<Map<String,dynamic>>? _subscription; // suscripción al stream de mensajes entrantes
-  String? _profileImageUrl; // URL de la imagen de perfil del usuario
   final int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
   Map<String, dynamic>? _gameData; // datos del juego
   int _currentMode = 0; // modo de juego actual (0: 2vs2, 1: 1vs1)
@@ -68,25 +66,6 @@ class HomeScreenState extends State<HomeScreen>
   {
     super.initState(); // Inicializa el estado del widget.
     AudioService().playMenuMusic(); // Reproduce la música del menú.
-    _loadProfileImage(); // Carga la imagen de perfil del usuario.
-  }
-
-  Future<void> _loadProfileImage() async 
-  {
-    try
-    {
-      final url = await getProfileImage();
-
-      if(!mounted) return; // Verifica si el widget está montado antes de actualizar el estado.
-      setState(() 
-      {
-        _profileImageUrl = url; // Actualiza la URL de la imagen de perfil.
-      });
-    }
-    catch(e)
-    {
-      debugPrint('Error al cargar la imagen de perfil: $e'); // Maneja el error de carga de la imagen.
-    }
   }
 
   Future<void> _searchGame() async
@@ -239,7 +218,7 @@ class HomeScreenState extends State<HomeScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: 
                 [
-                  profileButton(context),
+                  rankButton(context),
                   Image.asset('assets/images/app_logo_white.png', width: 60, height: 60),
                 DisplaySettings
                 (
@@ -338,21 +317,23 @@ class HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget profileButton(BuildContext context) 
+  Widget rankButton(BuildContext context) 
   {
     return Padding
     (
       padding: const EdgeInsets.only(left: 10.0),
       child: GestureDetector
       (
-        onTap: () => Navigator.pushNamed(context, AppRoutes.profile), // Navega a la pantalla de perfil
+        onTap: () => Navigator.pushNamed(context, AppRoutes.ranks), // Navega a la pantalla de perfil
         child: CircleAvatar
         (
           radius: 20,
           backgroundColor: Colors.transparent,
-          backgroundImage: _profileImageUrl != null
-              ? NetworkImage(_profileImageUrl!)
-              : const AssetImage('assets/images/default_profile.png') as ImageProvider, // Imagen de perfil por defecto
+          child: Icon(
+            Icons.emoji_events,
+            color: Colors.white,
+            size: 24,
+          ),
         ),
       ),
     );

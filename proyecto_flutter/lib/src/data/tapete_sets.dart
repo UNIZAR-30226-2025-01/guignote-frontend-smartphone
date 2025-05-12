@@ -19,4 +19,12 @@ const List<TapeteSet> tapeteSets = [
     id: 2,
     assetPath: 'assets/images/tapete2.png',
   ),
+  TapeteSet(
+    id: 3,
+    assetPath: 'assets/images/tapete3.png',
+  ),
+  TapeteSet(
+    id: 4,
+    assetPath: 'assets/images/tapete4.png',
+  ),
 ];

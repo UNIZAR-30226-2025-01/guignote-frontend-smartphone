@@ -15,7 +15,7 @@ class Skinset
   });
 }
 
-// Definimos los dos sets que tenemos en assets/images/decks/.
+// Definimos los sets que tenemos en assets/images/decks/.
 final List<Skinset> skinSets = [
   Skinset(
     id: 1,
@@ -31,6 +31,16 @@ final List<Skinset> skinSets = [
     id: 2,
     name: 'Poker',
     backAsset: 'assets/images/decks/poker/Back.png',
+    skinAssets: [
+      for (var number in ['1', '2', '3', '4', '5', '6', '7', '10', '11', '12'])
+        for (var suit in ['Bastos', 'Copas', 'Espadas', 'Oros'])
+          'assets/images/decks/poker/$number$suit.png',
+    ]
+  ),
+  Skinset(
+    id: 3,
+    name: 'Paint',
+    backAsset: 'assets/images/decks/paint/Back.png',
     skinAssets: [
       for (var number in ['1', '2', '3', '4', '5', '6', '7', '10', '11', '12'])
         for (var suit in ['Bastos', 'Copas', 'Espadas', 'Oros'])

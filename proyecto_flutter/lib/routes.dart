@@ -14,6 +14,7 @@ import 'package:sota_caballo_rey/src/screens/settings/change_password_screen.dar
 import 'package:sota_caballo_rey/src/screens/settings/data_policy_screen.dart';
 import 'package:sota_caballo_rey/src/screens/settings/privacity_screen.dart';
 import 'package:sota_caballo_rey/src/screens/auth/password_recover_screen.dart';
+import 'package:sota_caballo_rey/src/screens/ranks/rank_screen.dart';
 /// Clase que define las rutas de la aplicación.
 /// Contine las constantes de las rutas y un diccionario que asocia cada ruta a su respectiva pantalla.
 /// 
@@ -37,6 +38,7 @@ class AppRoutes
   static const String changePassword = '/changePassword'; // Pantalla de cambio de contraseña
   static const String dataPolicy = '/dataPolicy'; // Pantalla de política de datos
   static const String privacity = '/privacity'; // Pantalla de privacidad
+  static const String ranks = '/ranks'; // Pantalla de rangos.
 
 
   /// Diccionario que asocia cada ruta a su respectiva pantalla.
@@ -58,7 +60,7 @@ class AppRoutes
     changePassword: (context) => const ChangePasswordScreen(), // Pantalla de cambio de contraseña
     dataPolicy: (context) => const DataPolicyScreen(), // Pantalla de política de datos
     privacity: (context) => const PrivacityScreen(), // Pantalla de privacidad
-  
+    ranks: (context) => const RankScreen(),
   };
 }
 
