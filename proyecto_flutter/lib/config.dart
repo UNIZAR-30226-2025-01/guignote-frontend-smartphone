@@ -98,4 +98,5 @@ class Config {
   static String get listarSalasReconectables => _config['listar_salas_reconectables_endpoint']; 
   static String get listarSalasPausadas => _config['listar_salas_pausadas_endpoint'];
   static String get listarSalasAmigos => _config['listar_salas_amigos_endpoint'];
+
 }
