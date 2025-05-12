@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sota_caballo_rey/src/screens/friends/friend_chat.dart';
+import 'package:sota_caballo_rey/src/screens/friends/friend_profile_screen.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_title.dart';
 
@@ -173,7 +173,7 @@ class FriendsListState extends State<FriendsListScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => FriendChat(receptorId: id, receptorNom: nombre),
+                    builder: (context) => FriendProfileScreen(friendId: id, nombre: nombre, loadStats: () => getUserStatisticsWithID(int.parse(id))),
                   ),
                 );
               },
