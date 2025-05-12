@@ -600,8 +600,8 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
 
                 children: const 
                 [
-                  Text('2 vs 2', style: TextStyle(fontWeight: FontWeight.bold)),
                   Text('1 vs 1', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('2 vs 2', style: TextStyle(fontWeight: FontWeight.bold)),
                 ],
 
               ),
