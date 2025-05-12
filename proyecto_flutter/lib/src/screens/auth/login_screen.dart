@@ -75,7 +75,11 @@ class LoginScreenState extends State<LoginScreen>
         barrierDismissible: false, // No se puede cerrar con el botón de atrás
         builder:
             (context) => const Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator
+              (
+                color: Colors.amber,
+                strokeWidth: 5.0,
+              ),
             ), // Indicador de carga
       );
 

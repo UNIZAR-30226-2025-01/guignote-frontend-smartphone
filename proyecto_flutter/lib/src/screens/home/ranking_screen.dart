@@ -65,7 +65,7 @@ class RankingScreenState extends State<RankingScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: CustomNavBar(selectedIndex: 3),
+      bottomNavigationBar: CustomNavBar(selectedIndex: 4),
     );
   }
 

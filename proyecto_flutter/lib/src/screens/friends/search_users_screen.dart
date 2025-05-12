@@ -77,6 +77,7 @@ class SearchUsersState extends State<SearchUsersScreen> {
          });
         }
       });
+
     }catch(e) 
     {
       final msg = e.toString().replaceFirst('Exception: ', '');

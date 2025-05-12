@@ -1109,3 +1109,135 @@ Future<String?> getProfileImage() async
   }
 }
 
+
+///
+/// Devuelve lista de salas disponibles (no llenas y en estado 'esperando').
+///
+
+Future<Map<String, dynamic>> getSalasDisponibles({int? capacidad}) async
+{
+   // Obtenemos el token de autenticación.
+  String? token = await StorageService.getToken();
+  if (token == null || token.isEmpty) {
+    throw Exception("No hay token de autenticación disponible.");
+  }
+
+  final url;
+
+  if(capacidad == null){
+    url = Uri.parse('${Config.apiBaseURL}${Config.listarSalasDisponibles}');
+  }else if(capacidad == 2 || capacidad == 4){
+    url = Uri.parse('${Config.apiBaseURL}${Config.listarSalasDisponibles}?capacidad=$capacidad');
+  }else{
+    throw Exception("Capacidad no válida. Debe ser 2 o 4.");
+  }
+ 
+
+  final response = await http.get(url, headers: {"Auth": token});
+
+  
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else if (response.statusCode == 401) {
+    throw Exception("Token inválido o no proporcionado.");
+  } else if (response.statusCode == 405) {
+    throw Exception("Método no permitido.");
+  } else {
+    throw Exception("Error desconocido. Codigo ${response.statusCode}");
+  }
+}
+
+
+
+///
+/// Devuelve la lista de salas en las que el usuario estaba participando en una partida (estado "jugando") y se ha desconectado.
+///
+
+Future<Map<String, dynamic>> getSalasReconectables() async
+{
+  // Obtenemos el token de autenticación.
+  String? token = await StorageService.getToken();
+  if (token == null || token.isEmpty) {
+    throw Exception("No hay token de autenticación disponible.");
+  }
+
+  final url = Uri.parse(
+    '${Config.apiBaseURL}${Config.listarSalasReconectables}',
+  );
+
+  final response = await http.get(url, headers: {"Auth": token});
+  
+
+  
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else if (response.statusCode == 401) {
+    throw Exception("Token inválido o no proporcionado.");
+  } else if (response.statusCode == 405) {
+    throw Exception("Método no permitido.");
+  } else {
+    throw Exception("Error desconocido. Codigo ${response.statusCode}");
+  }
+}
+
+
+///
+/// Devuelve la lista de salas pausadas 
+/// 
+
+Future<Map<String, dynamic>> getSalasPausadas() async
+{
+  // Obtenemos el token de autenticación.
+  String? token = await StorageService.getToken();
+  if (token == null || token.isEmpty) {
+    throw Exception("No hay token de autenticación disponible.");
+  }
+
+  final url = Uri.parse(
+    '${Config.apiBaseURL}${Config.listarSalasPausadas}',
+  );
+
+  final response = await http.get(url, headers: {"Auth": token});
+  
+
+  
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else if (response.statusCode == 401) {
+    throw Exception("Token inválido o no proporcionado.");
+  } else if (response.statusCode == 405) {
+    throw Exception("Método no permitido.");
+  } else {
+    throw Exception("Error desconocido. Codigo ${response.statusCode}");
+  }
+}
+
+/// 
+/// Devuelve las salas de partidas de amigos.
+/// 
+Future<Map<String, dynamic>> getSalasAmigos({int? capacidad}) async
+{
+  // Obtenemos el token de autenticación.
+  String? token = await StorageService.getToken();
+  if (token == null || token.isEmpty) {
+    throw Exception("No hay token de autenticación disponible.");
+  }
+
+  final url = Uri.parse(
+    '${Config.apiBaseURL}${Config.listarSalasAmigos}',
+  ).replace(queryParameters: capacidad != null ? {"capacidad": "$capacidad"} : null);
+
+  final response = await http.get(url, headers: {"Auth": token});
+  
+
+  
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else if (response.statusCode == 401) {
+    throw Exception("Token inválido o no proporcionado.");
+  } else if (response.statusCode == 405) {
+    throw Exception("Método no permitido.");
+  } else {
+    throw Exception("Error desconocido. Codigo ${response.statusCode}");
+  }
+}

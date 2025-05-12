@@ -1,0 +1,668 @@
+import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:sota_caballo_rey/src/services/api_service.dart';
+import 'package:sota_caballo_rey/src/themes/theme.dart';
+import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
+import 'package:sota_caballo_rey/src/services/websocket_service.dart';
+import 'package:sota_caballo_rey/src/widgets/background.dart';
+import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
+import 'package:sota_caballo_rey/routes.dart';
+import 'package:sota_caballo_rey/src/widgets/search_lobby.dart';
+
+
+class ListGamesScreen extends StatefulWidget {
+  const ListGamesScreen({super.key});
+
+  @override
+  ListGamesScreenState createState() => ListGamesScreenState();
+}
+
+class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProviderStateMixin{
+
+  late TabController _tabController; // Controlador para las pestañas
+
+  // Variables para la pestaña "Unirse"
+  Map<String, dynamic>? salas;
+  String seleccionFiltro1 = 'Disponibles';
+  String seleccionFiltro2 = 'Todas';
+  Timer? updateTimer; // Timer para actualizar la lista de partidas
+  final WebsocketService websocketService = WebsocketService(); // instancia del servicio de WebSocket
+
+  // Variables para la pestaña "Crear"
+  final _formKey = GlobalKey<FormState>(); // clave para el formulario
+  int _capacidad = 4; // capacidad de la sala
+  int _tiempoturno = 60; // tiempo de turno
+  bool _reglasArrastre = true; // reglas de arrastre
+  bool _permitirPartidasRevueltas = true; // permitir partidas revueltas
+  bool _soloAmigos = false; // solo amigos
+  bool _searching = false; // indica si se está buscando una partida    
+  StreamSubscription<Map<String,dynamic>>? subscription; // suscripción al stream de mensajes entrantes
+  Map<String, dynamic>? gameData; // datos del juego
+
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    iniciarTimer(); // Inicia el timer para actualizar la lista de partidas cada segundo
+  }
+
+  @override
+  void dispose() {
+    // Cancela el Timer para evitar fugas de memoria
+    updateTimer?.cancel();
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void iniciarTimer()
+  {
+    updateTimer = Timer.periodic(const Duration(seconds: 1), (_)
+    {
+      if(_tabController.index == 0)
+      {
+        _loadSalas(); // Carga las salas disponibles cada segundo
+      }
+    });
+  }
+
+  Future<void> _loadSalas() async
+  {
+    switch(seleccionFiltro1)
+    {
+      case 'Reconectables':
+        salas = await getSalasReconectables();
+        break;
+      case 'Pausadas':
+        salas = await getSalasPausadas();
+        break;
+      
+      case 'Amigos':
+        if(seleccionFiltro2 == '2 vs 2')
+        {
+          salas = await getSalasAmigos(capacidad: 4);
+        }
+        else if(seleccionFiltro2 == '1 vs 1')
+        {
+          salas = await getSalasAmigos(capacidad: 2);
+        }
+        else
+        {
+          // Si no se ha seleccionado nada, o se ha seleccionado "Todas", obtenemos todas las salas disponibles.
+          salas = await getSalasAmigos();
+        }
+        break;
+      
+      default:
+        if(seleccionFiltro2 == '2 vs 2')
+        {
+          salas = await getSalasDisponibles(capacidad: 4);
+        }
+        else if(seleccionFiltro2 == '1 vs 1')
+        {
+          salas = await getSalasDisponibles(capacidad: 2);
+        }
+        else
+        {
+          // Si no se ha seleccionado nada, o se ha seleccionado "Todas", obtenemos todas las salas disponibles.
+          salas = await getSalasDisponibles();
+        }
+        break;
+    }
+    print(salas);
+    setState(() {
+    });
+  }
+
+  void _cancelSearch()
+  {
+    setState(() 
+    {
+      _searching = false; // Cambia el estado a no buscando.
+
+    });
+
+    websocketService.disconnect(); // Desconecta el socket.
+    subscription?.cancel(); // Cancela la suscripción al socket.
+    subscription = null; // Restablece la suscripción.
+    
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          //Fondo principal con degradado radial.
+          const Background(),
+
+          // Ponemos las decoraciones de las esquinas.
+          const CornerDecoration(
+            imageAsset: 'assets/images/gold_ornaments.png',
+          ),
+
+          SafeArea
+          (
+            child: Column
+            (
+              children: 
+              [
+                Padding
+                (
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+
+                  child: Container
+                  (
+                    decoration: BoxDecoration
+                    (
+                      color: AppTheme.blackColor.withAlpha(200),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child:TabBar
+                    (
+                      controller: _tabController,
+                      labelPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                      labelColor: Colors.amber,
+                      labelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      
+                      indicatorColor: Colors.amber,
+                      unselectedLabelColor: Colors.white70,
+                      unselectedLabelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+
+                      dividerColor: Colors.transparent,
+                      tabs: const 
+                      [
+                        Tab(text: "Unirse"),
+                        Tab(text: "Crear"),
+                      ],
+                    ), 
+                  ),
+                  
+
+                ),
+                
+                Expanded
+                (
+                  child: TabBarView
+                  (
+                    controller: _tabController,
+                    children: 
+                    [
+                      // Pestaña "Unirse"
+                      Column
+                      (
+                        children: 
+                        [
+                          const SizedBox(height: 12),
+                          _buildFiltros(),
+                          Expanded(child: _buildListaSalas()),
+                        ],
+                      ),
+
+                      // Pestaña "Crear"
+                      _buildCrearTab(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Mostramos el prelobby si se está buscando una partida
+          if(_searching)...[
+            SearchLobby
+            (
+              statusMessage: "Esperando jugadores...",
+              players: [],
+              onCancel: _cancelSearch, // Llama a la función de cancelar búsqueda
+            ),
+          ],
+        ],
+      ),
+
+      bottomNavigationBar: CustomNavBar(selectedIndex: 3),
+    );
+  }
+
+  Widget _buildFiltros()
+  {
+    final opciones1 = ['Disponibles', 'Reconectables', 'Pausadas', 'Amigos'];
+    final opciones2 = ['Todas', '1 vs 1', '2 vs 2'];
+    return Padding
+    (
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column
+      (
+        children: 
+        [
+          // Primer grupo de filtros
+          Container
+          (
+            clipBehavior: Clip.hardEdge,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration
+            (
+              color: AppTheme.blackColor.withAlpha(200),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+            ),  
+
+            child: LayoutBuilder
+            (
+              builder: (context, constraints)
+              {
+                final totalPadding = 16.0;
+                final baseWidth = (constraints.maxWidth - totalPadding) / opciones1.length ; // Calcula el ancho de cada elemento
+                final itemWidth = baseWidth * 1.2;
+
+                return Scrollbar
+                (
+                  thumbVisibility: true,
+                  child: SingleChildScrollView
+                  (
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: ToggleButtons
+                    (
+                      isSelected: opciones1.map((opcion) => seleccionFiltro1 == opcion).toList(),
+                      onPressed: (index)
+                      {
+                        setState(() {
+                          seleccionFiltro1 = opciones1[index];
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      fillColor: Colors.amber,
+                      color: Colors.white,
+                      selectedColor: AppTheme.blackColor,
+
+                      constraints: BoxConstraints
+                      (
+                        minWidth: itemWidth ,
+                        maxWidth: itemWidth,
+                        minHeight: 36,
+                      ),
+                      children: opciones1
+                        .map((o) => Center(
+                              child: Text(o,
+                                  style:
+                                      const TextStyle(fontWeight: FontWeight.bold)),
+                            ))
+                        .toList(),
+                    ),
+                  ),
+                );
+              },
+             
+            ),
+          ),
+
+          const SizedBox(height: 12),
+          // Filtros de capacidad
+
+          Container
+          (
+            clipBehavior: Clip.hardEdge,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration
+            (
+              color: AppTheme.blackColor.withAlpha(200),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+            ),
+
+            child: LayoutBuilder
+            (
+              builder: (context, constraints)
+              {
+                final totalPadding = 16.0;
+                final baseWidth = (constraints.maxWidth - totalPadding) / opciones2.length ; // Calcula el ancho de cada elemento
+                final itemWidth = baseWidth * 1.2;
+
+                return Scrollbar
+                (
+                  thumbVisibility: true,
+                  child: SingleChildScrollView
+                  (
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: ToggleButtons
+                    (
+                      isSelected: opciones2.map((opcion) => seleccionFiltro2 == opcion).toList(),
+                      onPressed: (index)
+                      {
+                        setState(() {
+                          seleccionFiltro2 = opciones2[index];
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      fillColor: Colors.amber,
+                      color: Colors.white,
+                      selectedColor: AppTheme.blackColor,
+
+                      constraints: BoxConstraints
+                      (
+                        minWidth: itemWidth ,
+                        maxWidth: itemWidth,
+                        minHeight: 36,
+                      ),
+                      children: opciones2
+                        .map((o) => Center(
+                              child: Text(o,
+                                  style:
+                                      const TextStyle(fontWeight: FontWeight.bold)),
+                            ))
+                        .toList(),
+                    ),
+                  ),
+                );
+              }, 
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListaSalas() 
+  {
+    final lista = salas?['salas'] as List? ?? [];
+    
+    return ListView.builder
+    (
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      itemCount: lista.length,
+      itemBuilder: (_, i) 
+      {
+        final s = lista[i] as Map;
+        return Card
+        (
+          color: AppTheme.blackColor,
+          elevation: 6,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          child: ListTile
+          (
+            contentPadding:  const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+            title: Text(s['nombre'], style: const TextStyle(color: Colors.white)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            subtitle: 
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "${s['num_jugadores']}/${s['capacidad']} jugadores",
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  Text('${(s['jugadores']?.length ?? 0) > 0 ? s['jugadores'][0] : '-'}'),
+                  Text('${(s['jugadores']?.length ?? 0) > 1 ? s['jugadores'][1] : '-'}'),
+                  if ((s['capacidad'] ?? 0) > 2) 
+                  Text('${(s['jugadores']?.length ?? 0) > 2 ? s['jugadores'][2] : '-'}'),
+                  if ((s['capacidad'] ?? 0) > 2)
+                  Text('${(s['jugadores']?.length ?? 0) > 3 ? s['jugadores'][3] : '-'}'),
+                ],
+              ),
+            
+
+            
+            
+            trailing: const Icon(Icons.chevron_right, color: Colors.amber),
+            onTap: () => joinGame(s['id'] as int, s['capacidad'] as int, false),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> joinGame(int partidaID, int capacidad, bool soloAmigos) async
+  {
+    setState(() {
+      _searching = true; // Cambia el estado a buscando.
+    });
+    try
+    {
+      // Conecta al socket pidiendo 2 jugadores
+      await websocketService.connect(partidaID: partidaID, capacidad: capacidad, soloAmigos: soloAmigos);
+
+      subscription?.cancel(); // Cancela la suscripción anterior si existe.
+      subscription = null; // Restablece la suscripción.
+
+      // Escucha los mensajes entrantes del socket
+      subscription = websocketService.incomingMessages.listen
+      (
+        (message) 
+        {
+          final type = message['type'] as String?;
+          final data = message['data'] as Map<String, dynamic>?;
+          print(type); // Imprime el tipo de mensaje recibido.
+          print(data); // Imprime los datos del mensaje recibido.
+
+          if (type == 'player_joined' && data != null)
+          {
+            //if(Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
+          }
+
+          if (type == 'start_game' && data != null) 
+          {
+            // Cierra el overlay de carga
+            if( Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
+            setState(() {
+              gameData = data; // Guarda los datos del juego.
+              _searching = false;
+            });
+          }
+
+          if (type == 'turn_update' && data != null) 
+          {
+            // Cierra el overlay de carga
+            if( Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
+            subscription?.cancel(); // Cancela la suscripción al socket en esta pantalla.
+
+            // Navega a la pantalla de juego y pasamos los datos del juego , primer turno y socket
+            Navigator.pushReplacementNamed(
+              context, 
+              AppRoutes.game, 
+              arguments: {
+                'gameData': gameData, // Datos del juego
+                'firstTurn': data, // Primer turno del juego
+                'socket': websocketService, // Socket del juego
+              });
+          }
+        }
+      );
+    } catch (e)
+    {
+      if(Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
+      setState(() {
+        
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar
+      (
+        const SnackBar
+        (
+          content: Text('Error al buscar partida'),
+          backgroundColor: Colors.redAccent,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Widget _buildCrearTab()
+{
+  return SingleChildScrollView
+  (
+    padding: const EdgeInsets.all(16),
+    child: Container
+    (
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration
+      (
+        color: AppTheme.blackColor.withAlpha(200),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+      ),
+      child: Form
+      (
+        key: _formKey,
+        child: Column
+        (
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: 
+          [
+            DropdownButtonFormField<int>
+            (
+              value: _capacidad,
+              dropdownColor: AppTheme.blackColor.withAlpha(200),
+              iconEnabledColor: Colors.amber,
+              decoration: InputDecoration
+              (
+                labelText: 'Capacidad',
+                labelStyle: TextStyle(color: Colors.white70),
+                filled: true,
+                fillColor: AppTheme.blackColor.withAlpha(150),
+                enabledBorder: OutlineInputBorder
+                (
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+                focusedBorder: OutlineInputBorder
+                (
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.amber),
+                ), 
+              ),
+              items: [2, 4].map((n) => DropdownMenuItem(value: n, child: Text("$n", style: const TextStyle(color: Colors.white)))).toList(),
+              onChanged: (value) => setState(() => _capacidad = value!),
+            ),
+
+            const SizedBox(height: 16),
+
+            TextFormField
+            (
+              mouseCursor: SystemMouseCursors.text,
+              cursorColor: Colors.white,
+              
+              initialValue: "$_tiempoturno",
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration
+              (
+                labelText: 'Tiempo de turno (segundos)',
+                labelStyle: TextStyle(color: Colors.white70),
+                filled: true,
+                fillColor: AppTheme.blackColor.withAlpha(150),
+                enabledBorder: OutlineInputBorder
+                (
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.white24),
+                ),
+                focusedBorder: OutlineInputBorder
+                (
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.amber),
+                ), 
+              ),
+              keyboardType: TextInputType.number,
+              validator: (value) => int.tryParse(value ?? "") == null ? 'Introduce un número' : null,
+              onChanged: (value) => setState(() => _tiempoturno = int.tryParse(value) ?? _tiempoturno),
+            ),
+
+            const SizedBox(height: 24),
+            // — Switches personalizados —
+
+            SwitchListTile.adaptive
+            (
+              title: const Text('Reglas de arrastre', style: TextStyle(color: Colors.white)),
+              
+              tileColor: AppTheme.blackColor.withAlpha(150),
+              
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              
+              activeColor: AppTheme.blackColor,
+              activeTrackColor: Colors.amber,
+              
+              contentPadding:const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              
+              value: _reglasArrastre,
+              onChanged: (v) => setState(() => _reglasArrastre = v),
+            
+            ),
+            
+            const SizedBox(height: 8),
+            
+            SwitchListTile.adaptive
+            (
+              title: const Text('Permitir partidas revueltas', style: TextStyle(color: Colors.white)),
+              tileColor: AppTheme.blackColor.withAlpha(150),
+              
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              
+              activeColor: AppTheme.blackColor,
+              activeTrackColor: Colors.amber,
+              
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              value: _permitirPartidasRevueltas,
+              onChanged: (v) => setState(() => _permitirPartidasRevueltas = v),
+            ),
+            
+            const SizedBox(height: 8),
+            
+            SwitchListTile.adaptive
+            (
+              title: const Text('Solo amigos', style: TextStyle(color: Colors.white)),
+              tileColor: AppTheme.blackColor.withAlpha(150),
+              
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              
+              activeColor: AppTheme.blackColor,
+              activeTrackColor: Colors.amber,
+              
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              value: _soloAmigos,
+              onChanged: (v) => setState(() => _soloAmigos = v),
+            ),
+
+            const SizedBox(height: 24),
+
+            // — Botón “Crear sala” —
+            ElevatedButton
+            (
+              onPressed: () 
+              {
+                if (_formKey.currentState?.validate() ?? false) 
+                {
+                  // tu lógica de creación
+                }
+              },
+
+              style: ElevatedButton.styleFrom
+              (
+                backgroundColor: Colors.amber,
+                foregroundColor: AppTheme.blackColor,
+                disabledBackgroundColor: Colors.white10,
+                
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+
+              child: const Text('Crear sala', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ),
+          ],
+          
+        ),
+      ),
+    ),
+  );
+} 
+}
+
+
+
+
+
