@@ -134,6 +134,17 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  String? cardToString(Map<String, dynamic> card) {
+    if(card == null) {
+      return null;
+    }
+    // Convierte el mapa de la carta a una cadena
+    if (card['valor'] == null || card['palo'] == null) {
+      return null;
+    }
+    return '${card['valor']}${card['palo']}';
+  }
+
   Map<String, String>? parseCard(String card) {
     // Usa una expresión regular para separar el número y el palo
     final match = RegExp(r'^(\d+)([A-Za-z]+)$').firstMatch(card);
@@ -813,6 +824,11 @@ class _GameScreenState extends State<GameScreen> {
     final jugador3 = jugadores?[2] as Map<String, dynamic>;
     final jugador4 = jugadores?[3] as Map<String, dynamic>;
 
+    print(cardToString(jugador1['carta_jugada']) ?? '');
+    print(cardToString(jugador2['carta_jugada']) ?? '');
+    print(cardToString(jugador3['carta_jugada']) ?? '');
+    print(cardToString(jugador4['carta_jugada']) ?? '');
+
 
     if (jugador1['nombre'] == miNombre) {
       
@@ -836,10 +852,10 @@ class _GameScreenState extends State<GameScreen> {
       jugador4Equipo = jugador2['equipo'];
       jugador4NumCartas = jugador2['num_cartas'];
 
-      jugador1PlayedCard = jugador1['carta_jugada'] ?? '';
-      jugador2PlayedCard = jugador3['carta_jugada'] ?? '';
-      jugador3PlayedCard = jugador4['carta_jugada'] ?? '';
-      jugador4PlayedCard = jugador2['carta_jugada'] ?? '';
+      jugador1PlayedCard = cardToString(jugador1['carta_jugada']) ?? '';
+      jugador2PlayedCard = cardToString(jugador3['carta_jugada']) ?? '';
+      jugador3PlayedCard = cardToString(jugador4['carta_jugada']) ?? '';
+      jugador4PlayedCard = cardToString(jugador2['carta_jugada']) ?? '';
       
 
     } else if(jugador2['nombre'] == miNombre) {
@@ -864,10 +880,10 @@ class _GameScreenState extends State<GameScreen> {
       jugador4Equipo = jugador3['equipo'];
       jugador4NumCartas = jugador3['num_cartas'];
 
-      jugador1PlayedCard = jugador2['carta_jugada'] ?? '';
-      jugador2PlayedCard = jugador4['carta_jugada'] ?? '';
-      jugador3PlayedCard = jugador1['carta_jugada'] ?? '';
-      jugador4PlayedCard = jugador3['carta_jugada'] ?? '';
+      jugador1PlayedCard = cardToString(jugador2['carta_jugada']) ?? '';
+      jugador2PlayedCard = cardToString(jugador4['carta_jugada']) ?? '';
+      jugador3PlayedCard = cardToString(jugador1['carta_jugada']) ?? '';
+      jugador4PlayedCard = cardToString(jugador3['carta_jugada']) ?? '';
 
     } else if(jugador3['nombre'] == miNombre) {
 
@@ -891,10 +907,10 @@ class _GameScreenState extends State<GameScreen> {
       jugador4Equipo = jugador4['equipo'];
       jugador4NumCartas = jugador4['num_cartas'];
 
-      jugador1PlayedCard = jugador3['carta_jugada'] ?? '';
-      jugador2PlayedCard = jugador1['carta_jugada'] ?? '';
-      jugador3PlayedCard = jugador2['carta_jugada'] ?? '';
-      jugador4PlayedCard = jugador4['carta_jugada'] ?? '';
+      jugador1PlayedCard = cardToString(jugador3['carta_jugada']) ?? '';
+      jugador2PlayedCard = cardToString(jugador1['carta_jugada']) ?? '';
+      jugador3PlayedCard = cardToString(jugador2['carta_jugada']) ?? '';
+      jugador4PlayedCard = cardToString(jugador4['carta_jugada']) ?? '';
 
     } else if(jugador4['nombre'] == miNombre) {
 
@@ -918,10 +934,10 @@ class _GameScreenState extends State<GameScreen> {
       jugador4Equipo = jugador1['equipo'];
       jugador4NumCartas = jugador1['num_cartas'];
 
-      jugador1PlayedCard = jugador4['carta_jugada'] ?? '';
-      jugador2PlayedCard = jugador2['carta_jugada'] ?? '';
-      jugador3PlayedCard = jugador3['carta_jugada'] ?? '';
-      jugador4PlayedCard = jugador1['carta_jugada'] ?? '';
+      jugador1PlayedCard = cardToString(jugador4['carta_jugada']) ?? '';
+      jugador2PlayedCard = cardToString(jugador2['carta_jugada']) ?? '';
+      jugador3PlayedCard = cardToString(jugador3['carta_jugada']) ?? '';
+      jugador4PlayedCard = cardToString(jugador1['carta_jugada']) ?? '';
 
     }
         
@@ -941,6 +957,9 @@ class _GameScreenState extends State<GameScreen> {
     final jugador1 = jugadores?[0] as Map<String, dynamic>;
     final jugador2 = jugadores?[1] as Map<String, dynamic>;
 
+    print(jugador1['carta_jugada']);
+    print(jugador2['carta_jugada']);
+
     if (jugadores?.length != null && jugadores!.length >= 2) {
       if (jugador1['nombre'] == miNombre) {
         
@@ -954,8 +973,8 @@ class _GameScreenState extends State<GameScreen> {
         jugador2Equipo = jugador2['equipo'];
         jugador2NumCartas = jugador2['num_cartas'];
         
-        jugador1PlayedCard = jugador1['carta_jugada'] ?? '';
-        jugador2PlayedCard = jugador2['carta_jugada'] ?? '';
+        jugador1PlayedCard = cardToString(jugador1['carta_jugada']) ?? '';
+        jugador2PlayedCard = cardToString(jugador2['carta_jugada']) ?? '';
 
       }else{
 
@@ -969,8 +988,8 @@ class _GameScreenState extends State<GameScreen> {
         jugador2Equipo = jugador1['equipo'];
         jugador2NumCartas = jugador1['num_cartas'];
 
-        jugador1PlayedCard = jugador2['carta_jugada'] ?? '';
-        jugador2PlayedCard = jugador1['carta_jugada'] ?? '';
+        jugador1PlayedCard = cardToString(jugador2['carta_jugada']) ?? '';
+        jugador2PlayedCard = cardToString(jugador1['carta_jugada']) ?? '';
 
       }
     }
@@ -985,26 +1004,31 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> fillArguments() async {
     /*
-    "data": {
-      "mazo_restante": 27,                                       cartas que quedan en mazo central
-      "mis_cartas": [ /* cartas asignadas al jugador */ ],       tu mano
-      "fase_arrastre": false,                                    estás en arrastre?
-      "carta_triunfo": { "palo": "oros", "valor": 7 },           carta triunfo
-      "chat_id": <CHAT_ID>,                                      id del chat de la partida
-      "jugadores": [                                             información jugadores
-        {
-          "id": 1,
-          "nombre": "Usuario 1",
-          "equipo": 1,
-          "num_cartas": 6
-        },
-        {
-          "id": 2,
-          "nombre": "Usuario 2",
-          "equipo": 2,
-          "num_cartas": 6
-        }
-      ]
+      "type": "start_game",
+      "data": {
+        "mazo_restante": 27,                                       cartas que quedan en mazo central
+        "mis_cartas": [ /* cartas asignadas al jugador */ ],       tu mano
+        "fase_arrastre": false,                                    estás en arrastre?
+        "carta_triunfo": { "palo": "Oros", "valor": 7 },           carta triunfo
+        "chat_id": <CHAT_ID>,                                      id del chat de la partida
+        "tiempo_turno":30                                          tiempo de turno
+        "jugadores": [                                             información jugadores
+          {
+            "id": 1,
+            "nombre": "Usuario 1",
+            "equipo": 1,
+            "num_cartas": 6,
+            "carta_jugada": None               // O una carta: { "palo": "Oros", "valor": 7 }
+          },
+          {
+            "id": 2,
+            "nombre": "Usuario 2",
+            "equipo": 2,
+            "num_cartas": 6,
+            "carta_jugada": None
+          }
+        ]
+      }
     }
     */
 
