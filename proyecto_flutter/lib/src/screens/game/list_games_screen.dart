@@ -114,6 +114,21 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
     });
   }
 
+  void _cancelSearch()
+  {
+    setState(() 
+    {
+      _searching = false; // Cambia el estado a no buscando.
+
+    });
+
+    websocketService.disconnect(); // Desconecta el socket.
+    subscription?.cancel(); // Cancela la suscripción al socket.
+    subscription = null; // Restablece la suscripción.
+    
+
+  }
+
   Future<void> _createCustomGame() async
   {
     if(!(_formKey.currentState?.validate() ?? false)) return; // Valida el formulario
@@ -308,16 +323,6 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
             ),
           ),
 
-<<<<<<< HEAD
-          if(_searching)
-          SearchLobby
-          (
-            statusMessage: _statusMessage,
-            onCancel: _cancelCreateGame,
-            players: players,
-          ),
-        
-=======
           // Mostramos el prelobby si se está buscando una partida
           if(_searching)...[
             SearchLobby
@@ -326,7 +331,6 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
               onCancel: _cancelSearch, // Llama a la función de cancelar búsqueda
             ),
           ],
->>>>>>> main
         ],
       ),
 
@@ -519,7 +523,7 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
             
             
             trailing: const Icon(Icons.chevron_right, color: Colors.amber),
-            onTap: () => joinGame(s['id'] as int, s['capacidad'] as int, false),
+            onTap: () => joinGame(s['id'] as int, s['capacidad'] as int, seleccionFiltro1 == 'Amigos' ? true : false),
           ),
         );
       },
@@ -530,6 +534,7 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
   {
     setState(() {
       _searching = true; // Cambia el estado a buscando.
+      _statusMessage = 'Esperando jugadores...'; // Establece el mensaje de estado
     });
     try
     {
@@ -551,7 +556,10 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
 
           if (type == 'player_joined' && data != null)
           {
-            //if(Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
+            setState(() {
+              players.add(data['jugadores']); // Agrega el jugador a la lista de jugadores
+              _statusMessage = 'Esperando jugadores: ${players.length}/$capacidad'; // Actualiza el mensaje de estado
+            });
           }
 
           if (type == 'start_game' && data != null) 
@@ -561,6 +569,8 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
             setState(() {
               gameData = data; // Guarda los datos del juego.
               _searching = false;
+              _statusMessage = ''; // Restablece el mensaje de estado
+              players.clear(); // Limpia la lista de jugadores
             });
           }
 
@@ -659,33 +669,52 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
 
               const SizedBox(height: 16),
 
-              TextFormField
+              const Text
               (
-                mouseCursor: SystemMouseCursors.text,
-                cursorColor: Colors.white,
-                
-                initialValue: "$_tiempoturno",
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration
+                'Tiempo de turno',
+                style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+
+              const SizedBox(height: 8),
+
+              ToggleButtons
+              (
+                isSelected: [_tiempoturno == 15, _tiempoturno == 30, _tiempoturno == 60],
+                onPressed: (index)
+                {
+                  setState(() 
+                  {
+                    switch(index)
+                    {
+                      case 0:
+                        _tiempoturno = 15;
+                        break;
+                      case 1:
+                        _tiempoturno = 30;
+                        break;
+                      case 2:
+                        _tiempoturno = 60;
+                        break;
+                    }
+                  });
+                },
+                borderRadius: BorderRadius.circular(8),
+                fillColor: Colors.amber,
+                color: Colors.white,
+                selectedColor: AppTheme.blackColor,
+                constraints: const BoxConstraints
                 (
-                  labelText: 'Tiempo de turno (segundos)',
-                  labelStyle: TextStyle(color: Colors.white70),
-                  filled: true,
-                  fillColor: AppTheme.blackColor.withAlpha(150),
-                  enabledBorder: OutlineInputBorder
-                  (
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.white24),
-                  ),
-                  focusedBorder: OutlineInputBorder
-                  (
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.amber),
-                  ), 
+                  minWidth: 80,
+                  minHeight: 40,
                 ),
-                keyboardType: TextInputType.number,
-                validator: (value) => int.tryParse(value ?? "") == null ? 'Introduce un número' : null,
-                onChanged: (value) => setState(() => _tiempoturno = int.tryParse(value) ?? _tiempoturno),
+
+                children: const 
+                [
+                  Text('15s', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('30s', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('60s', style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+
               ),
 
               const SizedBox(height: 24),
