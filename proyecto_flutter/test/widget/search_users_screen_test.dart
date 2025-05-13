@@ -128,12 +128,9 @@ void main()
     }
 
     // Spy para onSend.
-    bool sendCalled = false;
-    String? sentId;
     Future<void> fakeSend(String id) async 
     {
-      sendCalled = true;
-      sentId = id;
+
     }
 
     // Montamos la pantalla.
@@ -184,12 +181,9 @@ void main()
     }
 
     // Spy para onSend.
-    bool sendCalled = false;
-    String? sentId;
     Future<void> fakeSend(String id) async 
     {
-      sendCalled = true;
-      sentId = id;
+
     }
 
     // Montamos la pantalla.
@@ -296,12 +290,9 @@ void main()
   testWidgets('SearchUsersScreen muestra el mensaje "Sin resultados" cuando la lista está vacia.', (tester) async 
   {
     // Spy para onSend.
-    bool sendCalled = false;
-    String? sentId;
     Future<void> fakeSend(String id) async 
     {
-      sendCalled = true;
-      sentId = id;
+
     }
 
     // Stub de búsqueda con delay.

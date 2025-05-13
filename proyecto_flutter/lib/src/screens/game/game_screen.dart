@@ -1408,77 +1408,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
 
           // Mostrar segundos restantes del turno
           if (mostrarSegundosRestantesTurno)
-            Align(
-              alignment: const Alignment(0.0, 0.45),
-              
-              child: Container
-              (
-                width: 80,
-                height: 80,
-                
-                decoration: BoxDecoration
-                (
-                  shape: BoxShape.circle,
-                  color: AppTheme.blackColor.withAlpha(100),
-                  boxShadow: 
-                  [
-                    BoxShadow
-                    (
-                      color: Colors.black.withAlpha(150),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Stack
-                (
-                  alignment: Alignment.center,
-                  children: 
-                  [
-                    SizedBox
-                    (
-                      width: 64,
-                      height: 64,
-                      child: CircularProgressIndicator
-                      (
-                        value: (segundosRestantesTurno / segundosPorTurno),
-                        strokeWidth: 8,
-                        backgroundColor: AppTheme.blackColor.withAlpha(100),
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
-                      ),
-                    ),
-                    Text.rich
-                    (
-                      TextSpan
-                      (
-                        children: 
-                        [
-                          TextSpan
-                          (
-                            text: 'Tu turno\n',
-                            style: TextStyle
-                            (
-                              fontSize: 12,
-                              color: Colors.white70,
-                            ),
-                          ),
-                          TextSpan
-                          (
-                            text: '${segundosRestantesTurno}s',
-                            style: const TextStyle
-                            (
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            buildTimer(),
         ],
       ),
     );
@@ -1586,18 +1516,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
 
           // Mostrar segundos restantes del turno
           if (mostrarSegundosRestantesTurno)
-            Align(
-              alignment: const Alignment(0.0, 0.45),
-              child: Text(
-              '$segundosRestantesTurno',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                
-              ),
-              ),
-            ),
+            buildTimer(),
         ],
       ),
     );
@@ -1658,6 +1577,80 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
             Text('$jugador2Puntos', style: const TextStyle(color: Colors.white)),
           ]
         ],
+      ),
+    );
+  }
+
+  Align buildTimer() {
+    return Align(
+      alignment: const Alignment(0.0, 0.45),
+      
+      child: Container
+      (
+        width: 80,
+        height: 80,
+        
+        decoration: BoxDecoration
+        (
+          shape: BoxShape.circle,
+          color: AppTheme.blackColor.withAlpha(100),
+          boxShadow: 
+          [
+            BoxShadow
+            (
+              color: Colors.black.withAlpha(150),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Stack
+        (
+          alignment: Alignment.center,
+          children: 
+          [
+            SizedBox
+            (
+              width: 64,
+              height: 64,
+              child: CircularProgressIndicator
+              (
+                value: (segundosRestantesTurno / segundosPorTurno),
+                strokeWidth: 8,
+                backgroundColor: AppTheme.blackColor.withAlpha(100),
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+              ),
+            ),
+            Text.rich
+            (
+              TextSpan
+              (
+                children: 
+                [
+                  TextSpan
+                  (
+                    text: 'Tu turno\n',
+                    style: TextStyle
+                    (
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
+                  ),
+                  TextSpan
+                  (
+                    text: '${segundosRestantesTurno}s',
+                    style: const TextStyle
+                    (
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
