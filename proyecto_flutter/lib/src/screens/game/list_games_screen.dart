@@ -78,19 +78,7 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
         break;
       
       case 'Amigos':
-        if(seleccionFiltro2 == '2 vs 2')
-        {
-          salas = await getSalasAmigos(capacidad: 4);
-        }
-        else if(seleccionFiltro2 == '1 vs 1')
-        {
-          salas = await getSalasAmigos(capacidad: 2);
-        }
-        else
-        {
-          // Si no se ha seleccionado nada, o se ha seleccionado "Todas", obtenemos todas las salas disponibles.
-          salas = await getSalasAmigos();
-        }
+        salas = await getSalasAmigos();
         break;
       
       default:
@@ -302,8 +290,18 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
 
           const SizedBox(height: 12),
           // Filtros de capacidad
+          if(seleccionFiltro1 == 'Disponibles')...[
+            _buildFitrosCapacidad(opciones2),
+          ],
+          
+          
+        ],
+      ),
+    );
+  }
 
-          Container
+  Container _buildFitrosCapacidad(List<String> opciones2){
+    return Container
           (
             clipBehavior: Clip.hardEdge,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -361,10 +359,7 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
                 );
               }, 
             ),
-          ),
-        ],
-      ),
-    );
+          );
   }
 
   Widget _buildListaSalas() 
@@ -448,7 +443,7 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
           if (type == 'start_game' && data != null) 
           {
             // Cierra el overlay de carga
-            if( Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
+            //if( Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
             setState(() {
               gameData = data; // Guarda los datos del juego.
               _searching = false;
@@ -458,7 +453,10 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
           if (type == 'turn_update' && data != null) 
           {
             // Cierra el overlay de carga
-            if( Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
+            //if( Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
+            setState(() {
+              _searching = false; // Cambia el estado a no buscando.
+            });
             subscription?.cancel(); // Cancela la suscripción al socket en esta pantalla.
 
             // Navega a la pantalla de juego y pasamos los datos del juego , primer turno y socket

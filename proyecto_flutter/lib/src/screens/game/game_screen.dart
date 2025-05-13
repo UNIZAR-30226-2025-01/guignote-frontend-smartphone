@@ -26,12 +26,12 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
   bool _isInitialized = false; // Bandera para evitar múltiples ejecuciones
   int segundosPorTurno = 15; // Segundos por turno
   late Timer cuentaAtrasTurnoTimer;
 
-  WebsocketService? _websocketService; // Servicio WebSocket para la conexión
+  WebsocketService? websocketService; // Servicio WebSocket para la conexión
 
   int numJugadores = 2; // Número de jugadores en la partida (2 o 4)
 
@@ -43,7 +43,7 @@ class _GameScreenState extends State<GameScreen> {
 
 
 
-  List<String> playerHand = ['1Oros', '2Oros', '3Oros', '4Oros', '5Oros', '6Oros'];
+  List<String> playerHand = [];
   List<String> rivalHand = ['Back', 'Back', 'Back', 'Back', 'Back', 'Back'];
   int cartasRestantes = 0;
   int segundosRestantesTurno = 15; // Segundos restantes para el turno
@@ -137,7 +137,7 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  String? cardToString(Map<String, dynamic> card) {
+  String? cardToString(Map<String, dynamic>? card) {
     if(card == null) {
       return null;
     }
@@ -182,7 +182,7 @@ class _GameScreenState extends State<GameScreen> {
 
   void salirDeLaPartida() {
     cuentaAtrasTurnoTimer.cancel(); // Cancela el temporizador de cuenta atrás
-    _websocketService?.disconnect(); // Cierra el WebSocket
+    websocketService?.disconnect(); // Cierra el WebSocket
     Navigator.pushReplacementNamed(context, AppRoutes.home); // Redirige a la pantalla de inicio
                       
   }
@@ -234,8 +234,8 @@ class _GameScreenState extends State<GameScreen> {
             },
           };
 
-          if (_websocketService!.isConnected()) {
-            _websocketService?.send(data); // Envía la carta jugada al servidor
+          if (websocketService!.isConnected()) {
+            websocketService?.send(data); // Envía la carta jugada al servidor
           } else {
             print('No hay conexión WebSocket activa');
           }
@@ -257,8 +257,8 @@ class _GameScreenState extends State<GameScreen> {
         'accion': 'anular_pausa',
       };
 
-      if (_websocketService!.isConnected()) {
-        _websocketService?.send(data); // Envía la carta jugada al servidor
+      if (websocketService!.isConnected()) {
+        websocketService?.send(data); // Envía la carta jugada al servidor
       } else {
         print('No hay conexión WebSocket activa');
       }
@@ -273,8 +273,8 @@ class _GameScreenState extends State<GameScreen> {
         'accion': 'pausa',
       };
 
-      if (_websocketService!.isConnected()) {
-        _websocketService?.send(data); // Envía la carta jugada al servidor
+      if (websocketService!.isConnected()) {
+        websocketService?.send(data); // Envía la carta jugada al servidor
       } else {
         print('No hay conexión WebSocket activa');
       }
@@ -289,8 +289,8 @@ class _GameScreenState extends State<GameScreen> {
         'accion': 'cantar',
       };
 
-      if (_websocketService!.isConnected()) {
-        _websocketService?.send(data); // Envía la carta jugada al servidor
+      if (websocketService!.isConnected()) {
+        websocketService?.send(data); // Envía la carta jugada al servidor
       } else {
         print('No hay conexión WebSocket activa');
       }
@@ -305,8 +305,8 @@ class _GameScreenState extends State<GameScreen> {
         'accion': 'cambiar_siete',
       };
 
-      if (_websocketService!.isConnected()) {
-        _websocketService?.send(data); // Envía la carta jugada al servidor
+      if (websocketService!.isConnected()) {
+        websocketService?.send(data); // Envía la carta jugada al servidor
       } else {
         print('No hay conexión WebSocket activa');
       }
@@ -342,7 +342,7 @@ class _GameScreenState extends State<GameScreen> {
 
   // Método para escuchar mensajes del WebSocket
   void _listenToWebSocket() {
-    _websocketService?.incomingMessages.listen((message) {
+    websocketService?.incomingMessages.listen((message) {
       
       print(message); // Imprime el mensaje recibido en la consola
 
@@ -721,7 +721,7 @@ class _GameScreenState extends State<GameScreen> {
         setState(() {
           cartasRestantes = data['mazo_restante'];
 
-          playerHand = ['1Oros', '2Oros', '3Oros', '4Oros', '5Oros', '6Oros']; // Inicializa la mano del jugador
+          playerHand = []; // Inicializa la mano del jugador
 
           misCartas = data['mis_cartas'];
           if (misCartas != null) {
@@ -790,7 +790,7 @@ class _GameScreenState extends State<GameScreen> {
                       ),
                       onPressed: () {
                         Navigator.of(context).pop(); // Cierra el diálogo
-                        _websocketService?.disconnect(); // Cierra el WebSocket
+                        websocketService?.disconnect(); // Cierra el WebSocket
                         Navigator.pushReplacementNamed(context, AppRoutes.home); // Redirige a la pantalla de inicio
                       },
                       child: const Text(
@@ -821,7 +821,7 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  void fillPlayerData2vs2(String miNombre) async{
+  void fillPlayerData2vs2(String miNombre, int puntosEquipo1, int puntosEquipo2) async{
     final jugador1 = jugadores?[0] as Map<String, dynamic>;
     final jugador2 = jugadores?[1] as Map<String, dynamic>;
     final jugador3 = jugadores?[2] as Map<String, dynamic>;
@@ -943,6 +943,31 @@ class _GameScreenState extends State<GameScreen> {
       jugador4PlayedCard = cardToString(jugador1['carta_jugada']) ?? '';
 
     }
+
+
+    if(jugador1Equipo == 1){
+      jugador1Puntos = puntosEquipo1;
+    }else{
+      jugador1Puntos = puntosEquipo2;
+    }
+
+    if(jugador2Equipo == 1){
+      jugador2Puntos = puntosEquipo1;
+    }else{
+      jugador2Puntos = puntosEquipo2;
+    }
+
+    if(jugador3Equipo == 1){
+      jugador3Puntos = puntosEquipo1;
+    }else{
+      jugador3Puntos = puntosEquipo2;
+    }
+
+    if(jugador4Equipo == 1){
+      jugador4Puntos = puntosEquipo1;
+    }else{
+      jugador4Puntos = puntosEquipo2;
+    }
         
 
     final dataJugador1 = await getUserStatisticsWithID(jugador1Id!); // Llama al método para obtener los datos del jugador 1
@@ -956,7 +981,7 @@ class _GameScreenState extends State<GameScreen> {
     jugador4FotoUrl = dataJugador4['imagen'] ?? ''; // Asigna la foto del jugador a jugador4
   }
 
-  void fillPlayerData1vs1(String miNombre) async{
+  void fillPlayerData1vs1(String miNombre, int puntosEquipo1, int puntosEquipo2) async{
     final jugador1 = jugadores?[0] as Map<String, dynamic>;
     final jugador2 = jugadores?[1] as Map<String, dynamic>;
 
@@ -997,6 +1022,18 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
 
+    if(jugador1Equipo == 1){
+      jugador1Puntos = puntosEquipo1;
+    }else{
+      jugador1Puntos = puntosEquipo2;
+    }
+
+    if(jugador2Equipo == 1){
+      jugador2Puntos = puntosEquipo1;
+    }else{
+      jugador2Puntos = puntosEquipo2;
+    }
+
     final dataJugador1 = await getUserStatisticsWithID(jugador1Id!); // Llama al método para obtener los datos del jugador 1
     final dataJugador2 = await getUserStatisticsWithID(jugador2Id!); // Llama al método para obtener los datos del jugador 2
 
@@ -1007,39 +1044,22 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> fillArguments() async {
     /*
-      "type": "start_game",
-      "data": {
-        "mazo_restante": 27,                                       cartas que quedan en mazo central
-        "mis_cartas": [ /* cartas asignadas al jugador */ ],       tu mano
-        "fase_arrastre": false,                                    estás en arrastre?
-        "carta_triunfo": { "palo": "Oros", "valor": 7 },           carta triunfo
-        "chat_id": <CHAT_ID>,                                      id del chat de la partida
-        "tiempo_turno":30                                          tiempo de turno
-        "jugadores": [                                             información jugadores
-          {
-            "id": 1,
-            "nombre": "Usuario 1",
-            "equipo": 1,
-            "num_cartas": 6,
-            "carta_jugada": None               // O una carta: { "palo": "Oros", "valor": 7 }
-          },
-          {
-            "id": 2,
-            "nombre": "Usuario 2",
-            "equipo": 2,
-            "num_cartas": 6,
-            "carta_jugada": None
-          }
-        ]
-      }
-    }
+      {jugadores: [{id: 11, nombre: Adriana, equipo: 1, num_cartas: 6, carta_jugada: null},
+       {id: 7, nombre: Marcelo, equipo: 2, num_cartas: 6, carta_jugada: null}],
+        mazo_restante: 24, fase_arrastre: false, 
+        mis_cartas: [{palo: Copas, valor: 7}, {palo: Bastos, valor: 10}, {palo: Bastos, valor: 1}, {palo: Espadas, valor: 5}, {palo: Bastos, valor: 11}, {palo: Espadas, valor: 4}], 
+        carta_triunfo: {palo: Oros, valor: 7}, 
+        chat_id: 2, 
+        tiempo_turno: 30, 
+        puntos_equipo_1: 2, puntos_equipo_2: 11, 
+        pausados: 0}
     */
 
     // Obtén los argumentos pasados desde la pantalla anterior
     final arguments = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     final data = arguments?['gameData'] as Map<String, dynamic>?;
     final firstTurn = arguments?['firstTurn'] as Map<String, dynamic>?;
-    _websocketService = arguments?['socket'] as WebsocketService?;
+    websocketService = arguments?['socket'] as WebsocketService?;
 
     print(data);
     print(firstTurn);
@@ -1053,13 +1073,14 @@ class _GameScreenState extends State<GameScreen> {
     mazoRestante = data?['mazo_restante'];
     cartasRestantes = mazoRestante!; // Asigna el valor de mazoRestante a cartasRestantes
     misCartas = data?['mis_cartas'];
+    playerHand = []; // Inicializa la mano del jugador
     if (misCartas != null) {
       for (var carta in misCartas!) {
         if (carta.length >= 2) {
           String palo = carta['palo'].toString(); // Extrae el valor asociado a la clave 'palo'
           String valor = carta['valor'].toString(); // Segundo elemento de la sublista
 
-          playerHand[misCartas!.indexOf(carta)] = valor + palo; // Asigna el primer elemento a la mano del jugador
+        playerHand.add(valor + palo); // Asigna el primer elemento a la mano del jugador
         }
       }
     }
@@ -1096,9 +1117,9 @@ class _GameScreenState extends State<GameScreen> {
     print('Número de jugadores: $numJugadores');
     
     if(numJugadores == 4) {
-      fillPlayerData2vs2(miNombre); // Llama a la función para llenar los datos del jugador 2vs2
+      fillPlayerData2vs2(miNombre, data?['puntos_equipo_1'] ?? 0, data?['puntos_equipo_2'] ?? 0); // Llama a la función para llenar los datos del jugador 2vs2
     }else{
-      fillPlayerData1vs1(miNombre); // Llama a la función para llenar los datos del jugador 1vs1
+      fillPlayerData1vs1(miNombre, data?['puntos_equipo_1'] ?? 0, data?['puntos_equipo_2'] ?? 0); // Llama a la función para llenar los datos del jugador 1vs1
     }
 
     _listenToWebSocket(); // Escucha los mensajes del WebSocket
@@ -1106,6 +1127,11 @@ class _GameScreenState extends State<GameScreen> {
     await _loadTapete();
   }
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
 
   @override
@@ -1394,6 +1420,29 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   @override
+  void dispose()
+  {
+    WidgetsBinding.instance.removeObserver(this);
+    cuentaAtrasTurnoTimer.cancel(); // Cancela el temporizador de cuenta atrás
+    websocketService?.disconnect(); // Cierra el WebSocket
+    super.dispose(); // Libera los recursos del estado.
+  }
+
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused) {
+      // La app ya no está en primer plano: 
+      cuentaAtrasTurnoTimer.cancel(); // Cancela el temporizador de cuenta atrás
+      websocketService?.disconnect(); // Cierra el WebSocket
+    } else if (state == AppLifecycleState.resumed) {
+      // La app vuelve a primer plano:
+      Navigator.pushReplacementNamed(context, AppRoutes.home); // Redirige a la pantalla de inicio
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
 
     if (numJugadores == 4) {
@@ -1434,6 +1483,10 @@ class _GameScreenState extends State<GameScreen> {
     const fanAngleDeg = 45.0; // Ángulo del abanico.
     const overlapCorner = 20.0;
     final cardCount = listCards.length;
+
+    if (cardCount == 0) {
+      return const SizedBox(); // Si no hay cartas, no se muestra nada.
+    }
 
     // Abanico para una sola carta.
     if (cardCount == 1) {
