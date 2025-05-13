@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sota_caballo_rey/src/screens/game/game_screen.dart';
+//import 'package:sota_caballo_rey/src/screens/game/game_screen.dart';
 import 'package:sota_caballo_rey/src/widgets/game/game_card.dart';
 
 class CardInFan extends StatefulWidget {
@@ -88,7 +88,7 @@ class _CardInFanState extends State<CardInFan>
                   ),
                   child: GestureDetector(
                     onTap: widget.onTap,
-                    child: GameCard(card: widget.card, deck: deckSelected, width: widget.width),
+                    child: GameCard(card: widget.card, deck: widget.deck, width: widget.width),
                   ),
                 ),
               ),

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
-import 'package:sota_caballo_rey/src/widgets/background.dart';
-import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/src/widgets/game/game_card.dart';
 import 'package:sota_caballo_rey/src/widgets/game/card_in_fan.dart';
 import 'package:sota_caballo_rey/src/services/websocket_service.dart';
@@ -10,10 +8,15 @@ import 'dart:math' as math;
 import 'dart:async';
 import 'package:sota_caballo_rey/src/screens/game/gamechat_modal.dart';
 import 'package:sota_caballo_rey/src/screens/game/game_settings.dart';
+import 'package:sota_caballo_rey/src/data/tapete_sets.dart';
 
 
 
-const String deckSelected = 'base'; // Baraja seleccionada por el jugador.
+String deckSelected1 = 'base';
+String deckSelected2 = 'base';
+String deckSelected3 = 'base';
+String deckSelected4 = 'base';
+String tapeteSelected = 'assets/images/tapetes/tapete1.png'; // Tapete por defecto.
 
 class GameScreen extends StatefulWidget {
 
@@ -1090,8 +1093,6 @@ class _GameScreenState extends State<GameScreen> {
       numJugadores = jugadores!.length; // Número de jugadores en la partida
     }
 
-    
-
     print('Número de jugadores: $numJugadores');
     
     if(numJugadores == 4) {
@@ -1101,6 +1102,8 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     _listenToWebSocket(); // Escucha los mensajes del WebSocket
+    await _loadDecks();
+    await _loadTapete();
   }
 
 
@@ -1114,6 +1117,52 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  Future<void> _loadDecks () async
+  {
+    try {
+      // Jugador 1
+      final eq1 = await getEquippedItems(jugador1Id!);
+      final skin1 = (eq1['equipped_skin'] as Map<String, dynamic>?)?['id'] as int?;
+
+      // Jugador 2
+      final eq2 = await getEquippedItems(jugador2Id!);
+      final skin2 = (eq2['equipped_skin'] as Map<String, dynamic>?)?['id'] as int?;
+
+      // Jugador 3
+      int skin3 = 1;
+      if (jugador3Id != null)
+      {
+        final eq3 = await getEquippedItems(jugador3Id!);
+        skin3 = (eq3['equipped_skin'] as Map<String, dynamic>?)?['id'] as int? ?? 1;
+      }
+
+      // Jugador 4
+      int skin4 = 1;
+      if (jugador4Id != null)
+      {
+        final eq4 = await getEquippedItems(jugador4Id!);
+        skin4 = (eq4['equipped_skin'] as Map<String, dynamic>?)?['id'] as int? ?? 1;
+      }
+
+      setState (() {
+        deckSelected1 = (skin1 == 1) ? 'base' : (skin1 == 2) ? 'poker' : (skin1 == 3) ? 'paint' : 'base';
+        deckSelected2 = (skin2 == 1) ? 'base' : (skin2 == 2) ? 'poker' : (skin2 == 3) ? 'paint' : 'base';
+        deckSelected3 = (skin3 == 1) ? 'base' : (skin3 == 2) ? 'poker' : (skin3 == 3) ? 'paint' : 'base';
+        deckSelected4 = (skin4 == 1) ? 'base' : (skin4 == 2) ? 'poker' : (skin4 == 3) ? 'paint' : 'base';
+      });
+    } catch (e) {
+      debugPrint('Error cargando skins: $e');
+    }
+  }
+
+  Future<void> _loadTapete() async
+  {
+    final eq = await getEquippedItems(jugador1Id!);
+    final tapId = (eq['equipped_tapete'] as Map<String,dynamic>?)?['id'] as int? ?? 1;
+    final set = tapeteSets.firstWhere((t) => t.id == tapId, orElse: () => tapeteSets[0]);
+    setState(() => tapeteSelected = set.assetPath);
+  }
+
   Scaffold build1vs1(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -1121,20 +1170,8 @@ class _GameScreenState extends State<GameScreen> {
       body: Stack(
         children: [
           // Fondo principal:
-          const Background(),
-          const CornerDecoration(
-            imageAsset: 'assets/images/gold_ornaments.png',
-          ),
-          // Logo de la aplicación al fondo
-          Align(
-            alignment: const Alignment(0.0, -0.15),
-            child: Opacity(
-              opacity: 0.5,
-              child: Image.asset(
-                'assets/images/app_logo_white.png',
-                width: 100,
-              ),
-            ),
+          Positioned.fill(
+            child: Image.asset(tapeteSelected, fit: BoxFit.fill, alignment: Alignment.center,), 
           ),
 
           if (faseArrastre == false) ...[
@@ -1143,13 +1180,13 @@ class _GameScreenState extends State<GameScreen> {
               alignment: const Alignment(0.3, -0.11),
               child: RotatedBox(
               quarterTurns: 45,
-              child: GameCard(card: triunfo, deck: deckSelected, width: 75),
+              child: GameCard(card: triunfo, deck: deckSelected1, width: 75),
               ),
             ),
             // Carta del mazo
             Align(
               alignment: const Alignment(0.0, -0.15),
-              child: GameCard(card: 'Back', deck: deckSelected, width: 75),
+              child: GameCard(card: 'Back', deck: deckSelected1, width: 75),
             ),
           ],
 
@@ -1158,7 +1195,7 @@ class _GameScreenState extends State<GameScreen> {
           jugador1PlayedCard.isNotEmpty
               ? Align(
                   alignment: const Alignment(0.0, 0.25),
-                  child: GameCard(card: jugador1PlayedCard, deck: deckSelected, width: 75),
+                  child: GameCard(card: jugador1PlayedCard, deck: deckSelected1, width: 75),
                 )
               : const SizedBox.shrink(),
 
@@ -1167,14 +1204,14 @@ class _GameScreenState extends State<GameScreen> {
           jugador2PlayedCard.isNotEmpty
               ? Align(
                   alignment: const Alignment(0.0, -0.55),
-                  child: GameCard(card: jugador2PlayedCard, deck: deckSelected, width: 75),
+                  child: GameCard(card: jugador2PlayedCard, deck: deckSelected2, width: 75),
                 )
               : const SizedBox.shrink(),
 
           // Añadimos mano del jugador
           Align(
             alignment: const Alignment(0.0, 0.77),
-            child: buildPlayerHand(context, playerHand),
+            child: buildPlayerHand(context, playerHand, deckSelected1),
           ),
 
           // Añadimos mano del rival
@@ -1182,7 +1219,7 @@ class _GameScreenState extends State<GameScreen> {
             alignment: const Alignment(1.1, -1.1),
             child: Transform.rotate(
               angle: 90.8,
-              child: buildRivalHand(context, rivalHand),
+              child: buildRivalHand(context, rivalHand, deckSelected2),
             ),
           ),
 
@@ -1244,27 +1281,15 @@ class _GameScreenState extends State<GameScreen> {
       body: Stack(
         children: [
           // Fondo principal:
-          const Background(),
-          const CornerDecoration(
-            imageAsset: 'assets/images/gold_ornaments.png',
-          ),
-          // Logo de la aplicación al fondo
-          Align(
-            alignment: const Alignment(0.0, -0.15),
-            child: Opacity(
-              opacity: 0.5,
-              child: Image.asset(
-                'assets/images/app_logo_white.png',
-                width: 100,
-              ),
-            ),
+          Positioned.fill(
+            child: Image.asset(tapeteSelected, fit: BoxFit.fill, alignment: Alignment.center,), 
           ),
 
           if (faseArrastre == false) ...[
             // Carta triunfo
             Align(
               alignment: const Alignment(0.0, -0.15),
-              child: GameCard(card: triunfo, deck: deckSelected, width: 75),
+              child: GameCard(card: triunfo, deck: deckSelected1, width: 75),
             ),
           ],
 
@@ -1273,7 +1298,7 @@ class _GameScreenState extends State<GameScreen> {
           jugador1PlayedCard.isNotEmpty
               ? Align(
                   alignment: const Alignment(0.0, 0.25),
-                  child: GameCard(card: jugador1PlayedCard, deck: deckSelected, width: 75),
+                  child: GameCard(card: jugador1PlayedCard, deck: deckSelected1, width: 75),
                 )
               : const SizedBox.shrink(),
 
@@ -1282,7 +1307,7 @@ class _GameScreenState extends State<GameScreen> {
           jugador2PlayedCard.isNotEmpty
               ? Align(
                   alignment: const Alignment(0.0, -0.55),
-                  child: GameCard(card: jugador2PlayedCard, deck: deckSelected, width: 75),
+                  child: GameCard(card: jugador2PlayedCard, deck: deckSelected2, width: 75),
                 )
               : const SizedBox.shrink(),
 
@@ -1290,7 +1315,7 @@ class _GameScreenState extends State<GameScreen> {
           jugador3PlayedCard.isNotEmpty
               ? Align(
                   alignment: const Alignment(-0.55, -0.15),
-                  child: GameCard(card: jugador3PlayedCard, deck: deckSelected, width: 75),
+                  child: GameCard(card: jugador3PlayedCard, deck: deckSelected3, width: 75),
                 )
               : const SizedBox.shrink(),
           
@@ -1298,14 +1323,14 @@ class _GameScreenState extends State<GameScreen> {
           jugador4PlayedCard.isNotEmpty
               ? Align(
                   alignment: const Alignment(0.55, -0.15),
-                  child: GameCard(card: jugador4PlayedCard, deck: deckSelected, width: 75),
+                  child: GameCard(card: jugador4PlayedCard, deck: deckSelected4, width: 75),
                 )
               : const SizedBox.shrink(),
 
           // Añadimos mano del jugador
           Align(
             alignment: const Alignment(0.0, 0.77),
-            child: buildPlayerHand(context, playerHand),
+            child: buildPlayerHand(context, playerHand, deckSelected1),
           ),
 
 
@@ -1403,7 +1428,7 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget buildPlayerHand(BuildContext context, List<String> listCards) {
+  Widget buildPlayerHand(BuildContext context, List<String> listCards, String deck) {
     const cardWidth = 75.0;
     const cardHeight = 105.0;
     const fanAngleDeg = 45.0; // Ángulo del abanico.
@@ -1418,7 +1443,7 @@ class _GameScreenState extends State<GameScreen> {
         child: Center(
           child: CardInFan(
             card: listCards[0],
-            deck: deckSelected,
+            deck: deck,
             width: cardWidth,
             angle: 0.0,
             dx: 0.0,
@@ -1443,7 +1468,7 @@ class _GameScreenState extends State<GameScreen> {
           for (var i = 0; i < cardCount; i++)
             CardInFan(
               card: listCards[i],
-              deck: deckSelected,
+              deck: deck,
               width: cardWidth,
               angle: (startAngle + angleStep * i) * (math.pi / 180),
               dx: separation * (i - (cardCount - 1) / 2),
@@ -1455,7 +1480,7 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  SizedBox buildRivalHand(BuildContext context, List<String> cardImages) {
+  SizedBox buildRivalHand(BuildContext context, List<String> cardImages, String deck) {
     // Tamaño de las cartas
     const cardWidth = 75.0;
     const cardHeight = 105.0;
@@ -1485,7 +1510,7 @@ class _GameScreenState extends State<GameScreen> {
                   Matrix4.identity()
                     ..rotateZ(startAngle + angleStep * i)
                     ..translate(overlapDistance * i),
-              child: GameCard(card: cardImages[i], deck: deckSelected, width: cardWidth),
+              child: GameCard(card: cardImages[i], deck: deck, width: cardWidth),
             ),
         ],
       ),
