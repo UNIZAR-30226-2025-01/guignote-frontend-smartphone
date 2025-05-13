@@ -633,6 +633,20 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: 
             [
+            
+            const Text
+            (
+              'Crear partida personalizada',
+              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+
+            const SizedBox(height: 10),
+
+            const Text('Solo se podrán unir amigos a la partida.', style: TextStyle(color: Colors.white70, fontSize: 16), textAlign: TextAlign.center),
+
+            const SizedBox(height: 24),
+
             const Text
             (
               'Capacidad',
