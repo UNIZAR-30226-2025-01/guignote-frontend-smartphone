@@ -4,7 +4,6 @@
 ## Descripción
 Este repositorio continene el código fuente del frontend para la aplicación de móvil Sota, Caballo y Rey.
 
-// TODO COMPLETAR
 
 ## Tecnologías
 * Framework: Flutter.
