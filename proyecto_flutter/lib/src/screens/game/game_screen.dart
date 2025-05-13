@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
+import 'package:sota_caballo_rey/src/themes/theme.dart';
 import 'package:sota_caballo_rey/src/widgets/game/game_card.dart';
 import 'package:sota_caballo_rey/src/widgets/game/card_in_fan.dart';
 import 'package:sota_caballo_rey/src/services/websocket_service.dart';
@@ -1285,14 +1286,73 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
           if (mostrarSegundosRestantesTurno)
             Align(
               alignment: const Alignment(0.0, 0.45),
-              child: Text(
-              '$segundosRestantesTurno',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              
+              child: Container
+              (
+                width: 80,
+                height: 80,
                 
-              ),
+                decoration: BoxDecoration
+                (
+                  shape: BoxShape.circle,
+                  color: AppTheme.blackColor.withAlpha(100),
+                  boxShadow: 
+                  [
+                    BoxShadow
+                    (
+                      color: Colors.black.withAlpha(150),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Stack
+                (
+                  alignment: Alignment.center,
+                  children: 
+                  [
+                    SizedBox
+                    (
+                      width: 64,
+                      height: 64,
+                      child: CircularProgressIndicator
+                      (
+                        value: (segundosRestantesTurno / segundosPorTurno),
+                        strokeWidth: 8,
+                        backgroundColor: AppTheme.blackColor.withAlpha(100),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+                      ),
+                    ),
+                    Text.rich
+                    (
+                      TextSpan
+                      (
+                        children: 
+                        [
+                          TextSpan
+                          (
+                            text: 'Tu turno\n',
+                            style: TextStyle
+                            (
+                              fontSize: 12,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          TextSpan
+                          (
+                            text: '${segundosRestantesTurno}s',
+                            style: const TextStyle
+                            (
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
         ],
