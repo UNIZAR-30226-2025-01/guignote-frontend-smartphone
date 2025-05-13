@@ -125,6 +125,7 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
     {
       _searching = true; // Cambia el estado de búsqueda a verdadero
       _statusMessage = 'Creando partida personalizada...'; // Establece el mensaje de estado
+      print(_statusMessage);
       players.clear(); // Limpia la lista de partidas 
     });
 
@@ -563,9 +564,32 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
             //if( Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
             setState(() {
               gameData = data; // Guarda los datos del juego.
-              _searching = false;
-              _statusMessage = ''; // Restablece el mensaje de estado
-              players.clear(); // Limpia la lista de jugadores
+              if(seleccionFiltro1 == 'Reconectables' && data['turno'] != null)
+              {
+                _searching = false; // Cambia el estado a no buscando.
+                subscription?.cancel(); // Cancela la suscripción al socket en esta pantalla.
+
+                String? turnName = data['turno'] as String?; // Obtiene el turno del juego.
+                print(turnName); // Imprime el turno del juego.
+
+                final turn = {
+                  'message': 'Es el turno de ${turnName ?? 'Jugador'}.',
+                  'jugador': {
+                    'nombre': turnName,
+                    'id': 0,
+                  }
+                };
+                // Navega a la pantalla de juego y pasamos los datos del juego , primer turno y socket
+                Navigator.pushReplacementNamed(
+                  context, 
+                  AppRoutes.game, 
+                  arguments: {
+                    'gameData': gameData, // Datos del juego
+                    'firstTurn': turn, // Primer turno del juego
+                    'socket': websocketService, // Socket del juego
+                  }
+                );
+              }
             });
           }
 
