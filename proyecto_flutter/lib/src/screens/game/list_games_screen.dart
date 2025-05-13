@@ -217,7 +217,6 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
             SearchLobby
             (
               statusMessage: "Esperando jugadores...",
-              players: [],
               onCancel: _cancelSearch, // Llama a la función de cancelar búsqueda
             ),
           ],
