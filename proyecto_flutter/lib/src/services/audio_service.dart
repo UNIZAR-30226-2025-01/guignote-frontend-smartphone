@@ -77,6 +77,15 @@ class AudioService extends WidgetsBindingObserver
     await _effectsPlayer.resume();
   }
 
+  /// Atajos para los efectos de sonido más comunes.
+  
+
+  /// Reproduce el sonido del timer
+  Future<void> playTickEffect() async => playEffect('ticktack');
+
+  /// Reproduce el efecto de sonido de una carta.
+  Future<void> playCardEffect() async => playEffect('card_draw');
+
   /// Ajusta el volumen general de la aplicación.
   ///
   /// Parámetros:

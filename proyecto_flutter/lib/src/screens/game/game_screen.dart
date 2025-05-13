@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:sota_caballo_rey/src/screens/game/gamechat_modal.dart';
 import 'package:sota_caballo_rey/src/screens/game/game_settings.dart';
 import 'package:sota_caballo_rey/src/data/tapete_sets.dart';
+import 'package:sota_caballo_rey/src/services/audio_service.dart';
 
 
 
@@ -42,6 +43,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
 
   String triunfo = '';
 
+  // Servicio de audio
+  AudioService audioService = AudioService();
 
 
   List<String> playerHand = [];
@@ -191,6 +194,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
   void onCardTap(String card) {
     setState(() {
       if (selectedCard == card) {
+        // Reproduce el sonido de la carta
+        audioService.playCardEffect();
         jugarCarta(card);
         selectedCard = null;
       } else {
@@ -333,6 +338,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
           mostrarSegundosRestantesTurno = true;
           if(segundosRestantesTurno > 0) {
             segundosRestantesTurno--;
+            // Reproduce el sonido del temporizador
+            audioService.playTickEffect();
           }
         });
       }
@@ -1498,6 +1505,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
     WidgetsBinding.instance.removeObserver(this);
     cuentaAtrasTurnoTimer.cancel(); // Cancela el temporizador de cuenta atrás
     websocketService?.disconnect(); // Cierra el WebSocket
+    audioService.stopMusic(); // Detiene la música del juego
     super.dispose(); // Libera los recursos del estado.
   }
 
