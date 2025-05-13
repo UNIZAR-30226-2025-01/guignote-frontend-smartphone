@@ -413,10 +413,6 @@ class BackpackTabsState extends State<BackPackTabs> {
     final eqSkinId = equippedSkinIds != null ? equippedSkinIds['id'] as int : null;
     final eqTapeteId = equippedTapeteIds != null ? equippedTapeteIds['id'] as int : null;
 
-    // Imprime en el log
-    debugPrint('🔑 unlockedSkinIds: $skinIds');
-    debugPrint('🔑 unlockedTapeteIds: $tapeteIds');
-
     setState(() {
       unlockedSetIds = skinIds;
       equippedSetId = eqSkinId;
