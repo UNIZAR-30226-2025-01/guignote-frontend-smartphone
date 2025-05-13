@@ -44,7 +44,7 @@ class WebsocketService
     final params = Uri(queryParameters: 
     {
       'token': token,
-      if (partidaID != null) 'partida_id': partidaID.toString(),
+      if (partidaID != null) 'id_partida': partidaID.toString(),
       'capacidad': capacidad.toString(),
       'solo_amigos': soloAmigos.toString(),
     }).query;

@@ -9,9 +9,6 @@ import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/routes.dart';
 import 'package:sota_caballo_rey/src/widgets/search_lobby.dart';
 
-import 'package:sota_caballo_rey/src/widgets/search_lobby.dart';
-
-
 class ListGamesScreen extends StatefulWidget {
   const ListGamesScreen({super.key});
 
@@ -36,11 +33,9 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
   int _tiempoturno = 60; // tiempo de turno
   bool _reglasArrastre = true; // reglas de arrastre
   bool _permitirPartidasRevueltas = true; // permitir partidas revueltas
-  bool _soloAmigos = false; // solo amigos
   bool _searching = false; // indica si se está buscando una partida    
   StreamSubscription<Map<String,dynamic>>? subscription; // suscripción al stream de mensajes entrantes
   Map<String, dynamic>? gameData; // datos del juego
-  bool _searching = false; // variable para controlar el estado de búsqueda
   String _statusMessage = ''; // mensaje de estado
   List<Map<String, dynamic>> players = []; // lista de partidas
 
@@ -719,24 +714,7 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
                 value: _permitirPartidasRevueltas,
                 onChanged: (v) => setState(() => _permitirPartidasRevueltas = v),
               ),
-              
-              const SizedBox(height: 8),
-              
-              SwitchListTile.adaptive
-              (
-                title: const Text('Solo amigos', style: TextStyle(color: Colors.white)),
-                tileColor: AppTheme.blackColor.withAlpha(150),
-                
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                
-                activeColor: AppTheme.blackColor,
-                activeTrackColor: Colors.amber,
-                
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                value: _soloAmigos,
-                onChanged: (v) => setState(() => _soloAmigos = v),
-              ),
-
+                            
               const SizedBox(height: 24),
 
               // — Botón “Crear sala” —
@@ -765,8 +743,3 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
     );
   } 
 }
-
-
-
-
-
