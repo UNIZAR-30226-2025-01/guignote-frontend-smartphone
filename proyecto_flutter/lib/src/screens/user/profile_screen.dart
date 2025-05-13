@@ -10,6 +10,7 @@ import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:sota_caballo_rey/src/data/ranks.dart';
 
 //Pantalla de perfil del usuario.
 //
@@ -154,6 +155,7 @@ Widget buildProfileBox(BuildContext context, Function setState, Future<Map<Strin
         double winLoss = stats["porcentaje_victorias"];
         int elo = stats["elo"];
         int eloParejas = stats["elo_parejas"];
+        final currentRank = ranks.lastWhere((r) => elo >= r.minElo);
 
         return Center(
           child: Container(
@@ -196,20 +198,22 @@ Widget buildProfileBox(BuildContext context, Function setState, Future<Map<Strin
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset(
-                      'assets/images/default_portrait.png', // Por el momento no se implementa en el backend.
-                      width: 24,
-                      height: 24,
-                    ),
+                    ClipOval(
+                      child: Image.asset(
+                        currentRank.iconAsset,
+                        width: 24,
+                        height: 24,
+                      ),
+                    ),   
                     const SizedBox(width: 5),
                     Text(
-                      'Oro',
+                      currentRank.name,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                         fontFamily: 'poppins',
                       ),
-                    ), // Por el momento no se implementa en el backend.
+                    ),
                   ],
                 ),
 

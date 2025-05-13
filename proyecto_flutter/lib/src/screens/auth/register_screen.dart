@@ -61,11 +61,6 @@ class RegisterScreenState extends State<RegisterScreen>
       // Llama a la función de login en un hilo separado
       await Future.delayed(Duration.zero, () async {
         await register(username, email, password, confirmPassword);
-        final userId = await getUserIdByUsername(username);
-        await unlockSkin(userId, 1);
-        await unlockTapete(userId, 1);
-        await equipTapete(userId, 1);
-        await equipSkin(userId, 1);
       });
 
       if (!mounted) return;
