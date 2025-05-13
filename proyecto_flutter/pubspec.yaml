@@ -57,6 +57,10 @@ dev_dependencies:
   # Lints recomendadas para seguir el estilo de flutter.
   flutter_lints: ^5.0.0
 
+  flutter_launcher_icons: ^0.10.0
+  
+
+
 
 flutter:
 
@@ -68,6 +72,9 @@ flutter:
     - assets/images/
     - assets/images/decks/base/
     - assets/images/decks/poker/
+    - assets/images/decks/paint/
+    - assets/images/ranks/
+    - assets/images/tapetes/
     - assets/json/config.json
     - assets/sounds/
     
@@ -77,3 +84,7 @@ flutter:
       fonts:
         - asset: assets/fonts/GlossypersonaluseRegular-eZL93.otf
  
+flutter_icons:
+  android: true            # genera iconos para Android
+  ios: false               
+  image_path: "assets/icon/app_icon.png"
