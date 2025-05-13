@@ -770,44 +770,114 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
         setState(() {
           cuentaAtrasTurnoTimer.cancel(); // Cancela el temporizador de cuenta atrás
           mostrarSegundosRestantesTurno = false;
+
+          final tusPuntos = jugador1Puntos;
+          final rivalPuntos = numJugadores == 4 ? jugador3Puntos : jugador2Puntos;
+          final ganador = data['ganador_equipo'] == jugador1Equipo ? 'TU EQUIPO' : 'EQUIPO RIVAL';
+          final bool esGanador = data['ganador_equipo'] == jugador1Equipo;
           showDialog(
             context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('FIN DE LA PARTIDA'),
-                content: Text('Tus puntos: $jugador1Puntos\nPuntos rival: ${numJugadores == 4 ? jugador3Puntos : jugador2Puntos}\nGanador: ${data['ganador_equipo'] == jugador1Equipo ? 'TU EQUIPO' : 'EQUIPO RIVAL'}'),
-                actions: [
-                    Align(
-                    alignment: Alignment.bottomCenter,
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.9, // Ocupa el 90% del ancho
-                      child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red, // Color rojo
-                        padding: const EdgeInsets.symmetric(vertical: 15), // Altura del botón
-                        shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10), // Bordes redondeados
-                        ),
+            barrierDismissible: false,
+
+            builder: (_) => Dialog
+            (
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              child: Container
+              (
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration
+                (
+                  color: AppTheme.blackColor,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.blackColor.withAlpha(100),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Column
+                (
+                  mainAxisSize: MainAxisSize.min,
+                  children: 
+                  [
+                    // Icono de trofeo o de derrota
+                    Icon
+                    (
+                      esGanador ? Icons.emoji_events : Icons.sentiment_dissatisfied,
+                      color: esGanador ? Colors.amber : Colors.redAccent,
+                      size: 48,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Título 
+                    Text
+                    (
+                      'Fin de la partida',
+                      style: AppTheme.dialogTitleStyle,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Puntos en filas separadas
+                    _buildScoreRow('Tus puntos', tusPuntos),
+                    const SizedBox(height: 8),
+                    _buildScoreRow('Puntos del rival', rivalPuntos),
+                    const SizedBox(height: 16),
+
+                    // Mensaje según se gane o se pierda
+                    Text
+                    (
+                      esGanador ? '¡Felicidades! Has ganado la partida.' : '¡Más suerte a la próxima!.',
+                      style: TextStyle
+                      (
+                        color: esGanador ? Colors.amber : Colors.white,
+                        fontSize: 16,
                       ),
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Cierra el diálogo
-                        websocketService?.disconnect(); // Cierra el WebSocket
-                        Navigator.pushReplacementNamed(context, AppRoutes.home); // Redirige a la pantalla de inicio
-                      },
-                      child: const Text(
-                        'SALIR',
-                        style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18, // Tamaño de fuente más grande
-                        fontWeight: FontWeight.bold,
+                      textAlign: TextAlign.center,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Botón de salir
+                    SizedBox
+                    (
+                      width: double.infinity,
+                      child: ElevatedButton
+                      (
+                        style: ElevatedButton.styleFrom
+                        (
+                          backgroundColor: Colors.redAccent,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder
+                          (
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                      ),
+                        onPressed: ()
+                        {
+                          Navigator.of(context).pop(); // Cierra el diálogo
+                          websocketService?.disconnect(); // Cierra el WebSocket
+                          Navigator.pushReplacementNamed(context, AppRoutes.home); // Redirige a la pantalla de inicio
+                        },
+
+                        child: const Text
+                        (
+                          'Salir',
+                          style: TextStyle
+                          (
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              );
-            },
+                  ],
+                ),
+              ),
+            ),
           );
         });
       }
@@ -820,6 +890,29 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
       }
 
     });
+  }
+
+  Widget _buildScoreRow(String label, int valor)
+  {
+    return Row
+    (
+      children: 
+      [
+        Expanded
+        (
+          child: Text
+          (
+            label,
+            style: const TextStyle (color: Colors.white, fontSize: 16),
+          ),
+        ),
+        Text
+        (
+          '$valor',
+          style: const TextStyle (color: Colors.white, fontSize: 16),
+        ),
+      ],
+    );
   }
 
   void fillPlayerData2vs2(String miNombre, int puntosEquipo1, int puntosEquipo2) async{
