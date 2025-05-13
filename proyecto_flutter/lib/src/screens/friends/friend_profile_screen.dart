@@ -1,13 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/screens/friends/friend_chat.dart';
 import 'package:sota_caballo_rey/src/widgets/background.dart';
 import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
-import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/themes/theme.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_nav_bar.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:sota_caballo_rey/src/data/ranks.dart';
 
 //Pantalla de perfil del usuario.
