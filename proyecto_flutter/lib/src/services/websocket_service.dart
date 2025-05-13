@@ -90,9 +90,15 @@ class WebsocketService
       required bool reglasArrastre,
     })  async
     {
+      final token = await StorageService.getToken();
+      if (token == null) 
+      {
+        throw Exception('Usuario no autenticado');
+      }
+
       final params = <String, String>
       {
-        'token': await StorageService.getToken() ?? '',
+        'token': token,
         'es_personalizada': 'true',
         'capacidad': capacidad.toString(),
         'solo_amigos': soloAmigos.toString(),
@@ -103,6 +109,30 @@ class WebsocketService
       final url = Uri.parse('${Config.wsBaseURL}${Config.conexionPartida}?${Uri(queryParameters: params).query}');
 
       _channel = IOWebSocketChannel.connect(url.toString());
+
+      // Nos aseguramos de que el controlador esté inicializado y abierto
+      if(_incomingController == null || _incomingController!.isClosed) 
+      {
+        _incomingController = StreamController<Map<String, dynamic>>.broadcast();
+      }
+
+      // Enlazamos el canal al controlador
+      _channel!.stream.listen
+      (
+        (raw)
+        {
+          try
+          {
+            final data = jsonDecode(raw as String) as Map<String, dynamic>;
+            _incomingController!.add(data);
+          } catch (e)
+          {
+            _incomingController!.addError(e);
+          }
+        },
+        onError: (error) => _incomingController!.addError(error),
+        onDone: () => _incomingController!.close(),
+      );
     }
 
   /// Chequea si hay una conexión WebSocket activa.

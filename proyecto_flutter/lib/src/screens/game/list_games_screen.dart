@@ -9,7 +9,6 @@ import 'package:sota_caballo_rey/src/widgets/corner_decoration.dart';
 import 'package:sota_caballo_rey/routes.dart';
 import 'package:sota_caballo_rey/src/widgets/search_lobby.dart';
 
-
 class ListGamesScreen extends StatefulWidget {
   const ListGamesScreen({super.key});
 
@@ -34,10 +33,11 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
   int _tiempoturno = 60; // tiempo de turno
   bool _reglasArrastre = true; // reglas de arrastre
   bool _permitirPartidasRevueltas = true; // permitir partidas revueltas
-  bool _soloAmigos = false; // solo amigos
   bool _searching = false; // indica si se está buscando una partida    
   StreamSubscription<Map<String,dynamic>>? subscription; // suscripción al stream de mensajes entrantes
   Map<String, dynamic>? gameData; // datos del juego
+  String _statusMessage = ''; // mensaje de estado
+  List<Map<String, dynamic>> players = []; // lista de partidas
 
 
   @override
@@ -129,6 +129,116 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
 
   }
 
+  Future<void> _createCustomGame() async
+  {
+    if(!(_formKey.currentState?.validate() ?? false)) return; // Valida el formulario
+    
+    setState(() 
+    {
+      _searching = true; // Cambia el estado de búsqueda a verdadero
+      _statusMessage = 'Creando partida personalizada...'; // Establece el mensaje de estado
+      players.clear(); // Limpia la lista de partidas 
+    });
+
+    try
+    {
+      // Conecta al socket para pedir una partida personalizada
+      await websocketService.connectPersonalizada
+      (
+        capacidad: _capacidad,
+        tiempoTurno: _tiempoturno,
+        reglasArrastre: _reglasArrastre,
+        permitirRevueltas: _permitirPartidasRevueltas,
+        soloAmigos: true,
+      );
+
+      await subscription?.cancel(); // Cancela la suscripción anterior si existe.
+      subscription = websocketService.incomingMessages.listen
+      (
+        (message) 
+        {
+          final type = message['type'] as String?;
+          final data = message['data'] as Map<String, dynamic>?;
+
+          switch(type)
+          {
+            case 'player_joined':
+            setState(() {
+              players.add(data!['usuario']); // Agrega el jugador a la lista de jugadores
+              _statusMessage = 'Esperando jugadores: ${players.length}/$_capacidad'; // Actualiza el mensaje de estado
+            });
+            break;
+
+            case 'start_game':
+            setState(() {
+              _statusMessage = 'Partida iniciada'; // Actualiza el mensaje de estado
+              _searching = false; // Cambia el estado de búsqueda a falso
+              gameData = data; // Guarda los datos del juego
+            });
+            break;
+
+            case 'turn_update':
+            setState(() 
+            {
+             subscription?.cancel(); // Cancela la suscripción al socket
+              _searching = false; // Cambia el estado de búsqueda a falso
+              _statusMessage = ''; // Restablece el mensaje de estado 
+              Navigator.pushReplacementNamed(context, AppRoutes.game, arguments: 
+              {
+                'gameData': gameData, // Datos del juego
+                'firstTurn': data, // Primer turno del juego
+                'socket': websocketService, // Socket del juego
+              });
+            });
+            break;
+
+            case 'error':
+              ScaffoldMessenger.of(context).showSnackBar
+              (
+                SnackBar
+                (
+                  content: Text(data?['message'] ?? 'Error al crear la partida'),
+                  backgroundColor: Colors.redAccent,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+          }
+        }
+      );
+  
+    }
+    catch(e)
+    {
+      _cancelCreateGame(); // Cancela la creación de la partida
+      setState(() {
+        _searching = false; // Cambia el estado de búsqueda a falso
+        _statusMessage = ''; // Restablece el mensaje de estado
+      });
+      ScaffoldMessenger.of(context).showSnackBar
+      (
+        const SnackBar
+        (
+          content: Text('Error al crear partida'),
+          backgroundColor: Colors.redAccent,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+  
+  void _cancelCreateGame()
+  {
+    subscription?.cancel(); // Cancela la suscripción al socket
+    subscription = null; // Restablece la suscripción.
+    websocketService.disconnect(); // Desconecta el socket
+    setState(() {
+      _searching = false; // Cambia el estado de búsqueda a falso
+      _statusMessage = ''; // Restablece el mensaje de estado
+      players.clear(); // Limpia la lista de partidas
+    });
+  } 
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -136,7 +246,8 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: Stack(
-        children: [
+        children: 
+        [
           //Fondo principal con degradado radial.
           const Background(),
 
@@ -224,6 +335,8 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
       ),
 
       bottomNavigationBar: CustomNavBar(selectedIndex: 3),
+
+
     );
   }
 
@@ -361,7 +474,7 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
                 );
               }, 
             ),
-          ),
+          ),          
         ],
       ),
     );
@@ -410,7 +523,7 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
             
             
             trailing: const Icon(Icons.chevron_right, color: Colors.amber),
-            onTap: () => joinGame(s['id'] as int, s['capacidad'] as int, false),
+            onTap: () => joinGame(s['id'] as int, s['capacidad'] as int, seleccionFiltro1 == 'Amigos' ? true : false),
           ),
         );
       },
@@ -421,6 +534,7 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
   {
     setState(() {
       _searching = true; // Cambia el estado a buscando.
+      _statusMessage = 'Esperando jugadores...'; // Establece el mensaje de estado
     });
     try
     {
@@ -442,7 +556,10 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
 
           if (type == 'player_joined' && data != null)
           {
-            //if(Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
+            setState(() {
+              players.add(data['jugadores']); // Agrega el jugador a la lista de jugadores
+              _statusMessage = 'Esperando jugadores: ${players.length}/$capacidad'; // Actualiza el mensaje de estado
+            });
           }
 
           if (type == 'start_game' && data != null) 
@@ -452,6 +569,8 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
             setState(() {
               gameData = data; // Guarda los datos del juego.
               _searching = false;
+              _statusMessage = ''; // Restablece el mensaje de estado
+              players.clear(); // Limpia la lista de jugadores
             });
           }
 
@@ -493,175 +612,188 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
   }
 
   Widget _buildCrearTab()
-{
-  return SingleChildScrollView
-  (
-    padding: const EdgeInsets.all(16),
-    child: Container
+  {
+    return SingleChildScrollView
     (
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration
+      child: Container
       (
-        color: AppTheme.blackColor.withAlpha(200),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
-      ),
-      child: Form
-      (
-        key: _formKey,
-        child: Column
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration
         (
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: 
-          [
-            DropdownButtonFormField<int>
+          color: AppTheme.blackColor.withAlpha(200),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+        ),
+        child: Form
+        (
+          key: _formKey,
+          child: Column
+          (
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: 
+            [
+            
+            const Text
             (
-              value: _capacidad,
-              dropdownColor: AppTheme.blackColor.withAlpha(200),
-              iconEnabledColor: Colors.amber,
-              decoration: InputDecoration
-              (
-                labelText: 'Capacidad',
-                labelStyle: TextStyle(color: Colors.white70),
-                filled: true,
-                fillColor: AppTheme.blackColor.withAlpha(150),
-                enabledBorder: OutlineInputBorder
-                (
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.white24),
-                ),
-                focusedBorder: OutlineInputBorder
-                (
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.amber),
-                ), 
-              ),
-              items: [2, 4].map((n) => DropdownMenuItem(value: n, child: Text("$n", style: const TextStyle(color: Colors.white)))).toList(),
-              onChanged: (value) => setState(() => _capacidad = value!),
+              'Crear partida personalizada',
+              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
 
-            TextFormField
-            (
-              mouseCursor: SystemMouseCursors.text,
-              cursorColor: Colors.white,
-              
-              initialValue: "$_tiempoturno",
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration
-              (
-                labelText: 'Tiempo de turno (segundos)',
-                labelStyle: TextStyle(color: Colors.white70),
-                filled: true,
-                fillColor: AppTheme.blackColor.withAlpha(150),
-                enabledBorder: OutlineInputBorder
-                (
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.white24),
-                ),
-                focusedBorder: OutlineInputBorder
-                (
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.amber),
-                ), 
-              ),
-              keyboardType: TextInputType.number,
-              validator: (value) => int.tryParse(value ?? "") == null ? 'Introduce un número' : null,
-              onChanged: (value) => setState(() => _tiempoturno = int.tryParse(value) ?? _tiempoturno),
-            ),
-
-            const SizedBox(height: 24),
-            // — Switches personalizados —
-
-            SwitchListTile.adaptive
-            (
-              title: const Text('Reglas de arrastre', style: TextStyle(color: Colors.white)),
-              
-              tileColor: AppTheme.blackColor.withAlpha(150),
-              
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              
-              activeColor: AppTheme.blackColor,
-              activeTrackColor: Colors.amber,
-              
-              contentPadding:const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              
-              value: _reglasArrastre,
-              onChanged: (v) => setState(() => _reglasArrastre = v),
-            
-            ),
-            
-            const SizedBox(height: 8),
-            
-            SwitchListTile.adaptive
-            (
-              title: const Text('Permitir partidas revueltas', style: TextStyle(color: Colors.white)),
-              tileColor: AppTheme.blackColor.withAlpha(150),
-              
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              
-              activeColor: AppTheme.blackColor,
-              activeTrackColor: Colors.amber,
-              
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              value: _permitirPartidasRevueltas,
-              onChanged: (v) => setState(() => _permitirPartidasRevueltas = v),
-            ),
-            
-            const SizedBox(height: 8),
-            
-            SwitchListTile.adaptive
-            (
-              title: const Text('Solo amigos', style: TextStyle(color: Colors.white)),
-              tileColor: AppTheme.blackColor.withAlpha(150),
-              
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              
-              activeColor: AppTheme.blackColor,
-              activeTrackColor: Colors.amber,
-              
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              value: _soloAmigos,
-              onChanged: (v) => setState(() => _soloAmigos = v),
-            ),
+            const Text('Solo se podrán unir amigos a la partida.', style: TextStyle(color: Colors.white70, fontSize: 16), textAlign: TextAlign.center),
 
             const SizedBox(height: 24),
 
-            // — Botón “Crear sala” —
-            ElevatedButton
+            const Text
             (
-              onPressed: () 
-              {
-                if (_formKey.currentState?.validate() ?? false) 
+              'Capacidad',
+              style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+              const SizedBox(height: 8),
+
+              ToggleButtons
+              (
+                isSelected: [_capacidad == 2, _capacidad == 4],
+                onPressed: (index)
                 {
-                  // tu lógica de creación
-                }
-              },
+                  setState(() {
+                    _capacidad = index == 0 ? 2 : 4;
+                  });
+                },
+                borderRadius: BorderRadius.circular(8),
+                fillColor: Colors.amber,
+                color: Colors.white,
+                selectedColor: AppTheme.blackColor,
+                constraints: const BoxConstraints
+                (
+                  minWidth: 80,
+                  minHeight: 40,
+                ),
 
-              style: ElevatedButton.styleFrom
+                children: const 
+                [
+                  Text('1 vs 1', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('2 vs 2', style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+
+              ),
+
+              const SizedBox(height: 16),
+
+              const Text
               (
-                backgroundColor: Colors.amber,
-                foregroundColor: AppTheme.blackColor,
-                disabledBackgroundColor: Colors.white10,
+                'Tiempo de turno',
+                style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+
+              const SizedBox(height: 8),
+
+              ToggleButtons
+              (
+                isSelected: [_tiempoturno == 15, _tiempoturno == 30, _tiempoturno == 60],
+                onPressed: (index)
+                {
+                  setState(() 
+                  {
+                    switch(index)
+                    {
+                      case 0:
+                        _tiempoturno = 15;
+                        break;
+                      case 1:
+                        _tiempoturno = 30;
+                        break;
+                      case 2:
+                        _tiempoturno = 60;
+                        break;
+                    }
+                  });
+                },
+                borderRadius: BorderRadius.circular(8),
+                fillColor: Colors.amber,
+                color: Colors.white,
+                selectedColor: AppTheme.blackColor,
+                constraints: const BoxConstraints
+                (
+                  minWidth: 80,
+                  minHeight: 40,
+                ),
+
+                children: const 
+                [
+                  Text('15s', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('30s', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('60s', style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+
+              ),
+
+              const SizedBox(height: 24),
+              // — Switches personalizados —
+
+              SwitchListTile.adaptive
+              (
+                title: const Text('Reglas de arrastre', style: TextStyle(color: Colors.white)),
+                
+                tileColor: AppTheme.blackColor.withAlpha(150),
                 
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                activeColor: AppTheme.blackColor,
+                activeTrackColor: Colors.amber,
+                
+                contentPadding:const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                
+                value: _reglasArrastre,
+                onChanged: (v) => setState(() => _reglasArrastre = v),
+              
               ),
+              
+              const SizedBox(height: 8),
+              
+              SwitchListTile.adaptive
+              (
+                title: const Text('Permitir partidas revueltas', style: TextStyle(color: Colors.white)),
+                tileColor: AppTheme.blackColor.withAlpha(150),
+                
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                
+                activeColor: AppTheme.blackColor,
+                activeTrackColor: Colors.amber,
+                
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                value: _permitirPartidasRevueltas,
+                onChanged: (v) => setState(() => _permitirPartidasRevueltas = v),
+              ),
+                            
+              const SizedBox(height: 24),
 
-              child: const Text('Crear sala', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ),
-          ],
-          
+              // — Botón “Crear sala” —
+              ElevatedButton
+              (
+                onPressed: _searching ? null : _createCustomGame,
+
+                style: ElevatedButton.styleFrom
+                (
+                  backgroundColor: Colors.amber,
+                  foregroundColor: AppTheme.blackColor,
+                  disabledBackgroundColor: Colors.white10,
+                  
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+
+                child: const Text('Crear sala', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ],
+            
+          ),
         ),
       ),
-    ),
-  );
-} 
+    );
+  } 
 }
-
-
-
-
-
