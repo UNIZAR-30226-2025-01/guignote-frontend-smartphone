@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sota_caballo_rey/src/services/api_service.dart';
 import 'package:sota_caballo_rey/src/widgets/custom_title.dart';
+import 'dart:async';
+import 'package:sota_caballo_rey/src/services/notifications_service.dart';
 
 class FriendRequestScreen extends StatefulWidget {
   // Para tests: solicitudes precargadas.
@@ -8,7 +10,11 @@ class FriendRequestScreen extends StatefulWidget {
   final Future<void> Function(String id, bool accept) onManage;
 
   /// Constructor de clase
-  const FriendRequestScreen({super.key, this.initialRequests, Future<void> Function(String, bool)? onManage}) : onManage = onManage ?? _defaultManage;
+  const FriendRequestScreen({
+    super.key, 
+    this.initialRequests, 
+    Future<void> Function(String, bool)? onManage
+    }) : onManage = onManage ?? _defaultManage;
 
   static Future<void> _defaultManage(String id, bool accept)
   {
@@ -30,10 +36,13 @@ class FriendRequestState extends State<FriendRequestScreen> {
   /// Para animaciones
   final GlobalKey<AnimatedListState> _animatedListKey = GlobalKey();
 
+  Timer? _pollingTimer;
+  final _notifications = NotificationsService();
+
   @override
   void initState() {
     super.initState();
-
+    
     if (widget.initialRequests != null)
     {
       _solicitudes = widget.initialRequests!;
@@ -41,8 +50,19 @@ class FriendRequestState extends State<FriendRequestScreen> {
     }
     else
     {
-      _cargarSolicitudes();
+      _cargarSolicitudes().then((_)
+      {
+        // Arrancamos el polling
+        _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) => _checkForNewRequests());
+      });
     }
+  }
+
+  @override
+  void dispose() 
+  {
+    _pollingTimer?.cancel();
+    super.dispose();
   }
 
   ///
@@ -60,6 +80,36 @@ class FriendRequestState extends State<FriendRequestScreen> {
         _error = true;
         _cargando = false;
       });
+    }
+  }
+
+  ///
+  /// Comprueba si hay nuevas solicitudes de amistad
+  /// 
+  Future<void> _checkForNewRequests() async 
+  {
+    try 
+    {
+      final nuevas = await listarSolicitudesAmistad();
+      if (nuevas.length > _solicitudes.length) 
+      {
+        final diff = nuevas.length - _solicitudes.length;
+
+        // Mostramos notifiacación
+        await _notifications.showNotification
+        (
+          '!Tienes $diff nueva(s) solicitud(es) de amistad!',
+          'Pulsa aquí para verlas',
+        );
+      }
+
+      // Actualizamos la lista de solicitudes y refrescamos UI
+      setState(() => _solicitudes = nuevas);
+
+    } 
+    catch(e) 
+    {
+      // Ignoramos erroes de polling
     }
   }
 
