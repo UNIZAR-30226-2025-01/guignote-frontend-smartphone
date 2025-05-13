@@ -17,7 +17,7 @@ String deckSelected1 = 'base';
 String deckSelected2 = 'base';
 String deckSelected3 = 'base';
 String deckSelected4 = 'base';
-String tapeteSelected = 'assets/images/tapete1.png'; // Tapete por defecto.
+String tapeteSelected = 'assets/images/tapetes/tapete1.png'; // Tapete por defecto.
 
 class GameScreen extends StatefulWidget {
 
@@ -1090,10 +1090,10 @@ class _GameScreenState extends State<GameScreen> {
       }
 
       setState (() {
-        deckSelected1 = (skin1 == 1) ? 'base' : 'poker';
-        deckSelected2 = (skin2 == 1) ? 'base' : 'poker';
-        deckSelected3 = (skin3 == 1) ? 'base' : 'poker';
-        deckSelected4 = (skin4 == 1) ? 'base' : 'poker';
+        deckSelected1 = (skin1 == 1) ? 'base' : (skin1 == 2) ? 'poker' : (skin1 == 3) ? 'paint' : 'base';
+        deckSelected2 = (skin2 == 1) ? 'base' : (skin2 == 2) ? 'poker' : (skin2 == 3) ? 'paint' : 'base';
+        deckSelected3 = (skin3 == 1) ? 'base' : (skin3 == 2) ? 'poker' : (skin3 == 3) ? 'paint' : 'base';
+        deckSelected4 = (skin4 == 1) ? 'base' : (skin4 == 2) ? 'poker' : (skin4 == 3) ? 'paint' : 'base';
       });
     } catch (e) {
       debugPrint('Error cargando skins: $e');

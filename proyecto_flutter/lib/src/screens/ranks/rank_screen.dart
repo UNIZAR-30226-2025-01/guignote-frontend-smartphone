@@ -36,7 +36,7 @@ class RankScreenState extends State<RankScreen> {
         leading: Padding(
           padding: const EdgeInsets.only(left: 35.0),
           child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: Color(0xff171718)),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -99,14 +99,14 @@ class RankScreenState extends State<RankScreen> {
                           textAlign: TextAlign.center,
                         ),
 
-                        const SizedBox(height: 50),
+                        const SizedBox(height: 60),
                         ConstrainedBox(
                           constraints: BoxConstraints(
                             maxWidth: MediaQuery.of(context).size.width * 0.7, 
                             maxHeight: MediaQuery.of(context).size.height * 0.55,
                           ),                                  
                           child: Align(
-                            alignment: const Alignment(-0.75, 0),
+                            alignment: const Alignment(-0.3, 0),
                             child: RankProgressBar(currentElo: elo),
                           ),
                         ),

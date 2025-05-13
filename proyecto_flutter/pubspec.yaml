@@ -68,6 +68,9 @@ flutter:
     - assets/images/
     - assets/images/decks/base/
     - assets/images/decks/poker/
+    - assets/images/decks/paint/
+    - assets/images/ranks/
+    - assets/images/tapetes/
     - assets/json/config.json
     - assets/sounds/
     

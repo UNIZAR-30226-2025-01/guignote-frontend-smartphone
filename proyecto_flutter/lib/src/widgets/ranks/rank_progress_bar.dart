@@ -58,7 +58,7 @@ class RankProgressBar extends StatelessWidget {
           for (var rank in ranks)
             Positioned(
               bottom: barHeight * (rank.minElo / maxElo) - iconSize / 2,
-              left: barWidth + gap,
+              left: - gap,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -73,7 +73,9 @@ class RankProgressBar extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   // Nombre y umbral
-                  Column(
+                  SizedBox(
+                    width: 100,
+                    child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -83,6 +85,9 @@ class RankProgressBar extends StatelessWidget {
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
+                        softWrap: true,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         '${rank.minElo} ELO',
@@ -93,6 +98,7 @@ class RankProgressBar extends StatelessWidget {
                       ),
                     ],
                   ),
+                  )
                 ],
               ),
             ),

@@ -13,18 +13,18 @@ class TapeteSet{
 const List<TapeteSet> tapeteSets = [
   TapeteSet(
     id: 1,
-    assetPath: 'assets/images/tapete1.png',
+    assetPath: 'assets/images/tapetes/tapete1.png',
   ),
   TapeteSet(
     id: 2,
-    assetPath: 'assets/images/tapete2.png',
+    assetPath: 'assets/images/tapetes/tapete2.png',
   ),
   TapeteSet(
     id: 3,
-    assetPath: 'assets/images/tapete3.png',
+    assetPath: 'assets/images/tapetes/tapete3.png',
   ),
   TapeteSet(
     id: 4,
-    assetPath: 'assets/images/tapete4.png',
+    assetPath: 'assets/images/tapetes/tapete4.png',
   ),
 ];
