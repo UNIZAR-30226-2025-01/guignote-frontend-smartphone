@@ -39,27 +39,6 @@ class SecurityScreen extends StatelessWidget
         title: 'Eliminar cuenta',
         onTap: () => _confirmDelete(context), // Acción al pulsar la opción
       ),
-      SettingsTileData
-      (
-        icon: Icons.privacy_tip,
-        title: 'Política de privacidad',
-        onTap: () 
-        {
-          // Acción al pulsar la opción
-          Navigator.pushNamed(context, AppRoutes.privacity); // Navegamos a la pantalla de política de privacidad
-
-        },
-      ),
-      SettingsTileData
-      (
-        icon: Icons.info_outline,
-        title: 'Qué datos recopilamos',
-        onTap: () 
-        {
-          // Acción al pulsar la opción
-          Navigator.pushNamed(context, AppRoutes.dataPolicy); // Navegamos a la pantalla de política de datos
-        },
-      ),
     ]; // Lista de datos de los tiles
     return Scaffold
     (

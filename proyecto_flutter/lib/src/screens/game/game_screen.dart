@@ -775,7 +775,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
 
           final tusPuntos = jugador1Puntos;
           final rivalPuntos = numJugadores == 4 ? jugador3Puntos : jugador2Puntos;
-          final ganador = data['ganador_equipo'] == jugador1Equipo ? 'TU EQUIPO' : 'EQUIPO RIVAL';
           final bool esGanador = data['ganador_equipo'] == jugador1Equipo;
           showDialog(
             context: context,
