@@ -10,10 +10,6 @@ Este repositorio continene el código fuente del frontend para la aplicación de
 
 * Lenguaje: Dart.
 
-* Gestor de estado: (?).
-
-* Navegación: (?).
-
 * Entorno de simulación: Android Studio.
 
 ## Clonación del Repositorio
@@ -44,13 +40,9 @@ cd guignote-frontend-smartphone
 flutter pub get
 ```
 
-## Estructura del Proyecto
+## Ejecución de la aplicación en dispositivos android
 
-// TODO
-
-## Ejecución de la aplicación
-
-// TODO
+Descarga e instala el archivo app-release.apk disponible en la parte de releases.
 
 ## Flujo de trabajo
 
@@ -84,17 +76,12 @@ git checkout -b feature/nueva-funcionalidad
  **2. **Desarrollo y pruebas****
 * Una vez que se ha desarrollado la funcionalidad, se deben realizar pruebas locales.
 
-* Los tests se ejecutan con el fin de no romper nada de la rama `develop`.
-
-* Github Actions se encargará de ejecutar los tests automaticamente en cada push a `develop`. Pero aun así se recomienda verificar localmente el funcionamiento antes de hacer push.
-
 **3. **Hacer merge a `develop`****
 
 * Una vez que la funcionalidad esté probada, se hace merge de la funcionalidad a la rama `develop`.
 
-* **Importante**: Antes de fusionar, asegúrate que tu código está limpio y que pasa los tests correctamente.
+* **Importante**: Antes de fusionar, asegúrate que tu código está limpio y que pasa las pruebas correctamente.
 
-* **El merge solo se completará después de que se ejecuten correctamente los tests desde Github Actions**
 ```bash
 git checkout develop
 git merge feature/nueva-funcionalidad develop
@@ -106,26 +93,6 @@ Una vez hecho el merge, puedes eliminar la rama de funcionalidad tanto en local 
 git branch -d feature/nueva-funcionalidad
 git push origin --delete feature/nueva-funcionalidad
 ```
-
-## Testing
-
-### ¿Cuándo se ejecutan los tests?
-**1.** **Antes de fusionar con `develop`**: 
-   
-   * Se ejecutan automáticamente a través de **Github Actions** cada vez que se haga un push a `develop`.
-
-   * **Objetivo:** verificar que las nuevas funcionalidades no rompan el flujo de trabajo ni 
-   el código existente. 
-
-**2.** **Antes de fusionar con `main`**:
-
-   * Se ejecutan automáticamente a través de **Github Actions** cada vez que se haga un merge de `develop` a `main`.
-
-   * **Objetivo:** garantizar que la versión final que se va a liberar sea completamente funcional y sin errores.
-
-### ¿Qué pasa si los tests fallan?
-
-Si los tests de `develop` o `main` fallan, **GitHub Actions** notificará al desarrollador con los errores y el merge no se completará hasta resolverlos.
 
 ## Política de Contribución
 
