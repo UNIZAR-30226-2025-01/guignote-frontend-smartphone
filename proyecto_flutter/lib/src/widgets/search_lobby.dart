@@ -4,14 +4,12 @@ import 'package:sota_caballo_rey/src/themes/theme.dart';
 class SearchLobby extends StatelessWidget
 {
   final String statusMessage;
-  final List<Map<String, dynamic>> players;
   final VoidCallback onCancel;
 
   const SearchLobby({
     super.key,
     required this.statusMessage,
     required  this.onCancel,
-    required this.players,
   });
 
 
@@ -65,19 +63,6 @@ class SearchLobby extends StatelessWidget
                   color: Colors.amber,
                 ),
                 const SizedBox(height: 20),
-
-                // Lista de jugadores conectados
-                if(players.isNotEmpty)...
-                [
-                  const Text('Jugadores conectados:', style: AppTheme.dialogBodyStyle, textAlign: TextAlign.center),
-                  const SizedBox(height: 10),
-                  
-                  for (var player in players)...
-                  [
-                    Text(player['nombre'] as String, style: AppTheme.dialogPlayerStyle, textAlign: TextAlign.center),
-                    const SizedBox(height: 5),
-                  ],
-                ],
 
                 ElevatedButton
                 (

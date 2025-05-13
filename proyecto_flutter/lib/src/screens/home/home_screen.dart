@@ -56,6 +56,7 @@ class HomeScreenState extends State<HomeScreen>
   bool _searching = false; // variable para controlar si se está buscando una partida
   String _statusMessage = 'Pulsa "Buscar Partida" para comenzar'; // mensaje de estado
   final List <Map<String, dynamic>> _players = []; // lista de jugadores
+  int _waitingPlayers = 0; // número de jugadores esperando
   StreamSubscription<Map<String,dynamic>>? _subscription; // suscripción al stream de mensajes entrantes
   final int _selectedIndex = 2; // índice inicial para la pantalla de inicio 
   Map<String, dynamic>? _gameData; // datos del juego
@@ -107,12 +108,25 @@ class HomeScreenState extends State<HomeScreen>
 
           if (type == 'player_joined' && data != null)
           {
+            _waitingPlayers = data['jugadores'] as int;
+           
             setState(() {
-              _players.add(data['usuario'] as Map<String, dynamic>); // Agrega el jugador a la lista de jugadores.
-              _statusMessage = 'Esperando jugadores: ${_players.length}/${_currentMode == 0 ? '4' : '2'}'; // Actualiza el mensaje de estado.
-            });
+            _statusMessage = 'Esperando jugadores: $_waitingPlayers/${_currentMode == 0 ? 4 : 2}';
+          });
+          
+          return;
 
             //if(Navigator.canPop(context)) Navigator.of(context).pop(); // Cierra el diálogo de carga.
+          }
+
+          if(type == 'player_left' && data != null) 
+          {
+            _waitingPlayers = data['jugadores'] as int;
+            setState(() {
+              _statusMessage = 'Esperando jugadores: $_waitingPlayers/${_currentMode == 0 ? '4' : '2'}'; // Actualiza el mensaje de estado.
+            });
+
+            return;
           }
 
           if (type == 'start_game' && data != null) 
@@ -124,6 +138,8 @@ class HomeScreenState extends State<HomeScreen>
               _searching = false; // Cambia el estado a no buscando.
               _statusMessage = 'Partida iniciada'; // Actualiza el mensaje de estado. 
             });
+
+            return;
           }
 
           if (type == 'turn_update' && data != null) 
@@ -141,6 +157,8 @@ class HomeScreenState extends State<HomeScreen>
                 'firstTurn': data, // Primer turno del juego
                 'socket': _websocketService, // Socket del juego
               });
+
+            return;
           }
         }
       );
@@ -309,7 +327,6 @@ class HomeScreenState extends State<HomeScreen>
           SearchLobby
           (
             statusMessage: _statusMessage,
-            players: _players,
             onCancel: _cancelSearch, // Llama a la función de cancelar búsqueda
           ),
         ],
