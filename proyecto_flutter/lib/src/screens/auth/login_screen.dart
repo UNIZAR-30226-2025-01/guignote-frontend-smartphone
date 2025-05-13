@@ -195,22 +195,6 @@ class LoginScreenState extends State<LoginScreen>
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Opción de recuperar contraseña.
-                TextButton(
-                  onPressed: () 
-                  {
-                    // Navega a la pantalla de recuperación de contraseña.
-                    Navigator.pushNamed(context, AppRoutes.passwordRecover);
-                  },
-                  child: const Text(
-                    'Recuperar contraseña',
-                    style: TextStyle(
-                      decoration: TextDecoration.underline,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-
                 Checkbox(
                   // Opción de recordar contraseña.
                   value: _rememberMe,
@@ -223,7 +207,7 @@ class LoginScreenState extends State<LoginScreen>
                   },
                 ),
 
-                const Text('Recuerdame', style: TextStyle(color: Colors.white)),
+                const Text('Recuerdame', style: TextStyle(color: Colors.white), textAlign: TextAlign.start),
               ],
             ),
 

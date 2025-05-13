@@ -119,7 +119,7 @@ Widget _buildProfileImage(String imagenUrl, {double size = 64})
         height: size,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => 
-            const Icon(Icons.error, size: 64, color: Colors.white),
+            const Icon(Icons.person, size: 64, color: Colors.white),
       ),
     );
   }

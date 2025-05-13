@@ -171,17 +171,40 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
   }
 
   void mostrarMensaje(String mensaje) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text(
-          mensaje,
-          style: const TextStyle(color: Colors.white),
+    final snack = SnackBar
+    (
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      elevation: 6,
+      backgroundColor: AppTheme.blackColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+
+      duration: const Duration(seconds: 3),
+
+      content: Row
+      (
+        children: 
+        [
+          const Icon(Icons.info_outline, color: Colors.white, size: 20),
+          const SizedBox(width: 8),
+          
+          Expanded
+          (
+            child: Text
+            (
+              mensaje,
+              style: const TextStyle(color: Colors.white),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.black87,
+        ],
       ),
     );
+
+    ScaffoldMessenger.of(context).showSnackBar(snack);
   }
 
   void salirDeLaPartida() {
