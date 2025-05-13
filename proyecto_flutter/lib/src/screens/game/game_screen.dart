@@ -720,18 +720,19 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
       
       if (type == 'start_game' && data != null) {
         setState(() {
-          cartasRestantes = data['mazo_restante'];
-
-          playerHand = []; // Inicializa la mano del jugador
+          
+          mazoRestante = data['mazo_restante'];
+          cartasRestantes = mazoRestante!; // Asigna el valor de mazoRestante a cartasRestantes
 
           misCartas = data['mis_cartas'];
+          playerHand = []; // Inicializa la mano del jugador
           if (misCartas != null) {
             for (var carta in misCartas!) {
               if (carta.length >= 2) {
                 String palo = carta['palo'].toString(); // Extrae el valor asociado a la clave 'palo'
                 String valor = carta['valor'].toString(); // Segundo elemento de la sublista
 
-                playerHand[misCartas!.indexOf(carta)] = valor + palo; // Asigna el primer elemento a la mano del jugador
+              playerHand.add(valor + palo); // Asigna el primer elemento a la mano del jugador
               }
             }
           }
@@ -750,6 +751,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver{
           
           segundosPorTurno = data['tiempo_turno'] ?? 15; // Segundos por turno
           segundosRestantesTurno = segundosPorTurno; // Reinicia el temporizador de cuenta atrás
+        
         });
       }
 
