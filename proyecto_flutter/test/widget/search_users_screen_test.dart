@@ -96,6 +96,8 @@ void main()
       return (container.decoration as BoxDecoration).color;
     }
 
+  
+
     // Comprobamos que Buscar este seleccionado por defecto.
     final amigosColor = findBackgroundColor('Buscar');
     expect(amigosColor, const Color.fromRGBO(0, 0, 0, 0.5));
@@ -125,6 +127,15 @@ void main()
       );
     }
 
+    // Spy para onSend.
+    bool sendCalled = false;
+    String? sentId;
+    Future<void> fakeSend(String id) async 
+    {
+      sendCalled = true;
+      sentId = id;
+    }
+
     // Montamos la pantalla.
     await tester.pumpWidget(
       MaterialApp(
@@ -132,7 +143,7 @@ void main()
           body: Column(
             children: [
               SizedBox(height: 32,),
-              Expanded(child: SearchUsersScreen(onSearch: fakeSearch)),
+              Expanded(child: SearchUsersScreen(onSearch: fakeSearch, onSend: fakeSend)),
             ],
           )
         ),
@@ -172,6 +183,15 @@ void main()
       return todos.where((u) => u["nombre"]!.toLowerCase().contains(prefix.toLowerCase())).toList();
     }
 
+    // Spy para onSend.
+    bool sendCalled = false;
+    String? sentId;
+    Future<void> fakeSend(String id) async 
+    {
+      sendCalled = true;
+      sentId = id;
+    }
+
     // Montamos la pantalla.
     await tester.pumpWidget(
       MaterialApp(
@@ -179,7 +199,7 @@ void main()
           body: Column(
             children: [
               SizedBox(height: 32,),
-              Expanded(child: SearchUsersScreen(onSearch: fakeSearch)),
+              Expanded(child: SearchUsersScreen(onSearch: fakeSearch, onSend: fakeSend)),
             ],
           )
         ),
@@ -275,12 +295,31 @@ void main()
 
   testWidgets('SearchUsersScreen muestra el mensaje "Sin resultados" cuando la lista está vacia.', (tester) async 
   {
+    // Spy para onSend.
+    bool sendCalled = false;
+    String? sentId;
+    Future<void> fakeSend(String id) async 
+    {
+      sendCalled = true;
+      sentId = id;
+    }
+
+    // Stub de búsqueda con delay.
+    Future<List<Map<String,String>>> fakeSearch(String prefix) async
+    {
+      return
+      [
+        {"id" : "1", "nombre" : "Paco", "imagen" : ""},
+        {"id" : "2", "nombre" : "Ana", "imagen" : ""},
+      ];
+    }
+
     // Montamos la pantalla.
     await tester.pumpWidget
     (
       MaterialApp (
         home: Scaffold (
-          body: SearchUsersScreen(
+          body: SearchUsersScreen(onSend: fakeSend, onSearch: fakeSearch,
           ),
         )
       )

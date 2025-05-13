@@ -256,11 +256,10 @@ class FriendChatState extends State<FriendChat> {
 
   @override
   Widget build(BuildContext context) {
-
     double barraAltura = MediaQuery.of(context).padding.top + 52.0;
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true, // Ajustar al teclado
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -285,12 +284,14 @@ class FriendChatState extends State<FriendChat> {
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     child: Column(
                       children: [
-                        _listaMensajes(),
-                        _inputMensaje()
+                        Expanded( // Asegura que la lista de mensajes ocupe el espacio disponible
+                          child: _listaMensajes(),
+                        ),
+                        _inputMensaje() // Mantén el input fuera del área desplazable
                       ],
                     ),
                   ),
-                )
+                ),
               ],
             ),
           )

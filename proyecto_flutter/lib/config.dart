@@ -70,32 +70,31 @@ class Config {
   static String get obtenerAmigos => _config['obtener_amigos_endpoint'];
   static String get buscarUsuarios => _config['buscar_usuarios_endpoint'];
   static String get eliminarAmigo => _config['eliminar_amigo_endpoint'];
-  static String get aceptarSolicitudAmistad =>
-      _config['aceptar_solicitud_amistad_endpoint'];
-  static String get denegarSolicitudAmistad =>
-      _config['denegar_solicitud_amistad_endpoint'];
-  static String get listarSolicitudesAmistad =>
-      _config['listar_solicitudes_amistad_endpoint'];
-  static String get enviarSolicitudAmistad =>
-      _config['enviar_solicitud_amistad_endpoint'];
-  static String get buscarEstadisticasUsuario =>
-      _config['buscar_estadisticas_usuario_endpoint'];
-  static String get enviarMensajeAmigo =>
-      _config['enviar_mensaje_amigo_endpoint'];
+  static String get aceptarSolicitudAmistad => _config['aceptar_solicitud_amistad_endpoint'];
+  static String get denegarSolicitudAmistad => _config['denegar_solicitud_amistad_endpoint'];
+  static String get listarSolicitudesAmistad => _config['listar_solicitudes_amistad_endpoint'];
+  static String get enviarSolicitudAmistad => _config['enviar_solicitud_amistad_endpoint'];
+  static String get buscarEstadisticasUsuario => _config['buscar_estadisticas_usuario_endpoint'];
+  static String get enviarMensajeAmigo => _config['enviar_mensaje_amigo_endpoint'];
   static String get obtenerMensajes => _config['obtener_mensajes_endpoint'];
   static String get topEloEndpoint => _config['top_elo_endpoint'];
-  static String get topEloParejasEndpoint =>
-      _config['top_elo_parejas_endpoint'];
-  
+  static String get topEloParejasEndpoint => _config['top_elo_parejas_endpoint'];
   static String get conexionPartida => _config['conexion_partida_endpoint'];
   static String get topEloFriendsEndpoint => _config['top_elo_amigos_endpoint'];
-  static String get topEloParejasFriendsEndpoint =>
-      _config['top_elo_parejas_amigos_endpoint'];
-  
+  static String get topEloParejasFriendsEndpoint => _config['top_elo_parejas_amigos_endpoint'];
   static String get obtenerMensajesChatPartida => _config['obtener_mensajes_chat_partida_endpoint'];
   static String get websocketChatPartida => _config['websocket_chat_partida_endpoint'];
   static String get listarSalasDisponibles => _config['listar_salas_disponibles_endpoint'];
   static String get listarSalasReconectables => _config['listar_salas_reconectables_endpoint']; 
   static String get listarSalasPausadas => _config['listar_salas_pausadas_endpoint'];
   static String get listarSalasAmigos => _config['listar_salas_amigos_endpoint'];
+  static String get unlockSkinEndpoint => _config['unlock_skin_endpoint'];
+  static String get unlockBackEndpoint => _config['unlock_back_endpoint'];
+  static String get unlockTapeteEndpoint => _config['unlock_tapete_endpoint'];
+  static String get equipSkinEndpoint => _config['equip_skin_endpoint'];
+  static String get equipBackEndpoint => _config['equip_back_endpoint'];
+  static String get equipTapeteEndpoint => _config['equip_tapete_endpoint'];
+  static String get getUnlockedItemsEndpoint => _config['get_unlocked_items_endpoint'];
+  static String get getEquippedItemsEndpoint => _config['get_equipped_items_endpoint'];
+  static String get getUserIdEndpoint => _config['get_user_id_endpoint'];
 }

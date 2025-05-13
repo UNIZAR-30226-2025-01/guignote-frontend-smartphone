@@ -24,5 +24,14 @@
     "listar_salas_disponibles_endpoint": "/salas/disponibles/",
     "listar_salas_reconectables_endpoint": "/salas/reconectables/",
     "listar_salas_pausadas_endpoint": "/salas/pausadas/",
-    "listar_salas_amigos_endpoint": "/salas/disponibles/amigos/"
+    "listar_salas_amigos_endpoint": "/salas/disponibles/amigos/",
+    "unlock_skin_endpoint": "/usuarios/unlock_skin/",
+    "unlock_back_endpoint": "/usuarios/unlock_back/",
+    "unlock_tapete_endpoint": "/usuarios/unlock_tapete/",
+    "equip_skin_endpoint": "/usuarios/equip_skin/",
+    "equip_back_endpoint": "/usuarios/equip_back/",
+    "equip_tapete_endpoint": "/usuarios/equip_tapete/",
+    "get_unlocked_items_endpoint": "/usuarios/get_unlocked_items/",
+    "get_equipped_items_endpoint": "/usuarios/get_equipped_items/",
+    "get_user_id_endpoint": "/usuarios/usuarios/id/"
 }

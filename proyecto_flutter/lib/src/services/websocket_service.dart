@@ -51,6 +51,7 @@ class WebsocketService
 
     // URL completa para la conexión WebSocket
     final url = Uri.parse('${Config.wsBaseURL}${Config.conexionPartida}?$params');
+    print('Conectando a: $url');
     _channel = WebSocketChannel.connect(url);
 
     // Nos aseguramos de que el controlador esté inicializado y abierto

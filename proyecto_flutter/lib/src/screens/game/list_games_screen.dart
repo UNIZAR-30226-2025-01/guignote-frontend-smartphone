@@ -308,6 +308,7 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
             ),
           ),
 
+<<<<<<< HEAD
           if(_searching)
           SearchLobby
           (
@@ -316,6 +317,16 @@ class ListGamesScreenState extends State<ListGamesScreen> with SingleTickerProvi
             players: players,
           ),
         
+=======
+          // Mostramos el prelobby si se está buscando una partida
+          if(_searching)...[
+            SearchLobby
+            (
+              statusMessage: "Esperando jugadores...",
+              onCancel: _cancelSearch, // Llama a la función de cancelar búsqueda
+            ),
+          ],
+>>>>>>> main
         ],
       ),
 
